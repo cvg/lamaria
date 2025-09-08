@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import sys
 from pathlib import Path
@@ -185,7 +184,7 @@ def main():
     parser = argparse.ArgumentParser(description="LaMAria dataset downloader")
     parser.add_argument(
         "--set",
-        choices=["train", "test", "specific"],
+        choices=["training", "test", "specific"],
         required=True,
         help="What to download: training sequences, test sequences, or a specific list",
     )
@@ -216,7 +215,7 @@ def main():
     train_names, test_names = derive_splits(catalog)
     split_lookup = raw_split_map(catalog)  # seq -> 'training/' or 'test/'
 
-    if args.set == "train":
+    if args.set == "training":
         target_sequences = train_names
         global_split = "training/"
     elif args.set == "test":
