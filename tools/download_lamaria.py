@@ -210,8 +210,6 @@ def main():
 
     print("[info] Building catalog from server…")
     catalog = build_catalog(BASE_URL_DEFAULT)
-
-    print("[info] Deriving training/test sequences from raw_data/…")
     train_names, test_names = derive_splits(catalog)
     split_lookup = raw_split_map(catalog)  # seq -> 'training/' or 'test/'
 
@@ -281,13 +279,7 @@ def main():
         print("[warn] Nothing to download with the given filters.")
         return
 
-    # Summarize
-    print("\n[download] Files to download:")
-    for _area, _sub, fname, url, dest in plan:
-        print(f"  - {url}  ->  {dest}")
-    print()
-
-    # Download
+    print("\n[download] Starting downloads.")
     with requests.Session() as sess:
         for _area, _sub, fname, url, dest in plan:
             print(f"[get] {url}")
