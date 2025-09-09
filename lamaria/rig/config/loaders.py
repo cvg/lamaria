@@ -23,16 +23,16 @@ def load_cfg(
     recordings = Path(cfg.paths.recordings)
     mps = Path(cfg.paths.mps)
 
-    parent_rel = cfg.vio.parent_path
+    parent_rel = cfg.result.parent_path
 
     cfg.vrs_file_path = str(recordings / cfg.run.vrs_file)
-    cfg.mps_slam_path = str(mps / f"mps_{vrs_stem}_vrs" / "slam")
+    cfg.mps_path = str(mps / f"mps_{vrs_stem}_vrs")
     cfg.image_stream_path = str(base / parent_rel / vrs_stem / "image_stream")
     
-    vio_base = base / parent_rel / vrs_stem / cfg.vio.subfolder
+    vio_base = base / parent_rel / vrs_stem / cfg.result.subfolder
 
-    cfg.vio.parent_path = vio_base
-    cfg.vio.keyframes_path = vio_base / cfg.vio.keyframes_subdir
-    cfg.vio.output_folder_path = vio_base / cfg.vio.output_folder
+    cfg.result.parent_path = vio_base
+    cfg.result.keyframes_path = vio_base / cfg.result.keyframes_subdir
+    cfg.result.output_folder_path = vio_base / cfg.result.output_folder
 
     return cfg
