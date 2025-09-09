@@ -1,0 +1,54 @@
+paths:
+  base: /media/lamaria/
+  recordings: ${paths.base}/recordings/
+  mps: ${paths.base}/mps/
+
+camera:
+  model: RAD_TAN_THIN_PRISM_FISHEYE
+
+streams:
+  left_cam_stream_id: 1201-1
+  right_cam_stream_id: 1201-2
+  imu_right_stream_id: 1202-1
+
+flags:
+  use_constant_cam_calib: true
+  mps_fail: false
+
+vio:
+  parent_path: results/
+  subfolder: rig/
+  keyframes_subdir: keyframes/all/
+  output_folder: outputs/
+
+  init_model: empty_recon
+  kf_model: keyframe_recon
+  optim_model: optim_recon
+
+  sfm_pairs: pairs_from_retrieval_and_temporal.txt
+  feature_conf: aliked-n16
+  matcher_conf: aliked+lightglue
+  retrieval_conf: netvlad
+
+optimization:
+  feature_std: 1.0
+  use_callback: true
+  max_num_iterations: 10
+  normalize_reconstruction: false
+  use_factory_cam_intrinsics: true
+  use_factory_cam_extrinsics: true
+  use_factory_imu: true
+  optimize_cam_intrinsics: false
+  optimize_cam_from_rig: false
+  optimize_scale: false
+  optimize_gravity: false
+  optimize_imu_from_rig: false
+  optimize_bias: false
+  imu_inflation_factor_gyro: 20.0
+  imu_inflation_factor_acc: 1.0
+  integration_noise_density: 0.05
+  keep_imu_residuals: true
+
+run:
+  seq_id: long_1
+  vrs_file: ${run.seq_id}.vrs
