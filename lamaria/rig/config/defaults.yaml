@@ -14,7 +14,7 @@ streams:
 flags:
   use_constant_cam_calib: true
   mps_fail: false
-  has_slam_drops: false
+  has_slam_drops: false # check inside vrs.json file
 
 result:
   parent_path: results/
