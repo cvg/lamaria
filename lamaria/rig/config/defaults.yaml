@@ -14,8 +14,9 @@ streams:
 flags:
   use_constant_cam_calib: true
   mps_fail: false
+  has_slam_drops: false
 
-vio:
+result:
   parent_path: results/
   subfolder: rig/
   keyframes_subdir: keyframes/all/
@@ -25,6 +26,12 @@ vio:
   kf_model: keyframe_recon
   optim_model: optim_recon
 
+keyframing:
+  max_rotation: 20.0
+  max_distance: 1.0
+  max_elapsed: 1.0
+
+triangulation:
   sfm_pairs: pairs_from_retrieval_and_temporal.txt
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
