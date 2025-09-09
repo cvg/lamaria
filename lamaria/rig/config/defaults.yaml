@@ -12,7 +12,7 @@ streams:
   imu_right_stream_id: 1202-1
 
 flags:
-  use_constant_cam_calib: false
+  use_device_calib: false
   mps_fail: false
   has_slam_drops: false # check inside vrs.json file
 
