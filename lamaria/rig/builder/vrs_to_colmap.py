@@ -23,8 +23,6 @@ from ...utils.utils import (
     get_mps_poses_for_timestamps,
 )
 
-
-
 @dataclass
 class PerFrameData:
     left_ts: int
@@ -163,15 +161,6 @@ class VrsToColmap:
                 if l is not None:
                     matched.append((l, r))
         return matched
-    
-    def _get_camera_ids(self) -> List[int]:
-        if self.cfg.flags.use_device_calibration:
-            return [2, 3]  # IMU is camera 1
-        else:
-            frame_ids = self._get_frame_ids()
-            left_cam_ids = [2 * fid - 1 for fid in frame_ids]
-            right_cam_ids = [2 * fid for fid in frame_ids]
-            return zip(left_cam_ids, right_cam_ids)
 
     def _get_dummy_imu_params(self) -> List:
         # Dummy values for IMU "camera"
@@ -289,10 +278,10 @@ class VrsToColmap:
         image_id = 1
 
         rig = self.empty_recons.rigs[1]
-        for id, pfd in enumerate(self.per_frame_data):
+        for pfd in self.per_frame_data:
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
-            frame.frame_id = id + 1
+            frame.frame_id = pfd.left_ts  # unique id
             frame.rig_from_world = pfd.rig_from_world
             
             images_to_add = []
@@ -318,7 +307,7 @@ class VrsToColmap:
         for id, pfd in enumerate(self.per_frame_data):
             frame = pycolmap.Frame()
             frame.rig_id = id + 1
-            frame.frame_id = id + 1
+            frame.frame_id = pfd.left_ts  # unique id
             frame.rig_from_world = pfd.rig_from_world
 
             images_to_add = []
