@@ -336,11 +336,13 @@ class VrsToColmap:
             self._add_online_sensors()
             self._add_online_frames()
         
+        logger.info(f"Created empty reconstruction with summary:")
+        logger.info(self.empty_recons.summary())
+        
         return self.empty_recons
 
     def write_reconstruction(self, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(self.empty_recons.summary())
         self.empty_recons.write(output_path)
     
     def write_frame_timestamps(self, output_path: Path) -> None:

@@ -191,6 +191,10 @@ class KeyframeSelector:
             self._build_device_keyframed_reconstruction()
         else:
             self._build_online_keyframed_reconstruction()
+        
+        logger.info(f"Created keyframed reconstruction with summary:")
+        logger.info(self.keyframed_recons.summary())
+
         return self.keyframed_recons
     
     def copy_images_to_keyframes_dir(self, output_dir: Path = None) -> None:
