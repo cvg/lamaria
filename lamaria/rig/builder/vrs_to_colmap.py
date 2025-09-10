@@ -278,10 +278,10 @@ class VrsToColmap:
         image_id = 1
 
         rig = self.empty_recons.rigs[1]
-        for pfd in self.per_frame_data:
+        for id, pfd in enumerate(self.per_frame_data):
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
-            frame.frame_id = pfd.left_ts  # unique id
+            frame.frame_id = id + 1  # unique id
             frame.rig_from_world = pfd.rig_from_world
             
             images_to_add = []
@@ -307,7 +307,7 @@ class VrsToColmap:
         for id, pfd in enumerate(self.per_frame_data):
             frame = pycolmap.Frame()
             frame.rig_id = id + 1
-            frame.frame_id = pfd.left_ts  # unique id
+            frame.frame_id = id + 1
             frame.rig_from_world = pfd.rig_from_world
 
             images_to_add = []
@@ -336,13 +336,13 @@ class VrsToColmap:
             self._add_online_sensors()
             self._add_online_frames()
         
-        logger.info(self.empty_recons.summary())
-        
         return self.empty_recons
 
-    def write(self, output_path: Path) -> None:
+    def write_reconstruction(self, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(self.empty_recons.summary())
         self.empty_recons.write(output_path)
-
-            
-        
+    
+    def write_frame_timestamps(self, output_path: Path) -> None:
+        left_ts = np.array(sorted([pfd.left_ts for pfd in self.per_frame_data]))
+        np.save(output_path, left_ts)
