@@ -1,5 +1,5 @@
 paths:
-  base: /media/lamaria/
+  base: /media/arialamar/
   recordings: ${paths.base}/recordings/
   mps: ${paths.base}/mps/
 
@@ -17,7 +17,7 @@ flags:
   has_slam_drops: false # check inside vrs.json file
 
 result:
-  parent_path: results/
+  parent_path: test/
   subfolder: rig/
   keyframes_subdir: keyframes/
   output_folder: outputs/
@@ -57,5 +57,5 @@ optimization:
   keep_imu_residuals: true
 
 run:
-  seq_id: long_1
+  seq_id: 5cp
   vrs_file: ${run.seq_id}.vrs
