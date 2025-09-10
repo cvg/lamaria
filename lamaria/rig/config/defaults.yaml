@@ -19,7 +19,7 @@ flags:
 result:
   parent_path: results/
   subfolder: rig/
-  keyframes_subdir: keyframes/all/
+  keyframes_subdir: keyframes/
   output_folder: outputs/
 
   init_model: empty_recon
