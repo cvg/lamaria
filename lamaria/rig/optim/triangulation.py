@@ -112,5 +112,4 @@ def run(
         matches=matches_path,
     )
 
-    logger.info("Triangulated COLMAP model at %s", triangulated_model)
     return triangulated_model
