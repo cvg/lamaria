@@ -343,6 +343,7 @@ class VrsToColmap:
         logger.info(f"Init {recon.summary()}")
         recon.write(output_path)
 
-    def write_frame_timestamps(self, output_path: Path) -> None:
+    def write_full_timestamps(self, output_path: Path) -> None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         left_ts = np.array(sorted([pfd.left_ts for pfd in self.per_frame_data]))
         np.save(output_path, left_ts)
