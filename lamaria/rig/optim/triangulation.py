@@ -78,7 +78,7 @@ def run(
     if not reference_model_path.exists():
         raise FileNotFoundError(f"reference_model not found at {reference_model_path}")
 
-    triangulated_model = cfg.result.output_folder_path / cfg.result.tri_model
+    triangulated_model_path = cfg.result.output_folder_path / cfg.result.tri_model
     pairs_path = hloc_outputs_dir / cfg.triangulation.pairs_file
 
     retrieval_conf = extract_features.confs[cfg.triangulation.retrieval_conf]
@@ -103,8 +103,8 @@ def run(
         export_dir=hloc_outputs_dir,
     )
 
-    triangulation.main(
-        sfm_dir=triangulated_model,
+    triangulated_model = triangulation.main(
+        sfm_dir=triangulated_model_path,
         reference_model=reference_model_path,
         image_dir=keyframes_dir,
         pairs=pairs_path,
