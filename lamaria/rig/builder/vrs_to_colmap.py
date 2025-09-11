@@ -120,8 +120,8 @@ class VrsToColmap:
         left_img_dir = self.cfg.image_stream_path / "left"
         right_img_dir = self.cfg.image_stream_path / "right"
 
-        left_images = self._images_from_vrs(left_img_dir, self.cfg.image_stream_path)
-        right_images = self._images_from_vrs(right_img_dir, self.cfg.image_stream_path)
+        left_images = self._images_from_vrs(left_img_dir, left_img_dir)
+        right_images = self._images_from_vrs(right_img_dir, right_img_dir)
 
         return list(zip(left_images, right_images))
 
@@ -336,15 +336,13 @@ class VrsToColmap:
             self._add_online_sensors()
             self._add_online_frames()
         
-        logger.info(f"Created empty reconstruction with summary:")
-        logger.info(self.empty_recons.summary())
-        
         return self.empty_recons
 
-    def write_reconstruction(self, output_path: Path) -> None:
+    def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        self.empty_recons.write(output_path)
-    
+        logger.info(f"Init {recon.summary()}")
+        recon.write(output_path)
+
     def write_frame_timestamps(self, output_path: Path) -> None:
         left_ts = np.array(sorted([pfd.left_ts for pfd in self.per_frame_data]))
         np.save(output_path, left_ts)
