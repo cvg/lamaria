@@ -1,7 +1,15 @@
 import numpy as np
 import pycolmap
+from typing import List
 
-def get_imu_calibration_parameters(
+def load_imu_states(
+    reconstruction: pycolmap.Reconstruction,
+    timestamps: List[int]
+) -> List[pycolmap.ImuState]:
+    pass
+
+
+def load_imu_calibration(
     gyro_infl: float = 1.0,
     acc_infl: float = 1.0
 ) -> pycolmap.ImuCalibration:
