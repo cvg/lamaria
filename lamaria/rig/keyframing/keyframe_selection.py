@@ -201,7 +201,7 @@ class KeyframeSelector:
         if output_dir is None:
             output_dir = self.keyframes_dir
 
-        if output_dir.exists():
+        if output_dir.exists() and any(output_dir.iterdir()):
             shutil.rmtree(output_dir)
         
         output_dir.mkdir(parents=True, exist_ok=True)
