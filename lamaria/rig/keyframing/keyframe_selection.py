@@ -217,6 +217,11 @@ class KeyframeSelector:
                 
                 shutil.copy2(src_path, dst_path)
 
+    def write_keyframe_timestamps(self, output_path: Path) -> None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        keyframed_timestamps = np.array([self.timestamps[i - 1] for i in self.keyframe_frame_ids])
+        np.save(output_path, keyframed_timestamps)
+
     def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
         output_path.mkdir(parents=True, exist_ok=True)
         logger.info(f"Keyframed {recon.summary()}")
