@@ -40,9 +40,10 @@ def pairs_from_frames(recon: pycolmap.Reconstruction):
 
     return rig_pairs, adj_pairs
 
-def postprocess_pairs_with_reconstruction(sfm_pairs_file: Path,
-                                          reconstruction: pycolmap.Reconstruction | Path):
-
+def postprocess_pairs_with_reconstruction(
+    sfm_pairs_file: Path,
+    reconstruction: pycolmap.Reconstruction | Path
+):
     recon = (reconstruction if isinstance(reconstruction, pycolmap.Reconstruction)
              else pycolmap.Reconstruction(str(reconstruction)))
 
