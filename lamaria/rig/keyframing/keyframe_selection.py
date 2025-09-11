@@ -211,8 +211,11 @@ class KeyframeSelector:
             for data_id in frame.data_ids:
                 image = self.init_recons.images[data_id.id]
                 src_path = self.image_stream_root / image.name
-                dst_path = output_dir / image.name
+                
+                name = Path(image.name).stem + Path(image.name).suffix
+                dst_path = output_dir / name
                 dst_path.parent.mkdir(parents=True, exist_ok=True)
+                
                 shutil.copy2(src_path, dst_path)
 
     def write_reconstruction(self, output_path: Path) -> None:
