@@ -191,9 +191,6 @@ class KeyframeSelector:
             self._build_device_keyframed_reconstruction()
         else:
             self._build_online_keyframed_reconstruction()
-        
-        logger.info(f"Created keyframed reconstruction with summary:")
-        logger.info(self.keyframed_recons.summary())
 
         return self.keyframed_recons
     
@@ -218,10 +215,10 @@ class KeyframeSelector:
                 
                 shutil.copy2(src_path, dst_path)
 
-    def write_reconstruction(self, output_path: Path) -> None:
+    def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(self.keyframed_recons.summary())
-        self.keyframed_recons.write(output_path)
+        logger.info(f"Keyframed {recon.summary()}")
+        recon.write(output_path)
 
 
         
