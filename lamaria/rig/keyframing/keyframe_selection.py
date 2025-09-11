@@ -201,22 +201,24 @@ class KeyframeSelector:
         if output_dir is None:
             output_dir = self.keyframes_dir
 
+        if output_dir.exists():
+            shutil.rmtree(output_dir)
+        
         output_dir.mkdir(parents=True, exist_ok=True)
 
         for frame_id in self.keyframe_frame_ids:
             frame = self.init_recons.frames[frame_id]
             for data_id in frame.data_ids:
                 image = self.init_recons.images[data_id.id]
-                src_path = self.image_stream_root / image.name
                 
-                name = Path(image.name).stem + Path(image.name).suffix
-                dst_path = output_dir / name
-                dst_path.parent.mkdir(parents=True, exist_ok=True)
+                subdir = "left" if "1201-1" in image.name else "right"
+                src_path = self.image_stream_root / subdir / image.name
+                dst_path = output_dir / image.name
                 
                 shutil.copy2(src_path, dst_path)
 
     def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.mkdir(parents=True, exist_ok=True)
         logger.info(f"Keyframed {recon.summary()}")
         recon.write(output_path)
 
