@@ -24,6 +24,7 @@ result:
 
   init_model: empty_recon
   kf_model: keyframe_recon
+  tri_model: triangulated_recon
   optim_model: optim_recon
 
 keyframing:
@@ -32,7 +33,7 @@ keyframing:
   max_elapsed: 1.0
 
 triangulation:
-  sfm_pairs: pairs_from_retrieval_and_temporal.txt
+  pairs_file: pairs.txt
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
