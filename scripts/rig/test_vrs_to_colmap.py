@@ -30,8 +30,8 @@ def main():
     kf_recon = kf_selector.run_keyframing()
     kf_selector.write_reconstruction(kf_recon, cfg.result.output_folder_path / cfg.result.kf_model)
     kf_selector.copy_images_to_keyframes_dir()
-    # kf_selector.write_keyframe_timestamps(cfg.result.output_folder_path / "timestamps" / f"keyframe.npy")
-    # _ = run_triangulation(cfg=cfg)
+    kf_selector.write_keyframe_timestamps(cfg.result.output_folder_path / "timestamps" / f"keyframe.npy")
+    _ = run_triangulation(cfg=cfg)
 
 
 if __name__ == "__main__":
