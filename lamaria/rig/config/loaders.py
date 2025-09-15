@@ -29,10 +29,9 @@ def load_cfg(
     cfg.mps_path = mps / f"mps_{vrs_stem}_vrs"
     cfg.image_stream_path = base / parent_rel / vrs_stem / "image_stream"
 
-    vio_base = base / parent_rel / vrs_stem / cfg.result.subfolder
+    vio_base = base / parent_rel / vrs_stem
 
     cfg.result.parent_path = vio_base
-    cfg.result.keyframes_path = vio_base / cfg.result.keyframes_subdir
     cfg.result.output_folder_path = vio_base / cfg.result.output_folder
 
     return cfg
