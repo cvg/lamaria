@@ -70,7 +70,10 @@ def run(
     
     cfg = load_cfg() if cfg is None else cfg
 
-    keyframes_dir = cfg.result.keyframes_path
+    keyframes_dir = cfg.result.output_folder_path / cfg.result.keyframes
+    if not keyframes_dir.exists():
+        raise FileNotFoundError(f"keyframes_dir not found at {keyframes_dir}")
+    
     hloc_outputs_dir = cfg.result.output_folder_path / "hloc"
     hloc_outputs_dir.mkdir(parents=True, exist_ok=True)
 
