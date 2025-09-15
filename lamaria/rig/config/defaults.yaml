@@ -18,14 +18,16 @@ flags:
 
 result:
   parent_path: test/
-  subfolder: rig/
-  keyframes_subdir: keyframes/
-  output_folder: outputs/
-
+  output_folder: rig/
+  
+  keyframes: keyframes
   init_model: empty_recon
   kf_model: keyframe_recon
   tri_model: triangulated_recon
   optim_model: optim_recon
+
+  full_ts: timestamps/full.npy
+  kf_ts: timestamps/keyframe.npy
 
 keyframing:
   max_rotation: 20.0
