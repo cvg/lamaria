@@ -70,14 +70,20 @@ class KeyframeSelector:
     def _build_device_keyframed_reconstruction(self):
         old_rig = self.init_recons.rigs[1]
         new_rig = pycolmap.Rig(rig_id=1)
+        camera_id = 1
+        cam_map = {} # new to old
         
         ref_sensor_id = old_rig.ref_sensor_id.id
-        new_ref_sensor = deepcopy(self.init_recons.cameras[ref_sensor_id])
+        cam_map[ref_sensor_id] = camera_id
+        new_ref_sensor = self._clone_camera(ref_sensor_id, camera_id)
+        camera_id += 1
         self.keyframed_recons.add_camera(new_ref_sensor)
         new_rig.add_ref_sensor(new_ref_sensor.sensor_id)
 
         for sensor, sensor_from_rig in old_rig.sensors.items():
-            new_sensor = deepcopy(self.init_recons.cameras[sensor.id])
+            new_sensor = self._clone_camera(sensor.id, camera_id)
+            cam_map[sensor.id] = camera_id
+            camera_id += 1
             new_sensor_from_rig = deepcopy(sensor_from_rig)
             self.keyframed_recons.add_camera(new_sensor)
             new_rig.add_sensor(new_sensor.sensor_id, new_sensor_from_rig)
@@ -98,11 +104,12 @@ class KeyframeSelector:
             images_to_add = []
             for old_image_id in old_image_ids:
                 old_image = self.init_recons.images[old_image_id]
+                new_cam_id = cam_map[old_image.camera_id]
 
                 new_image = pycolmap.Image(
                     old_image.name,
                     pycolmap.Point2DList(),
-                    old_image.camera_id,
+                    new_cam_id,
                     image_id,
                 )
 
@@ -115,10 +122,15 @@ class KeyframeSelector:
             for img in images_to_add:
                 self.keyframed_recons.add_image(img)
 
-    def _clone_online_camera(self, old_camera_id: int, new_camera_id: int) -> pycolmap.Camera:
+    def _clone_camera(self, old_camera_id: int, new_camera_id: int) -> pycolmap.Camera:
         old_camera = self.init_recons.cameras[old_camera_id]
-        new_camera = deepcopy(old_camera)
-        new_camera.camera_id = new_camera_id
+        new_camera = pycolmap.Camera(
+            model=old_camera.model,
+            width=old_camera.width,
+            height=old_camera.height,
+            params=old_camera.params,
+            camera_id=new_camera_id,
+        )
         return new_camera
 
     def _build_online_keyframed_reconstruction(self):
@@ -135,7 +147,7 @@ class KeyframeSelector:
             
             # IMU cosplaying as a dummy camera
             old_ref_sensor_id = old_rig.ref_sensor_id.id
-            new_ref_sensor = self._clone_online_camera(old_ref_sensor_id, camera_id)
+            new_ref_sensor = self._clone_camera(old_ref_sensor_id, camera_id)
             self.keyframed_recons.add_camera(new_ref_sensor)
             cam_id_map[old_ref_sensor_id] = camera_id
             camera_id += 1
@@ -147,7 +159,7 @@ class KeyframeSelector:
                 old_sensor_id = old_sensor.id
 
                 if old_sensor_id not in cam_id_map:
-                    new_sensor = self._clone_online_camera(old_sensor_id, camera_id)
+                    new_sensor = self._clone_camera(old_sensor_id, camera_id)
                     self.keyframed_recons.add_camera(new_sensor)
                     cam_id_map[old_sensor_id] = camera_id
                     camera_id += 1
