@@ -65,7 +65,7 @@ class VrsToColmap:
             self.imu_stream_id
         )
         
-        if self.cfg.flags.use_device_calibration:
+        if self.cfg.optimization.use_device_calibration:
             device_calibration = self.vrs_provider.get_device_calibration()
             imu_calib = device_calibration.get_imu_calib(
                 imu_stream_label
@@ -77,7 +77,7 @@ class VrsToColmap:
             if t_world_device is None:
                 continue
 
-            if not self.cfg.flags.use_device_calibration:
+            if not self.cfg.optimization.use_device_calibration:
                 ocalib = self.mps_data_provider.get_online_calibration(
                     left_ts, TimeQueryOptions.CLOSEST
                 )
