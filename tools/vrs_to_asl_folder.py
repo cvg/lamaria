@@ -9,7 +9,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
 from lamaria import logger
-from lamaria.utils.utils import (
+from lamaria.utils.general import (
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
     IMU_STREAM_ID,
