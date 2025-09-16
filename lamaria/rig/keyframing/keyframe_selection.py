@@ -11,7 +11,7 @@ import pycolmap
 
 from ... import logger
 from ..config.loaders import load_cfg
-from ...utils.utils import get_magnitude_from_transform
+from ...utils.general import get_magnitude_from_transform
 
 @dataclass
 class KFParams:
@@ -32,7 +32,7 @@ class KeyframeSelector:
             max_elapsed_ns=float(cfg.keyframing.max_elapsed) * 1e9,  # convert to ns
         )
         
-        self.keyframes_dir = cfg.result.keyframes_path
+        self.keyframes_dir = cfg.result.output_folder_path / cfg.result.keyframes
         self.image_stream_root = cfg.image_stream_path
 
         self.keyframed_recons = pycolmap.Reconstruction()
@@ -238,6 +238,3 @@ class KeyframeSelector:
         output_path.mkdir(parents=True, exist_ok=True)
         logger.info(f"Keyframed {recon.summary()}")
         recon.write(output_path)
-
-
-        
