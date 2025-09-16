@@ -10,7 +10,7 @@ from typing import Dict
 import pycolmap
 from tqdm import tqdm
 
-from lamaria.utils.utils import (
+from lamaria.utils.general import (
     ARIA_CAMERAS,
     add_cameras_to_reconstruction,
 )
