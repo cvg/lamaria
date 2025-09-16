@@ -12,7 +12,6 @@ streams:
   imu_right_stream_id: 1202-1
 
 flags:
-  use_device_calibration: true
   mps_fail: false
   has_slam_drops: false # check inside vrs.json file
 
@@ -45,9 +44,7 @@ optimization:
   use_callback: true
   max_num_iterations: 10
   normalize_reconstruction: false
-  use_factory_cam_intrinsics: true
-  use_factory_cam_extrinsics: true
-  use_factory_imu: true
+  use_device_calibration: false
   optimize_cam_intrinsics: false
   optimize_cam_from_rig: false
   optimize_scale: false
