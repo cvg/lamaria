@@ -27,11 +27,10 @@ class SingleSeqSession:
         cfg=None
     ):
         cfg = cfg if cfg is not None else load_cfg()
-        self.reconstruction = reconstruction
-        self.timestamps = timestamps
+        self.reconstruction: pycolmap.Reconstruction = reconstruction
+        self.timestamps: List[int] = timestamps
         self._init_params(cfg)
         self._init_imu_data(rect_imu_data_npy)
-
 
     def _init_imu_data(self, rect_imu_data_npy: Path):
         self.preintegrated_imu_measurements = \
