@@ -1,8 +1,52 @@
 import numpy as np
 import pycolmap
 from typing import List
+from pathlib import Path
 
 from tqdm import tqdm
+
+
+def load_preintegrated_imu_measurements(
+    rect_imu_data_npy: Path,
+    reconstruction: pycolmap.Reconstruction,
+    timestamps: List[int],  # must be a sorted list in ns
+    gyro_infl: float = 1.0,
+    acc_infl: float = 1.0,
+    integration_noise_density: float = 1.0
+) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
+
+    preintegrated_measurements = {}
+    rect_imu_data = np.load(rect_imu_data_npy, allow_pickle=True)
+    imu_measurements = pycolmap.ImuMeasurements(rect_imu_data.tolist())
+    
+    options = pycolmap.ImuPreintegrationOptions()
+    options.integration_noise_density = integration_noise_density
+    imu_calib = load_imu_calibration(gyro_infl, acc_infl)
+
+    frame_ids = sorted(reconstruction.frames.keys())
+    assert len(timestamps) == len(frame_ids), "Unequal timestamps and frames for preinteg calc"
+    assert len(frame_ids) >= 2, "Need at least two frames to compute preinteg measurements"
+    ts_sec = np.asarray(timestamps, dtype=np.float64) / 1e9
+
+    for k in tqdm(
+        range(len(frame_ids) - 1), # skip the last frame
+        desc="Loading preintegrated measurements"
+    ):
+        i = frame_ids[k]
+        t1, t2 = ts_sec[k], ts_sec[k + 1]
+        ms = imu_measurements.get_measurements_contain_edge(t1, t2)
+        if len(ms) == 0:
+            continue
+        integrated_m = pycolmap.PreintegratedImuMeasurement(
+            options,
+            imu_calib,
+            t1,
+            t2,
+        )
+        integrated_m.add_measurements(ms)
+        preintegrated_measurements[i] = integrated_m
+
+    return preintegrated_measurements
 
 def load_imu_states(
     reconstruction: pycolmap.Reconstruction,
@@ -15,7 +59,6 @@ def load_imu_states(
     assert len(frame_ids) >= 2, "Need at least two frames to compute velocity"
 
     ts_sec = np.asarray(timestamps, dtype=np.float64) / 1e9
-
 
     for k in tqdm(
         range(len(frame_ids) - 1),
