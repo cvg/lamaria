@@ -5,14 +5,14 @@ from pathlib import Path
 
 from tqdm import tqdm
 
+from .params import IMUParams
+
 
 def load_preintegrated_imu_measurements(
     rect_imu_data_npy: Path,
     reconstruction: pycolmap.Reconstruction,
     timestamps: List[int],  # must be a sorted list in ns
-    gyro_infl: float = 1.0,
-    acc_infl: float = 1.0,
-    integration_noise_density: float = 1.0
+    params: IMUParams = IMUParams(),
 ) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
 
     preintegrated_measurements = {}
@@ -20,8 +20,8 @@ def load_preintegrated_imu_measurements(
     imu_measurements = pycolmap.ImuMeasurements(rect_imu_data.tolist())
     
     options = pycolmap.ImuPreintegrationOptions()
-    options.integration_noise_density = integration_noise_density
-    imu_calib = load_imu_calibration(gyro_infl, acc_infl)
+    options.integration_noise_density = params.integration_noise_density
+    imu_calib = load_imu_calibration(params.gyro_infl, params.acc_infl)
 
     frame_ids = sorted(reconstruction.frames.keys())
     assert len(timestamps) == len(frame_ids), "Unequal timestamps and frames for preinteg calc"
