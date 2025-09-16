@@ -29,7 +29,7 @@ IMU_STREAM_LABEL = "imu-right"
 def find_closest_timestamp(
     timestamps: list, 
     target_ts: int,
-    max_diff=1e6 # 1 ms in nanoseconds
+    max_diff: float,
 ) -> int | None:
     
     """Timestamps must be in nano seconds"""
@@ -54,7 +54,7 @@ def find_closest_timestamp(
 def get_matched_timestamps(
     left_timestamps: list,
     right_timestamps: list,
-    acceptable_diff=1e6 # 1 ms in nanoseconds
+    max_diff: float,
 ) -> list[tuple[int, int]]:
     
     matched_timestamps = []
@@ -64,13 +64,13 @@ def get_matched_timestamps(
 
     if len(left_timestamps) < len(right_timestamps):
         for lts in left_timestamps:
-            closest_rts = find_closest_timestamp(right_timestamps, lts)
-            if abs(lts - closest_rts) < acceptable_diff:
+            closest_rts = find_closest_timestamp(right_timestamps, lts, max_diff)
+            if abs(lts - closest_rts) < max_diff:
                 matched_timestamps.append((lts, closest_rts))
     else:
         for rts in right_timestamps:
-            closest_lts = find_closest_timestamp(left_timestamps, rts)
-            if abs(rts - closest_lts) < acceptable_diff:
+            closest_lts = find_closest_timestamp(left_timestamps, rts, max_diff)
+            if abs(rts - closest_lts) < max_diff:
                 matched_timestamps.append((closest_lts, rts))
 
     return matched_timestamps
