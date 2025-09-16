@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from lamaria.rig.config.loaders import load_cfg
-from ...utils.utils import extract_images_from_vrs
+from ...utils.general import extract_images_from_vrs
 
 
 def run(
