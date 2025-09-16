@@ -13,7 +13,7 @@ from ... import logger
 from ..config.loaders import load_cfg
 from ...utils.general import get_magnitude_from_transform
 
-@dataclass
+@dataclass(frozen=True)
 class KFParams:
     max_rotation_deg: float
     max_distance_m: float
