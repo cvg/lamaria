@@ -38,13 +38,13 @@ class BundleAdjuster:
         session: SingleSeqSession,
         loss: pyceres.LossFunction,
     ):
-        logger.info("Setting up problem")
+        logger.info("Setting up optimization problem")
         assert session.reconstruction is not None
         for image_id in tqdm(self.config.image_ids):
             self.add_image_to_problem(session, image_id, loss)
         self.parameterize_cameras(session.reconstruction)
         self.parameterize_points(session.reconstruction)
-        logger.info("Problem set up")
+        logger.info("Optimization problem set up")
         return self.problem
 
     def set_up_solver_options(
