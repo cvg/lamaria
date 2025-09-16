@@ -329,7 +329,7 @@ class VrsToColmap:
                 self.empty_recons.add_image(im)
 
     def create(self) -> pycolmap.Reconstruction:
-        if self.cfg.flags.use_device_calibration:
+        if self.cfg.optimization.use_device_calibration:
             self._add_device_sensors()
             self._add_device_frames()
         else:
