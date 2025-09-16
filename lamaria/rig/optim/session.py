@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-
-from typing import List, Tuple
+from typing import List
 from pathlib import Path
-import numpy as np
 import pycolmap
 
 
