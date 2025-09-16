@@ -208,6 +208,7 @@ def form_aria_asl_folder(
         matched_timestamps = get_matched_timestamps(
             left_timestamps=image_timestamps,
             right_timestamps=right_image_timestamps,
+            max_diff=1e6, # 1 ms in nanoseconds
         )
 
         assert len(matched_timestamps) > 0, "No matched timestamps found"
