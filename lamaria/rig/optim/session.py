@@ -23,7 +23,7 @@ class SingleSeqSession:
         self,
         reconstruction: pycolmap.Reconstruction,
         timestamps: List[int],
-        rect_imu_data_npy: Path = None,
+        rect_imu_data_npy: Path,
         cfg=None
     ):
         cfg = cfg if cfg is not None else load_cfg()
