@@ -14,7 +14,7 @@ from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
 from ..config.loaders import load_cfg
-from ...utils.utils import (
+from ...utils.general import (
     find_closest_timestamp,
     get_t_imu_camera,
     camera_colmap_from_calib,
