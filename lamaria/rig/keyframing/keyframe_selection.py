@@ -80,7 +80,7 @@ class KeyframeSelector:
         self.keyframed_recons.add_camera(new_ref_sensor)
         new_rig.add_ref_sensor(new_ref_sensor.sensor_id)
 
-        for sensor, sensor_from_rig in old_rig.sensors.items():
+        for sensor, sensor_from_rig in old_rig.non_ref_sensors.items():
             new_sensor = self._clone_camera(sensor.id, camera_id)
             cam_map[sensor.id] = camera_id
             camera_id += 1
@@ -155,7 +155,7 @@ class KeyframeSelector:
             new_rig = pycolmap.Rig(rig_id=rig_id)
             new_rig.add_ref_sensor(new_ref_sensor.sensor_id)
 
-            for old_sensor, sensor_from_rig in old_rig.sensors.items():
+            for old_sensor, sensor_from_rig in old_rig.non_ref_sensors.items():
                 old_sensor_id = old_sensor.id
 
                 if old_sensor_id not in cam_id_map:

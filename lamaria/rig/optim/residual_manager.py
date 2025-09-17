@@ -136,7 +136,7 @@ class ImageResidualManager:
         rig_from_world = frame.rig_from_world
         
         cam_from_rig = None
-        for sensor, sensor_from_rig in rig.sensors.items():
+        for sensor, sensor_from_rig in rig.non_ref_sensors.items():
             if image.camera_id == sensor.id:
                 cam_from_rig = sensor_from_rig
 
