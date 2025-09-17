@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List
 from pathlib import Path
 import pycolmap
-
+import numpy as np
 
 from ..config.loaders import load_cfg
 from .imu import (
@@ -42,6 +42,9 @@ class SingleSeqSession:
             self.reconstruction,
             self.timestamps
         )
+        self.imu_from_rig = pycolmap.Rigid3d()
+        self.gravity = np.array([0.0, 0.0, -1.0])
+        self.log_scale = np.array([0.0])
 
     def _init_params(self, cfg):
         self.cam_params = CamParams.from_cfg(cfg)
