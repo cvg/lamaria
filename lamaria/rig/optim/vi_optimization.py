@@ -11,8 +11,8 @@ class VIOptimizer:
     
     def __init__(self, session: SingleSeqSession):
         self.session = session
-    
-    def optimize(self, database_path: str, output_folder: Path):
+
+    def optimize(self, database_path: Path, output_folder: Path):
         """Run the complete VI optimization pipeline"""
         
         # Setup mapper
@@ -30,10 +30,8 @@ class VIOptimizer:
         optimized_reconstruction = mapper.reconstruction
         output_folder.mkdir(parents=True, exist_ok=True)
         optimized_reconstruction.write(output_folder.as_posix())
-        
-        return optimized_reconstruction
 
-    def _setup_incremental_mapper(self, database_path: str):
+    def _setup_incremental_mapper(self, database_path: Path):
         """Setup the incremental mapper"""
         database = pycolmap.Database.open(database_path)
         image_names = [self.session.reconstruction.images[image_id].name 
@@ -57,8 +55,11 @@ def create_vi_optimizer(session: SingleSeqSession) -> VIOptimizer:
     return VIOptimizer(session)
 
 
-def run(session: SingleSeqSession, database_path: str, 
-                       output_folder: Path = None):
+def run(session: SingleSeqSession, 
+        database_path: Path,
+        output_folder: Path,
+) -> None:
+    
     """Run VI optimization with given session and database"""
     optimizer = create_vi_optimizer(session)
-    return optimizer.optimize(database_path, output_folder)
+    optimizer.optimize(database_path, output_folder)
