@@ -28,6 +28,8 @@ result:
   full_ts: timestamps/full.npy
   kf_ts: timestamps/keyframe.npy
 
+  rect_imu_file: rect_imu.npy
+
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
