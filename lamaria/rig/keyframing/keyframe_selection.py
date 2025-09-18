@@ -229,6 +229,10 @@ class KeyframeSelector:
                 
                 shutil.copy2(src_path, dst_path)
 
+    def read_keyframe_timestamps(self, input_path: Path) -> None:
+        ts = np.load(input_path).tolist()
+        return ts
+
     def write_keyframe_timestamps(self, output_path: Path) -> None:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         keyframed_timestamps = np.array([self.timestamps[i - 1] for i in self.keyframe_frame_ids])
