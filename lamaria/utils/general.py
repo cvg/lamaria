@@ -9,6 +9,7 @@ from bisect import bisect_left
 from typing import List
 import subprocess
 from scipy.spatial.transform import Rotation
+from decimal import Decimal, ROUND_HALF_UP
 
 from projectaria_tools.core.stream_id import StreamId
 from projectaria_tools.core import data_provider, mps
@@ -235,6 +236,13 @@ def camera_colmap_from_json(
         params=params,
     )
 
+def round_ns(x: str | int | float) -> int:
+    # works for "5120...274.999939", "5.12e11", or ints
+    if isinstance(x, int):
+        return x
+    s = str(x)
+    return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
+
 def delete_files_in_folder(folder, exclude_pattern=None):
     if os.path.isdir(folder):
         for filename in os.listdir(folder):
@@ -372,6 +380,49 @@ def get_t_imu_camera(
         return t_imu_cam_matrix
 
     return t_imu_cam
+
+def get_t_imu_camera_from_json(
+    device_calibration_json: str,
+    camera_label: str,
+) -> pycolmap.Rigid3d:
+    
+    with open(device_calibration_json, "r") as f:
+        device_calib = json.load(f)
+    
+    # body is right imu of Aria, therefore T_b_s is T_imu_camera
+    t_body_cam = device_calib[camera_label]["T_b_s"]
+    t_imu_camera = pycolmap.Rigid3d(
+        pycolmap.Rotation3d(t_body_cam["qvec"]),
+        t_body_cam["tvec"],
+    )
+
+    return t_imu_camera
+
+def get_t_cam_a_cam_b_from_json(
+    device_calibration_json: str,
+    camera_a_label: str,
+    camera_b_label: str,
+) -> pycolmap.Rigid3d:
+    
+    with open(device_calibration_json, "r") as f:
+        device_calib = json.load(f)
+    
+    # body is right imu of Aria, therefore T_b_s is T_imu_camera
+    t_body_cam_a = device_calib[camera_a_label]["T_b_s"]
+    t_body_cam_b = device_calib[camera_b_label]["T_b_s"]
+
+    t_imu_cam_a = pycolmap.Rigid3d(
+        pycolmap.Rotation3d(t_body_cam_a["qvec"]),
+        t_body_cam_a["tvec"],
+    )
+    t_imu_cam_b = pycolmap.Rigid3d(
+        pycolmap.Rotation3d(t_body_cam_b["qvec"]),
+        t_body_cam_b["tvec"],
+    )
+
+    t_camera_a_camera_b = t_imu_cam_a.inverse() * t_imu_cam_b
+
+    return t_camera_a_camera_b
 
 
 def get_image_names_to_ids(reconstruction_dir: str):
