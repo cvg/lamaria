@@ -32,10 +32,9 @@ def get_online_params_for_imu_from_mps(
 
 
 def get_online_imu_data_from_vrs(
-    vrs_file: Path,
+    vrs_provider: data_provider.VrsDataProvider,
     mps_folder: Path,
 ):
-    vrs_provider = data_provider.create_vrs_data_provider(vrs_file.as_posix())
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
             IMU_STREAM_ID,
@@ -50,7 +49,7 @@ def get_online_imu_data_from_vrs(
         imu_stream_label
     )
 
-    acceptable_diff_ms = 5 # 5 milliseconds
+    acceptable_diff_ms = 1 # 1 milliseconds
 
     calib_timestamps = sorted(online_imu_calibs.keys())
 
