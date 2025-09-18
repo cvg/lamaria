@@ -22,6 +22,9 @@ from ...utils.general import (
     get_closed_loop_data_from_mps,
     get_mps_poses_for_timestamps,
 )
+from ...utils.imu import (
+    get_online_imu_data_from_vrs
+)
 
 @dataclass
 class PerFrameData:
@@ -328,6 +331,16 @@ class VrsToColmap:
             for im in images_to_add:
                 self.empty_recons.add_image(im)
 
+    def _save_imu_measurements(self) -> None:
+        file_path = self.cfg.result.output_folder_path / self.cfg.result.rect_imu_file
+        if not self.cfg.optimization.use_device_calibration:
+            ms = get_online_imu_data_from_vrs(
+                self.vrs_provider,
+                self.cfg.mps_path,
+            )
+            np.save(file_path, ms.data)
+        # add device calib case if needed
+    
     def create(self) -> pycolmap.Reconstruction:
         if self.cfg.optimization.use_device_calibration:
             self._add_device_sensors()
@@ -335,7 +348,9 @@ class VrsToColmap:
         else:
             self._add_online_sensors()
             self._add_online_frames()
-        
+
+        self._save_imu_measurements()
+
         return self.empty_recons
 
     def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
