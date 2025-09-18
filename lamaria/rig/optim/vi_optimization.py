@@ -52,13 +52,11 @@ class VIOptimizer:
         return pipeline_options
 
 
-# Factory function for easy integration with existing pipeline
 def create_vi_optimizer(session: SingleSeqSession) -> VIOptimizer:
     """Factory function to create VI optimizer"""
     return VIOptimizer(session)
 
 
-# Convenience function for direct usage
 def run_vi_optimization(session: SingleSeqSession, database_path: str, 
                        output_folder: Path = None):
     """Run VI optimization with given session and database"""
