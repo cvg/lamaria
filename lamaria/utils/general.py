@@ -24,6 +24,7 @@ IMU_STREAM_ID = StreamId("1202-1")
 LEFT_CAMERA_STREAM_LABEL = "camera-slam-left"
 RIGHT_CAMERA_STREAM_LABEL = "camera-slam-right"
 IMU_STREAM_LABEL = "imu-right"
+CUSTOM_ORIGIN_COORDINATES = (2683594.4120000005, 1247727.7470000014, 417.307)
 
 
 def find_closest_timestamp(
@@ -371,3 +372,14 @@ def get_t_imu_camera(
         return t_imu_cam_matrix
 
     return t_imu_cam
+
+
+def get_image_names_to_ids(reconstruction_dir: str):
+    recon = pycolmap.Reconstruction(reconstruction_dir)
+    image_names_to_ids = {}
+
+    for image_id in recon.images.keys():
+        image_name = recon.images[image_id].name
+        image_names_to_ids[image_name] = image_id
+
+    return image_names_to_ids
