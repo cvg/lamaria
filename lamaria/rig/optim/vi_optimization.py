@@ -57,7 +57,7 @@ def create_vi_optimizer(session: SingleSeqSession) -> VIOptimizer:
     return VIOptimizer(session)
 
 
-def run_vi_optimization(session: SingleSeqSession, database_path: str, 
+def run(session: SingleSeqSession, database_path: str, 
                        output_folder: Path = None):
     """Run VI optimization with given session and database"""
     optimizer = create_vi_optimizer(session)
