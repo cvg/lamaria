@@ -17,7 +17,7 @@ from ..config.loaders import load_cfg
 
 
 def pairs_from_frames(recon: pycolmap.Reconstruction):
-    rig_pairs = set()
+    frame_pairs = set()
     by_index = defaultdict(list)
 
     for fid in sorted(recon.frames.keys()):
@@ -27,8 +27,8 @@ def pairs_from_frames(recon: pycolmap.Reconstruction):
 
         for i in range(len(names)):
             for j in range(i + 1, len(names)):
-                rig_pairs.add((names[i], names[j]))
-                rig_pairs.add((names[j], names[i]))
+                frame_pairs.add((names[i], names[j]))
+                frame_pairs.add((names[j], names[i]))
 
         for k, n in enumerate(names):
             by_index[k].append(n)
@@ -38,7 +38,7 @@ def pairs_from_frames(recon: pycolmap.Reconstruction):
         for a, b in zip(seq[:-1], seq[1:]):
             adj_pairs.add((a, b))
 
-    return rig_pairs, adj_pairs
+    return frame_pairs, adj_pairs
 
 def postprocess_pairs_with_reconstruction(
     sfm_pairs_file: Path,
@@ -47,7 +47,7 @@ def postprocess_pairs_with_reconstruction(
     recon = (reconstruction if isinstance(reconstruction, pycolmap.Reconstruction)
              else pycolmap.Reconstruction(str(reconstruction)))
 
-    rig_pairs, adj_pairs = pairs_from_frames(recon)
+    frame_pairs, adj_pairs = pairs_from_frames(recon)
 
     existing = set()
     with open(sfm_pairs_file, "r") as f:
@@ -55,7 +55,7 @@ def postprocess_pairs_with_reconstruction(
             a, b = line.strip().split()
             existing.add((a, b))
 
-    existing = {p for p in existing if p not in rig_pairs}
+    existing = {p for p in existing if p not in frame_pairs}
     existing |= adj_pairs
 
     with open(sfm_pairs_file, "w") as f:
