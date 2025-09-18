@@ -106,7 +106,7 @@ def run(
         export_dir=hloc_outputs_dir,
     )
 
-    triangulated_model = triangulation.main(
+    _ = triangulation.main(
         sfm_dir=triangulated_model_path,
         reference_model=reference_model_path,
         image_dir=keyframes_dir,
@@ -115,4 +115,4 @@ def run(
         matches=matches_path,
     )
 
-    return triangulated_model
+    return triangulated_model_path
