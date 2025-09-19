@@ -20,12 +20,6 @@ class SensorOptions:
     right_imu_stream_id: StreamId = StreamId("1202-1")
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
-# Image extraction options
-@dataclass(frozen=True, slots=True)
-class ExtractionOptions:
-    vrs_file: Optional[Path] = None
-    images_dir: Optional[Path] = None
-
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
 class ToColmapOptions:
@@ -44,14 +38,11 @@ class ToColmapOptions:
 
 # Keyframing options
 @dataclass(frozen=True, slots=True)
-class KFOptions:
+class KeyframeSelectorOptions:
     max_rotation: float = 20.0 # degrees
     max_translation: float = 1.0 # meters
     max_elapsed_time: float = 1e9 # 1 second in ns
 
-@dataclass(frozen=True, slots=True)
-class KeyframeSelectorOptions:
-    options: KFOptions = field(default_factory=KFOptions)
     init_model: Optional[Path] = None # init model from ToCOLMAP
     keyframes_dir: Optional[Path] = None
     timestamps_npy: Optional[Path] = None
@@ -59,7 +50,7 @@ class KeyframeSelectorOptions:
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
-class TriOptions:
+class TriangulatorOptions:
     pairs_path: Optional[Path] = None
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
@@ -73,11 +64,7 @@ class TriOptions:
 
     filter_max_reproj_error: float = 4.0
     filter_min_tri_angle: float = 1.5
-    
 
-@dataclass(frozen=True, slots=True)
-class TriangulatorOptions:
-    options: TriOptions = field(default_factory=TriOptions)
     reference_model: Optional[Path] = None
     triangulated_model: Optional[Path] = None
 
