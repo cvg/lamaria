@@ -51,8 +51,9 @@ class KFOptions:
 @dataclass(frozen=True, slots=True)
 class KeyframeSelectorOptions:
     options: KFOptions = field(default_factory=KFOptions)
-    init_model: Optional[Path] = None
+    init_model: Optional[Path] = None # init model from ToCOLMAP
     keyframes_dir: Optional[Path] = None
+    timestamps_npy: Optional[Path] = None
     kf_model: Optional[Path] = None
 
 # Triangulation options
