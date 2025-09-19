@@ -49,9 +49,9 @@ class VrsToColmap:
         data_paths = mps.MpsDataPathsProvider(self.cfg.mps_path.as_posix()).get_data_paths()
         self.mps_data_provider = mps.MpsDataProvider(data_paths)
 
-        self.left_cam_stream_id = StreamId(self.cfg.streams.left_cam_stream_id)
-        self.right_cam_stream_id = StreamId(self.cfg.streams.right_cam_stream_id)
-        self.imu_stream_id = StreamId(self.cfg.streams.imu_right_stream_id)
+        self.left_cam_stream_id = StreamId(self.cfg.vrs_streams.left_cam_stream_id)
+        self.right_cam_stream_id = StreamId(self.cfg.vrs_streams.right_cam_stream_id)
+        self.imu_stream_id = StreamId(self.cfg.vrs_streams.imu_right_stream_id)
     
     def _init_data(self):
         images = self._get_images()
