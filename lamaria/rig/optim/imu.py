@@ -1,21 +1,19 @@
 import numpy as np
 import pycolmap
-import pyceres
 from typing import List
 from pathlib import Path
 
 from tqdm import tqdm
 
 from ... import logger
-from .params import IMUParams
-from .session import SingleSeqSession
+from ..config.opt_params import OptIMUParams
 
 
 def load_preintegrated_imu_measurements(
     rect_imu_data_npy: Path,
     reconstruction: pycolmap.Reconstruction,
     timestamps: List[int],  # must be a sorted list in ns
-    params: IMUParams = IMUParams(),
+    params: OptIMUParams = OptIMUParams(),
 ) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
 
     preintegrated_measurements = {}
