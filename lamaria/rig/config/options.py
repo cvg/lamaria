@@ -1,0 +1,77 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+from typing import Optional
+
+from omegaconf import OmegaConf
+
+from projectaria_tools.core.stream_id import StreamId
+
+# General options
+@dataclass(frozen=True, slots=True)
+class MPSOptions:
+    use_mps: bool = False
+    use_device_calibration: bool = True # when use_mps is true (for online calib file)
+
+@dataclass(frozen=True, slots=True)
+class SensorOptions:
+    left_cam_stream_id: StreamId = StreamId("1201-1")
+    right_cam_stream_id: StreamId = StreamId("1201-2")
+    right_imu_stream_id: StreamId = StreamId("1202-1")
+    camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
+
+# Keyframing options
+@dataclass(frozen=True, slots=True)
+class KFOptions:
+    max_rotation: float = 20.0 # degrees
+    max_translation: float = 1.0 # meters
+    max_elapsed_time: float = 1e9 # 1 second in ns
+
+@dataclass(frozen=True, slots=True)
+class KeyframeSelectorOptions:
+    options: KFOptions = field(default_factory=KFOptions)
+    init_model: Optional[Path] = None
+    keyframes_dir: Optional[Path] = None
+    kf_model: Optional[Path] = None
+
+# Triangulation options
+@dataclass(frozen=True, slots=True)
+class TriOptions:
+    pairs_path: Optional[Path] = None
+    feature_conf: str = "aliked-n16"
+    matcher_conf: str = "aliked+lightglue"
+    retrieval_conf: str = "netvlad"
+    num_retrieval_matches: int = 5
+
+@dataclass(frozen=True, slots=True)
+class TriangulatorOptions:
+    options: TriOptions = field(default_factory=TriOptions)
+    reference_model: Optional[Path] = None
+    triangulated_model: Optional[Path] = None
+
+# Optimization options
+@dataclass(frozen=True, slots=True)
+class OptCamOptions:
+    feature_std: float = 1.0 # in pixels
+    optimize_cam_intrinsics: bool = False
+    optimize_cam_from_rig: bool = False
+
+@dataclass(frozen=True, slots=True)
+class OptIMUOptions:
+    gyro_infl: float = 1.0
+    acc_infl: float = 1.0
+    integration_noise_density: float = 0.05
+
+    optimize_scale: bool = False
+    optimize_gravity: bool = False
+    optimize_imu_from_rig: bool = False
+    optimize_bias: bool = False
+    keep_imu_residuals: bool = True
+
+@dataclass(frozen=True, slots=True)
+class OptOptions:
+    use_callback: bool = True
+    max_num_iterations: int = 10
+    normalize_reconstruction: bool = False
+    
