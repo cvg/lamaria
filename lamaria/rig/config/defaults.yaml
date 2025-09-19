@@ -6,7 +6,7 @@ paths:
 camera:
   model: RAD_TAN_THIN_PRISM_FISHEYE
 
-streams:
+vrs_streams:
   left_cam_stream_id: 1201-1
   right_cam_stream_id: 1201-2
   imu_right_stream_id: 1202-1
