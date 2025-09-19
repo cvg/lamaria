@@ -11,16 +11,20 @@ paths:
   recordings: ${paths.base}/recordings/ # always needed
   estimates: ${paths.base}/estimates/ # estimates in seq_id.txt format
   
-  mps: ${paths.base}/mps/ # not necessary if use_mps is false
+  mps: ${paths.base}/mps/ # necessary if use_mps is true
 
   output:
-    base: ${paths.base}/test/
+    base: ${paths.base}/res/
     images: image_stream/
-  
-    keyframes: keyframes/
+
     init_model: empty_recon/
+
+    keyframes: keyframes/
     kf_model: keyframe_recon/
+
+    pairs_file: pairs.txt
     tri_model: triangulated_recon/
+    
     optim_model: optim_recon/
 
     full_ts: timestamps/full.npy
@@ -31,18 +35,12 @@ paths:
 camera:
   model: RAD_TAN_THIN_PRISM_FISHEYE
 
-vrs_streams:
-  left_cam_stream_id: 1201-1
-  right_cam_stream_id: 1201-2
-  imu_right_stream_id: 1202-1
-
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
   max_elapsed: 1.0
 
 triangulation:
-  pairs_file: pairs.txt
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
