@@ -1,20 +1,14 @@
-run:
-  seq_id: 5cp
-  vrs_file: ${run.seq_id}.vrs
-
-flags:
-  use_mps: false
-  use_device_calibration: true # relevant only when use_mps is true (for online calib file)
-
-paths:
+paths:  
   base: /media/arialamar/
-  recordings: ${paths.base}/recordings/ # always needed
-  estimates: ${paths.base}/estimates/ # estimates in seq_id.txt format
-  
-  mps: ${paths.base}/mps/ # necessary if use_mps is true
+  seq_name: 5cp
+
+  vrs: recordings/${paths.seq_name}.vrs
+  estimate: estimates/${paths.seq_name}.txt
+
+  mps: mps/mps_${paths.seq_name}_vrs/ # necessary if use_mps is true
 
   output:
-    base: ${paths.base}/res/
+    base: output/${paths.seq_name}/
     images: image_stream/
 
     init_model: empty_recon/
@@ -30,10 +24,10 @@ paths:
     full_ts: timestamps/full.npy
     kf_ts: timestamps/keyframe.npy
 
-    rect_imu_file: rect_imu.npy
+    rect_imu: rect_imu.npy
 
-camera:
-  model: RAD_TAN_THIN_PRISM_FISHEYE
+sensor:
+  camera_model: RAD_TAN_THIN_PRISM_FISHEYE
 
 keyframing:
   max_rotation: 20.0
@@ -70,3 +64,7 @@ optimization:
   gyro_infl: 20.0
   acc_infl: 1.0
   integration_noise_density: 0.05
+
+mps:
+  use_mps: false
+  use_online_calibration: false # relevant only when use_mps is true (for online calib file)
