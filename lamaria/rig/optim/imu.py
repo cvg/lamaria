@@ -6,14 +6,14 @@ from pathlib import Path
 from tqdm import tqdm
 
 from ... import logger
-from ..config.opt_params import OptIMUParams
+from ..config.opt_params import OptIMUOptions
 
 
 def load_preintegrated_imu_measurements(
     rect_imu_data_npy: Path,
     reconstruction: pycolmap.Reconstruction,
     timestamps: List[int],  # must be a sorted list in ns
-    params: OptIMUParams = OptIMUParams(),
+    params: OptIMUOptions = OptIMUOptions(),
 ) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
 
     preintegrated_measurements = {}
