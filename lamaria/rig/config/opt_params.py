@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
 @dataclass(frozen=True, slots=True)
-class OptCamParams:
+class OptCamOptions:
     feature_std: float = 1.0 # in pixels
     optimize_cam_intrinsics: bool = False
     optimize_cam_from_rig: bool = False
 
 
 @dataclass(frozen=True, slots=True)
-class OptIMUParams:
+class OptIMUOptions:
     gyro_infl: float = 1.0
     acc_infl: float = 1.0
     integration_noise_density: float = 0.05
@@ -21,7 +21,7 @@ class OptIMUParams:
 
 
 @dataclass(frozen=True, slots=True)
-class OptParams:
+class OptOptions:
     use_callback: bool = True
     max_num_iterations: int = 10
     normalize_reconstruction: bool = False
