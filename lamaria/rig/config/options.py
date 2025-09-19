@@ -5,8 +5,6 @@ from pathlib import Path
 from typing import Optional
 import pycolmap
 
-from omegaconf import OmegaConf
-
 from projectaria_tools.core.stream_id import StreamId
 
 # General options
