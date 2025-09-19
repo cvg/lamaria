@@ -85,7 +85,6 @@ class OptIMUOptions:
     optimize_gravity: bool = False
     optimize_imu_from_rig: bool = False
     optimize_bias: bool = False
-    keep_imu_residuals: bool = True
 
 @dataclass(frozen=True, slots=True)
 class OptOptions:
