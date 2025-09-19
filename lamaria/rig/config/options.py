@@ -21,6 +21,26 @@ class SensorOptions:
     right_imu_stream_id: StreamId = StreamId("1202-1")
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
+# Image extraction options
+@dataclass(frozen=True, slots=True)
+class ExtractionOptions:
+    vrs_file: Optional[Path] = None
+    images_dir: Optional[Path] = None
+
+# To COLMAP options
+@dataclass(frozen=True, slots=True)
+class ToColmapOptions:
+    vrs_file: Optional[Path] = None
+    estimate_txt: Optional[Path] = None
+    init_model: Optional[Path] = None
+    images_dir: Optional[Path] = None
+    timestamps_npy: Optional[Path] = None
+
+    mps_dir: Optional[Path] = None
+    mps_opts: MPSOptions = field(default_factory=MPSOptions)
+
+    sensor_opts: SensorOptions = field(default_factory=SensorOptions)
+
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KFOptions:
