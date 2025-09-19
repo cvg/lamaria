@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Optional
+import pycolmap
 
 from omegaconf import OmegaConf
 
@@ -41,6 +42,8 @@ class ToColmapOptions:
 
     sensor_opts: SensorOptions = field(default_factory=SensorOptions)
 
+    rect_imu_data_npy: Optional[Path] = None
+
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KFOptions:
@@ -64,6 +67,15 @@ class TriOptions:
     matcher_conf: str = "aliked+lightglue"
     retrieval_conf: str = "netvlad"
     num_retrieval_matches: int = 5
+
+    # colmap defaults
+    merge_max_reproj_error: float = 4.0
+    complete_max_reproj_error: float = 4.0
+    min_angle: float = 1.5
+
+    filter_max_reproj_error: float = 4.0
+    filter_min_tri_angle: float = 1.5
+    
 
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
@@ -95,4 +107,19 @@ class OptOptions:
     use_callback: bool = True
     max_num_iterations: int = 10
     normalize_reconstruction: bool = False
+
+@dataclass(frozen=True, slots=True)
+class VIOptimizerOptions:
+    cam_opts: OptCamOptions = field(default_factory=OptCamOptions)
+    imu_opts: OptIMUOptions = field(default_factory=OptIMUOptions)
+    optim_opts: OptOptions = field(default_factory=OptOptions)
+
+    colmap_pipeline_opts: pycolmap.IncrementalPipelineOptions = \
+        pycolmap.IncrementalPipelineOptions()
+
+    init_model: Optional[Path] = None
+    timestamps_npy: Optional[Path] = None
+    rect_imu_data_npy: Optional[Path] = None
+
+    optimized_model: Optional[Path] = None
     
