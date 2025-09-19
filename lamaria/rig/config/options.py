@@ -4,14 +4,47 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Optional
 import pycolmap
+from omegaconf import OmegaConf
 
 from projectaria_tools.core.stream_id import StreamId
+
+
+@dataclass(slots=True)
+class PathOptions:
+    vrs: Optional[Path] = None
+    estimate: Optional[Path] = None
+    init_model: Optional[Path] = None
+    images: Optional[Path] = None
+    full_ts: Optional[Path] = None
+    mps: Optional[Path] = None
+
+    rect_imu: Optional[Path] = None
+
+    keyframes: Optional[Path] = None
+    kf_model: Optional[Path] = None
+    kf_ts: Optional[Path] = None
+    
+    pairs_file: Optional[Path] = None
+    tri_model: Optional[Path] = None
+
+    optim_model: Optional[Path] = None
+
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> PathOptions:
+        pass
 
 # General options
 @dataclass(frozen=True, slots=True)
 class MPSOptions:
     use_mps: bool = False
-    use_device_calibration: bool = True # when use_mps is true (for online calib file)
+    use_online_calibration: bool = False # when use_mps is true (for online calib file)
+
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> MPSOptions:
+        return MPSOptions(
+            use_mps=cfg.get("use_mps", False),
+            use_online_calibration=cfg.get("use_online_calibration", False),
+        )
 
 @dataclass(frozen=True, slots=True)
 class SensorOptions:
@@ -20,37 +53,39 @@ class SensorOptions:
     right_imu_stream_id: StreamId = StreamId("1202-1")
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> SensorOptions:
+        pass
+
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
 class ToColmapOptions:
-    vrs_file: Optional[Path] = None
-    estimate_txt: Optional[Path] = None
-    init_model: Optional[Path] = None
-    images_dir: Optional[Path] = None
-    timestamps_npy: Optional[Path] = None
-
-    mps_dir: Optional[Path] = None
+    paths: PathOptions = field(default_factory=PathOptions)
     mps_opts: MPSOptions = field(default_factory=MPSOptions)
-
     sensor_opts: SensorOptions = field(default_factory=SensorOptions)
 
-    rect_imu_data_npy: Optional[Path] = None
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> ToColmapOptions:
+        pass
 
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KeyframeSelectorOptions:
+    paths: PathOptions = field(default_factory=PathOptions)
+
     max_rotation: float = 20.0 # degrees
     max_translation: float = 1.0 # meters
     max_elapsed_time: float = 1e9 # 1 second in ns
 
-    init_model: Optional[Path] = None # init model from ToCOLMAP
-    keyframes_dir: Optional[Path] = None
-    timestamps_npy: Optional[Path] = None
-    kf_model: Optional[Path] = None
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> KeyframeSelectorOptions:
+        pass
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
+    paths: PathOptions = field(default_factory=PathOptions)
+
     pairs_path: Optional[Path] = None
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
@@ -64,9 +99,6 @@ class TriangulatorOptions:
 
     filter_max_reproj_error: float = 4.0
     filter_min_tri_angle: float = 1.5
-
-    reference_model: Optional[Path] = None
-    triangulated_model: Optional[Path] = None
 
 # Optimization options
 @dataclass(frozen=True, slots=True)
@@ -94,16 +126,12 @@ class OptOptions:
 
 @dataclass(frozen=True, slots=True)
 class VIOptimizerOptions:
+    paths: PathOptions = field(default_factory=PathOptions)
+
     cam_opts: OptCamOptions = field(default_factory=OptCamOptions)
     imu_opts: OptIMUOptions = field(default_factory=OptIMUOptions)
     optim_opts: OptOptions = field(default_factory=OptOptions)
 
     colmap_pipeline_opts: pycolmap.IncrementalPipelineOptions = \
         pycolmap.IncrementalPipelineOptions()
-
-    init_model: Optional[Path] = None
-    timestamps_npy: Optional[Path] = None
-    rect_imu_data_npy: Optional[Path] = None
-
-    optimized_model: Optional[Path] = None
     
