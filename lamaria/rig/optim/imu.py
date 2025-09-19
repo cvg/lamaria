@@ -6,7 +6,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 from ... import logger
-from ..config.opt_params import OptIMUOptions
+from ..config.options import OptIMUOptions
 
 
 def load_preintegrated_imu_measurements(
