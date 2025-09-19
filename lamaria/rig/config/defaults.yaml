@@ -55,12 +55,14 @@ triangulation:
   filter_min_tri_angle: 1.5
 
 optimization:
-  feature_std: 1.0
   use_callback: true
   max_num_iterations: 10
   normalize_reconstruction: false
+  
+  feature_std: 1.0
   optimize_cam_intrinsics: false
   optimize_cam_from_rig: false
+  
   optimize_scale: false
   optimize_gravity: false
   optimize_imu_from_rig: false
@@ -68,4 +70,3 @@ optimization:
   gyro_infl: 20.0
   acc_infl: 1.0
   integration_noise_density: 0.05
-  keep_imu_residuals: true
