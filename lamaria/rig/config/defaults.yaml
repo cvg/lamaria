@@ -1,7 +1,32 @@
+run:
+  seq_id: 5cp
+  vrs_file: ${run.seq_id}.vrs
+
+flags:
+  use_mps: false
+  mps_fail: false
+
 paths:
   base: /media/arialamar/
-  recordings: ${paths.base}/recordings/
-  mps: ${paths.base}/mps/
+  recordings: ${paths.base}/recordings/ # always needed
+  estimates: ${paths.base}/estimates/ # estimates in seq_id.txt format
+  
+  mps: ${paths.base}/mps/ # not necessary if use_mps is false
+
+  output:
+    base: ${paths.base}/test/
+    images: image_stream/
+  
+    keyframes: keyframes/
+    init_model: empty_recon/
+    kf_model: keyframe_recon/
+    tri_model: triangulated_recon/
+    optim_model: optim_recon/
+
+    full_ts: timestamps/full.npy
+    kf_ts: timestamps/keyframe.npy
+
+    rect_imu_file: rect_imu.npy
 
 camera:
   model: RAD_TAN_THIN_PRISM_FISHEYE
@@ -10,25 +35,6 @@ vrs_streams:
   left_cam_stream_id: 1201-1
   right_cam_stream_id: 1201-2
   imu_right_stream_id: 1202-1
-
-flags:
-  mps_fail: false
-  has_slam_drops: false # check inside vrs.json file
-
-result:
-  parent_path: test/
-  output_folder: rig/
-  
-  keyframes: keyframes
-  init_model: empty_recon
-  kf_model: keyframe_recon
-  tri_model: triangulated_recon
-  optim_model: optim_recon
-
-  full_ts: timestamps/full.npy
-  kf_ts: timestamps/keyframe.npy
-
-  rect_imu_file: rect_imu.npy
 
 keyframing:
   max_rotation: 20.0
@@ -42,11 +48,12 @@ triangulation:
   retrieval_conf: netvlad
 
 optimization:
+  use_device_calibration: true # relevant only when use_mps is true (for online calib file)
+
   feature_std: 1.0
   use_callback: true
   max_num_iterations: 10
   normalize_reconstruction: false
-  use_device_calibration: false
   optimize_cam_intrinsics: false
   optimize_cam_from_rig: false
   optimize_scale: false
@@ -57,7 +64,3 @@ optimization:
   imu_inflation_factor_acc: 1.0
   integration_noise_density: 0.05
   keep_imu_residuals: true
-
-run:
-  seq_id: 5cp
-  vrs_file: ${run.seq_id}.vrs
