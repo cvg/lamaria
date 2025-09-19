@@ -4,7 +4,7 @@ run:
 
 flags:
   use_mps: false
-  mps_fail: false
+  use_device_calibration: true # relevant only when use_mps is true (for online calib file)
 
 paths:
   base: /media/arialamar/
@@ -48,8 +48,6 @@ triangulation:
   retrieval_conf: netvlad
 
 optimization:
-  use_device_calibration: true # relevant only when use_mps is true (for online calib file)
-
   feature_std: 1.0
   use_callback: true
   max_num_iterations: 10
