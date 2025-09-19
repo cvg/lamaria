@@ -61,8 +61,8 @@ class SensorOptions:
 @dataclass(frozen=True, slots=True)
 class ToColmapOptions:
     paths: PathOptions = field(default_factory=PathOptions)
-    mps_opts: MPSOptions = field(default_factory=MPSOptions)
-    sensor_opts: SensorOptions = field(default_factory=SensorOptions)
+    mps: MPSOptions = field(default_factory=MPSOptions)
+    sensor: SensorOptions = field(default_factory=SensorOptions)
 
     @classmethod
     def load(cls, cfg: OmegaConf) -> ToColmapOptions:
@@ -128,10 +128,10 @@ class OptOptions:
 class VIOptimizerOptions:
     paths: PathOptions = field(default_factory=PathOptions)
 
-    cam_opts: OptCamOptions = field(default_factory=OptCamOptions)
-    imu_opts: OptIMUOptions = field(default_factory=OptIMUOptions)
-    optim_opts: OptOptions = field(default_factory=OptOptions)
+    cam: OptCamOptions = field(default_factory=OptCamOptions)
+    imu: OptIMUOptions = field(default_factory=OptIMUOptions)
+    optim: OptOptions = field(default_factory=OptOptions)
 
-    colmap_pipeline_opts: pycolmap.IncrementalPipelineOptions = \
+    colmap_pipeline: pycolmap.IncrementalPipelineOptions = \
         pycolmap.IncrementalPipelineOptions()
     
