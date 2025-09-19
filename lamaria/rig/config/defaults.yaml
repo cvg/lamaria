@@ -45,6 +45,15 @@ triangulation:
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
 
+  # https://github.com/colmap/colmap/blob/dbdb3cd5a9a90a01b7e1096905ba2ffc34a68b82/src/colmap/sfm/incremental_triangulator.h
+  merge_max_reproj_error: 4.0
+  complete_max_reproj_error: 4.0
+  min_angle: 1.5
+  
+  # https://github.com/colmap/colmap/blob/dbdb3cd5a9a90a01b7e1096905ba2ffc34a68b82/src/colmap/sfm/incremental_mapper.h
+  filter_max_reproj_error: 4.0
+  filter_min_tri_angle: 1.5
+
 optimization:
   feature_std: 1.0
   use_callback: true
