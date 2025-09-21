@@ -20,6 +20,7 @@ class Config:
     def load_default(
         cls,
     ) -> 'Config':
+        """ Load default config from default file inside lamaria/rig/config/ """
         return cls.load()
     
     @classmethod
