@@ -13,7 +13,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
-from ..config.loaders import load_cfg
+from ..config.options import ToColmapOptions
 from ...utils.general import (
     find_closest_timestamp,
     get_t_imu_camera,
@@ -21,6 +21,8 @@ from ...utils.general import (
     rigid3d_from_transform,
     get_closed_loop_data_from_mps,
     get_mps_poses_for_timestamps,
+    extract_images_from_vrs,
+    round_ns,
 )
 from ...utils.imu import (
     get_online_imu_data_from_vrs
@@ -35,25 +37,36 @@ class PerFrameData:
     rig_from_world: pycolmap.Rigid3d
 
 
-class VrsToColmap:
-    def __init__(self, cfg=None):
-        self.cfg = cfg if cfg is not None else load_cfg()
+class ToColmap:
+    def __init__(
+        self,
+        options: ToColmapOptions
+    ):
+        self.options = options
         self._init_io()
         self._init_data()
 
     def _init_io(self):
+        """Initializes output and data providers"""
         self.empty_recons = pycolmap.Reconstruction()
         self.vrs_provider = data_provider.create_vrs_data_provider(
-            self.cfg.vrs_file_path.as_posix()
+            self.options.paths.vrs.as_posix()
         )
-        data_paths = mps.MpsDataPathsProvider(self.cfg.mps_path.as_posix()).get_data_paths()
-        self.mps_data_provider = mps.MpsDataProvider(data_paths)
-
-        self.left_cam_stream_id = StreamId(self.cfg.vrs_streams.left_cam_stream_id)
-        self.right_cam_stream_id = StreamId(self.cfg.vrs_streams.right_cam_stream_id)
-        self.imu_stream_id = StreamId(self.cfg.vrs_streams.imu_right_stream_id)
+        if self.options.mps.use_mps:
+            data_paths = mps.MpsDataPathsProvider(self.cfg.mps_path.as_posix()).get_data_paths()
+            self.mps_data_provider = mps.MpsDataProvider(data_paths)
+        else:
+            assert self.options.paths.estimate is not None, \
+                "Estimate path must be provided if MPS is not used"
     
     def _init_data(self):
+        """Extracts images, timestamps and builds per-frame data"""
+
+        extract_images_from_vrs(
+            vrs_file=self.options.paths.vrs,
+            image_folder=self.options.paths.images,
+        )
+
         images = self._get_images()
         timestamps = self._get_timestamps()
         closed_loop_data = get_closed_loop_data_from_mps(self.cfg.mps_path)
@@ -65,10 +78,10 @@ class VrsToColmap:
     def _build_per_frame_data(self, images, timestamps, mps_poses) -> List[PerFrameData]:
         per_frame_data = []
         imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.imu_stream_id
+            self.options.sensor.right_imu_stream_id
         )
         
-        if self.cfg.optimization.use_device_calibration:
+        if not self.options.mps.use_online_calibration:
             device_calibration = self.vrs_provider.get_device_calibration()
             imu_calib = device_calibration.get_imu_calib(
                 imu_stream_label
@@ -80,7 +93,7 @@ class VrsToColmap:
             if t_world_device is None:
                 continue
 
-            if not self.cfg.optimization.use_device_calibration:
+            if self.options.mps.use_online_calibration:
                 ocalib = self.mps_data_provider.get_online_calibration(
                     left_ts, TimeQueryOptions.CLOSEST
                 )
@@ -120,18 +133,18 @@ class VrsToColmap:
         return sorted(self.vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME))
 
     def _get_images(self) -> List[Tuple[Path, Path]]:
-        left_img_dir = self.cfg.image_stream_path / "left"
-        right_img_dir = self.cfg.image_stream_path / "right"
+        left_img_dir = self.options.paths.images / "left"
+        right_img_dir = self.options.paths.images / "right"
 
         left_images = self._images_from_vrs(left_img_dir, left_img_dir)
         right_images = self._images_from_vrs(right_img_dir, right_img_dir)
 
         return list(zip(left_images, right_images))
 
-    def _get_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
-        if not self.cfg.flags.has_slam_drops:
-            L = self._ts_from_vrs(self.left_cam_stream_id)
-            R = self._ts_from_vrs(self.right_cam_stream_id)
+    def _get_mps_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
+        if not self.options.mps.has_slam_drops:
+            L = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
+            R = self._ts_from_vrs(self.options.sensor.right_cam_stream_id)
             assert len(L) == len(R), "Unequal number of left and right timestamps"
             matched = list(zip(L, R))
             if not all(abs(l - r) < max_diff for l, r in matched):
@@ -144,8 +157,8 @@ class VrsToColmap:
         return matched
     
     def _match_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
-        L = self._ts_from_vrs(self.left_cam_stream_id)
-        R = self._ts_from_vrs(self.right_cam_stream_id)
+        L = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
+        R = self._ts_from_vrs(self.options.sensor.right_cam_stream_id)
         
         # matching timestamps is only when we have slam drops
         assert len(L) > 0 and len(R) > 0 and len(L) != len(R), \
@@ -178,7 +191,7 @@ class VrsToColmap:
     def _add_device_sensors(self) -> None:
         device_calibration = self.vrs_provider.get_device_calibration()
         imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.imu_stream_id
+            self.options.sensor.right_imu_stream_id
         )
         imu_calib = device_calibration.get_imu_calib(
             imu_stream_label
@@ -190,7 +203,7 @@ class VrsToColmap:
         # DUMMY CAMERA FOR IMU, IMU ID is 1
         imu = pycolmap.Camera(
             camera_id=1,
-            model=self.cfg.camera.model,
+            model=self.options.sensor.camera_model,
             width=w,
             height=h,
             params=p,
@@ -198,7 +211,10 @@ class VrsToColmap:
         self.empty_recons.add_camera(imu)
         rig.add_ref_sensor(imu.sensor_id)
 
-        for cam_id, sid in [(2, self.left_cam_stream_id), (3, self.right_cam_stream_id)]:
+        for cam_id, sid in \
+            [(2, self.options.sensor.left_cam_stream_id),
+                (3, self.options.sensor.right_cam_stream_id)
+        ]:
             stream_label = self.vrs_provider.get_label_from_stream_id(
                 sid
             )
@@ -236,7 +252,7 @@ class VrsToColmap:
             # DUMMY CAMERA FOR IMU
             imu = pycolmap.Camera(
                 camera_id=sensor_id,
-                model=self.cfg.camera.model,
+                model=self.options.sensor.camera_model,
                 width=w,
                 height=h,
                 params=p,
@@ -246,7 +262,7 @@ class VrsToColmap:
             sensor_id += 1
 
             imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-                self.imu_stream_id
+                self.options.sensor.right_imu_stream_id
             )
             imu_calib = None
             for calib in calibration.imu_calibs:
@@ -254,7 +270,9 @@ class VrsToColmap:
                     imu_calib = calib
                     break
 
-            for sid in [self.left_cam_stream_id, self.right_cam_stream_id]:
+            for sid in \
+                [self.options.sensor.left_cam_stream_id, self.options.sensor.right_cam_stream_id
+            ]:
                 stream_label = self.vrs_provider.get_label_from_stream_id(
                     sid
                 )
