@@ -1,37 +1,57 @@
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Tuple
 from omegaconf import OmegaConf
 
-def _merge_if_exists(cfg, path: Path):
-    return OmegaConf.merge(cfg, OmegaConf.load(str(path))) if path.exists() else cfg
+from .options import (
+    MPSOptions,
+    PathOptions,
+    SensorOptions,
+    ToColmapOptions,
+    VIOptimizerOptions,
+    TriangulatorOptions,
+    KeyframeSelectorOptions,
+)
 
-def load_cfg(
-    base_file: str = "lamaria/rig/config/defaults.yaml",
-    local_file: Optional[str] = None,
-    cli_overrides: Optional[Sequence[str]] = None,
-):
-    cfg = OmegaConf.load(base_file)
-    if local_file:
-        cfg = _merge_if_exists(cfg, Path(local_file))
-    if cli_overrides:
-        cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(list(cli_overrides)))
-    OmegaConf.resolve(cfg)
+class Config:
+    def __init__(
+        self,
+        base_file: str = "lamaria/rig/config/defaults.yaml",
+        cli_overrides: Optional[Sequence[str]] = None
+    ):
+        self.config = OmegaConf.load(base_file)
+        if cli_overrides:
+            self.config = OmegaConf.merge(
+                self.config,
+                OmegaConf.from_dotlist(list(cli_overrides))
+            )
 
-    vrs_stem = Path(cfg.run.vrs_file).stem
+        OmegaConf.resolve(self.config)
+    
+    def get_paths(self) -> PathOptions:
+        """ Get resolved paths from config. """
+        return PathOptions.load(self.config)
 
-    base = Path(cfg.paths.base)
-    recordings = Path(cfg.paths.recordings)
-    mps = Path(cfg.paths.mps)
+    def get_mps_options(self) -> MPSOptions:
+        """ Get MPS options from config. """
+        return MPSOptions.load(self.config)
 
-    parent_rel = cfg.result.parent_path
+    def get_sensor_options(self) -> SensorOptions:
+        """ Get sensor options from config. """
+        return SensorOptions.load(self.config)
 
-    cfg.vrs_file_path = recordings / cfg.run.vrs_file
-    cfg.mps_path = mps / f"mps_{vrs_stem}_vrs"
-    cfg.image_stream_path = base / parent_rel / vrs_stem / "image_stream"
+    def get_to_colmap_options(self) -> ToColmapOptions:
+        """ Get options for to_colmap pipeline from config. """
+        return ToColmapOptions.load(self.config)
 
-    vio_base = base / parent_rel / vrs_stem
+    def get_keyframing_options(self) -> KeyframeSelectorOptions:
+        """ Get keyframing options from config. """
+        return KeyframeSelectorOptions.load(self.config)
 
-    cfg.result.parent_path = vio_base
-    cfg.result.output_folder_path = vio_base / cfg.result.output_folder
+    def get_triangulator_options(self) -> TriangulatorOptions:
+        """ Get triangulation options from config. """
+        return TriangulatorOptions.load(self.config)
 
-    return cfg
+    def get_vi_optimizer_options(self) -> VIOptimizerOptions:
+        """ Get visual-inertial optimization options from config. """
+        return VIOptimizerOptions.load(self.config)
+        
