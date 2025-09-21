@@ -27,7 +27,7 @@ from ...utils.general import (
     round_ns,
 )
 from ...utils.imu import (
-    get_online_imu_data_from_vrs
+    get_imu_data_from_vrs,
 )
 
 @dataclass
@@ -51,6 +51,9 @@ class ToColmap:
     def _init_io(self):
         """Initializes output and data providers"""
         self.empty_recons = pycolmap.Reconstruction()
+        output_base = self.options.paths.init_model.parent
+        output_base.mkdir(parents=True, exist_ok=True)
+        
         self.vrs_provider = data_provider.create_vrs_data_provider(
             self.options.paths.vrs.as_posix()
         )
@@ -433,34 +436,47 @@ class ToColmap:
             for im in images_to_add:
                 self.empty_recons.add_image(im)
 
-    def _save_imu_measurements(self) -> None:
-        file_path = self.cfg.result.output_folder_path / self.cfg.result.rect_imu_file
-        if not self.cfg.optimization.use_device_calibration:
-            ms = get_online_imu_data_from_vrs(
+    def save_imu_measurements(self) -> Path:
+        """Saves rectified IMU measurements to a numpy file"""
+        if self.options.mps.use_online_calibration \
+            and self.options.mps.use_mps:
+            ms = get_imu_data_from_vrs(
                 self.vrs_provider,
-                self.cfg.mps_path,
+                self.options.paths.mps,
             )
-            np.save(file_path, ms.data)
-        # add device calib case if needed
+        else:
+            ms = get_imu_data_from_vrs(
+                self.vrs_provider,
+            )
+        
+        np.save(self.options.paths.rect_imu, ms.data)
+
+        return self.options.paths.rect_imu
     
     def create(self) -> pycolmap.Reconstruction:
-        if self.cfg.optimization.use_device_calibration:
-            self._add_device_sensors()
-            self._add_device_frames()
-        else:
+        """Creates an empty COLMAP reconstruction with cameras and frames"""
+        if self.options.mps.use_online_calibration:
             self._add_online_sensors()
             self._add_online_frames()
-
-        self._save_imu_measurements()
+        else:
+            self._add_device_sensors()
+            self._add_device_frames()
 
         return self.empty_recons
 
-    def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Init {recon.summary()}")
-        recon.write(output_path)
+    def write_reconstruction(self) -> Path:
+        recon_path = self.options.paths.init_model
+        recon_path.mkdir(parents=True, exist_ok=True)
 
-    def write_full_timestamps(self, output_path: Path) -> None:
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Init {self.empty_recons.summary()}")
+        self.empty_recons.write(recon_path.as_posix())
+
+        return recon_path
+
+    def write_full_timestamps(self) -> Path:
+        ts_path = self.options.paths.full_ts
+        ts_path.parent.mkdir(parents=True, exist_ok=True)
         left_ts = np.array(sorted([pfd.left_ts for pfd in self.per_frame_data]))
-        np.save(output_path, left_ts)
+        np.save(ts_path, left_ts)
+
+        return ts_path
