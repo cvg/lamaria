@@ -306,11 +306,34 @@ def extract_images_from_vrs(
         logger.info("Done!")
 
 
-def get_closed_loop_data_from_mps(mps_path: Path):
+def get_closed_loop_data_from_mps(mps_path: Path) -> List[mps.ClosedLoopTrajectoryPose]:
     closed_loop_traj_file = mps_path / "slam" / "closed_loop_trajectory.csv"
     data = mps.read_closed_loop_trajectory(closed_loop_traj_file.as_posix())
     return data
 
+def get_rig_from_worlds_from_estimate(
+    estimate_path: Path
+) -> List[pycolmap.Rigid3d]:
+    """Estimate file format: ts t_x t_y t_z q_x q_y q_z q_w"""
+    
+    rig_from_worlds = []
+    with open(estimate_path, "r") as f:
+        lines = f.readlines()
+        for line in lines:
+            if line.startswith("#"):
+                continue
+            
+            parts = line.strip().split()
+            if len(parts) != 8:
+                continue
+            
+            tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
+            qvec = np.array([float(parts[4]), float(parts[5]), float(parts[6]), float(parts[7])])
+            pose = pycolmap.Rigid3d(pycolmap.Rotation3d(qvec), tvec)
+            rig_from_world = pose.inverse()
+            rig_from_worlds.append(rig_from_world)
+    
+    return rig_from_worlds
 
 def get_mps_poses_for_timestamps(
     trajectory_data: List[mps.ClosedLoopTrajectoryPose],
