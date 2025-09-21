@@ -10,35 +10,18 @@ from typing import List, Optional
 import pycolmap
 
 from ... import logger
-from ..config.loaders import load_cfg
+from ..config.options import KeyframeSelectorOptions
 from ...utils.general import get_magnitude_from_transform
-
-@dataclass(frozen=True)
-class KFParams:
-    max_rotation_deg: float
-    max_distance_m: float
-    max_elapsed_ns: float
 
 
 class KeyframeSelector:
-    def __init__(self, reconstruction: pycolmap.Reconstruction, timestamps: List[int], cfg=None):
-        self.init_recons = reconstruction
-        self.timestamps = timestamps
-        
-        cfg = load_cfg() if cfg is None else cfg
-        self.params = KFParams(
-            max_rotation_deg=float(cfg.keyframing.max_rotation),
-            max_distance_m=float(cfg.keyframing.max_distance),
-            max_elapsed_ns=float(cfg.keyframing.max_elapsed) * 1e9,  # convert to ns
-        )
-        
-        self.keyframes_dir = cfg.result.output_folder_path / cfg.result.keyframes
-        self.image_stream_root = cfg.image_stream_path
+    def __init__(self, options: KeyframeSelectorOptions):
+        self.options = options
+        self.init_recons = pycolmap.Reconstruction(self.options.paths.init_model)
+        self.timestamps = np.load(self.options.paths.full_ts).tolist()
 
         self.keyframed_recons = pycolmap.Reconstruction()
         self.keyframe_frame_ids: Optional[List[int]] = None
-
-        self.init_recon_type = "device" if len(self.init_recons.rigs) == 1 else "online"
 
     def _select_keyframes(self):
         self.keyframe_frame_ids = []  
@@ -59,9 +42,9 @@ class KeyframeSelector:
             dr_dt += np.array(get_magnitude_from_transform(current_rig_from_previous_rig))
             dts += self.timestamps[i+1] - self.timestamps[i]
 
-            if dr_dt[0] > self.params.max_rotation_deg or \
-                dr_dt[1] > self.params.max_distance_m or \
-                    dts > self.params.max_elapsed_ns:
+            if dr_dt[0] > self.options.max_rotation or \
+                dr_dt[1] > self.options.max_distance or \
+                    dts > self.options.max_elapsed:
                 
                 self.keyframe_frame_ids.append(curr)
                 dr_dt = np.array([0.0, 0.0])
@@ -198,20 +181,22 @@ class KeyframeSelector:
             rig_id += 1
 
     def run_keyframing(self) -> pycolmap.Reconstruction:
+        """ Main function to run keyframing."""
         self._select_keyframes()
-        if self.init_recon_type == "device":
+        if len(self.init_recons.rigs.keys()) == 1: # device rig has been added
             self._build_device_keyframed_reconstruction()
         else:
             self._build_online_keyframed_reconstruction()
 
         return self.keyframed_recons
     
-    def copy_images_to_keyframes_dir(self, output_dir: Path = None) -> None:
+    def copy_images_to_keyframes_dir(self) -> Path:
+        """ Copy images corresponding to keyframes to a separate directory. """
         if self.keyframe_frame_ids is None:
             raise ValueError("Keyframes not selected yet. Run `run_keyframing` first.")
 
-        if output_dir is None:
-            output_dir = self.keyframes_dir
+        output_dir = self.options.paths.keyframes
+        image_stream_root = self.options.paths.images
 
         if output_dir.exists() and any(output_dir.iterdir()):
             shutil.rmtree(output_dir)
@@ -224,21 +209,23 @@ class KeyframeSelector:
                 image = self.init_recons.images[data_id.id]
                 
                 subdir = "left" if "1201-1" in image.name else "right"
-                src_path = self.image_stream_root / subdir / image.name
+                src_path = image_stream_root / subdir / image.name
                 dst_path = output_dir / image.name
                 
                 shutil.copy2(src_path, dst_path)
+        
+        return output_dir
 
-    def read_keyframe_timestamps(self, input_path: Path) -> None:
-        ts = np.load(input_path).tolist()
-        return ts
-
-    def write_keyframe_timestamps(self, output_path: Path) -> None:
+    def write_keyframe_timestamps(self) -> Path:
+        output_path = self.options.paths.kf_ts
         output_path.parent.mkdir(parents=True, exist_ok=True)
         keyframed_timestamps = np.array([self.timestamps[i - 1] for i in self.keyframe_frame_ids])
         np.save(output_path, keyframed_timestamps)
+        return output_path
 
-    def write_reconstruction(self, recon: pycolmap.Reconstruction, output_path: Path) -> None:
+    def write_reconstruction(self) -> Path:
+        output_path = self.options.paths.kf_model
         output_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Keyframed {recon.summary()}")
-        recon.write(output_path)
+        logger.info(f"Keyframed {self.keyframed_recons.summary()}")
+        self.keyframed_recons.write(output_path)
+        return output_path
