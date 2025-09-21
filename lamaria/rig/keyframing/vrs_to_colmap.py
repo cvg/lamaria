@@ -68,14 +68,19 @@ class ToColmap:
         )
 
         images = self._get_images()
-        timestamps = self._get_timestamps()
-        closed_loop_data = get_closed_loop_data_from_mps(self.cfg.mps_path)
-        pose_timestamps = [ l for l, _ in timestamps ]
-        mps_poses = get_mps_poses_for_timestamps(closed_loop_data, pose_timestamps)
 
-        self.per_frame_data = self._build_per_frame_data(images, timestamps, mps_poses)
-
-    def _build_per_frame_data(self, images, timestamps, mps_poses) -> List[PerFrameData]:
+        if self.options.mps.use_mps:
+            timestamps = self._get_mps_timestamps()
+            closed_loop_data = get_closed_loop_data_from_mps(self.options.paths.mps)
+            pose_timestamps = [ l for l, _ in timestamps ]
+            mps_poses = get_mps_poses_for_timestamps(closed_loop_data, pose_timestamps)
+            self.per_frame_data = self._build_per_frame_data_from_mps(images, timestamps, mps_poses)
+        else:
+            timestamps = self._get_estimate_timestamps()
+            if len(images) != len(timestamps):
+                images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
+    
+    def _build_per_frame_data_from_mps(self, images, timestamps, mps_poses) -> List[PerFrameData]:
         per_frame_data = []
         imu_stream_label = self.vrs_provider.get_label_from_stream_id(
             self.options.sensor.right_imu_stream_id
