@@ -32,12 +32,15 @@ class PathOptions:
     optim_model: Optional[Path] = None
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> PathOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> PathOptions:
         """
         Build PathOptions from `paths:` block, resolving relative paths
         against `paths.base` and `paths.output.base`.
         Layout from defaults.yaml.
         """
+        if cfg is None or not hasattr(cfg, 'paths'):
+            return cls()
+
         cfg_paths = cfg.paths
         base_root = Path(cfg_paths.base).resolve()
         out_root  = _p(cfg_paths.output.base, base_root)
@@ -86,7 +89,10 @@ class MPSOptions:
     use_online_calibration: bool = False # when use_mps is true (for online calib file)
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> MPSOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> MPSOptions:
+        if cfg is None or not hasattr(cfg, 'mps'):
+            return cls()
+        
         return _structured_merge_to_obj(cls, cfg.mps)
 
 @dataclass(frozen=True, slots=True)
@@ -97,7 +103,10 @@ class SensorOptions:
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
     @classmethod
-    def load(cls, cfg) -> SensorOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> SensorOptions:
+        if cfg is None or not hasattr(cfg, 'sensor'):
+            return cls()
+        
         obj: SensorOptions = _structured_merge_to_obj(cls, cfg.sensor)
         if not isinstance(obj.left_cam_stream_id, StreamId):
             object.__setattr__(obj, "left_cam_stream_id", StreamId(str(obj.left_cam_stream_id)))
@@ -115,7 +124,14 @@ class ToColmapOptions:
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
     @classmethod
-    def load(cls, cfg) -> ToColmapOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> ToColmapOptions:
+        if cfg is None:
+            return cls(
+                paths=PathOptions(),
+                mps=MPSOptions(),
+                sensor=SensorOptions(),
+            )
+        
         return cls(
             paths=PathOptions.load(cfg),
             mps=MPSOptions.load(cfg),
@@ -132,7 +148,10 @@ class KeyframeSelectorOptions:
     max_elapsed: int = int(1e9) # 1 second in ns
 
     @classmethod
-    def load(cls, cfg) -> "KeyframeSelectorOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> "KeyframeSelectorOptions":
+        if cfg is None or not hasattr(cfg, 'keyframing'):
+            return cls(paths=PathOptions())
+        
         section = {
             "max_rotation": float(cfg.keyframing.max_rotation),
             "max_distance": float(cfg.keyframing.max_distance),
@@ -161,7 +180,10 @@ class TriangulatorOptions:
     filter_min_tri_angle: float = 1.5
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> "TriangulatorOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> "TriangulatorOptions":
+        if cfg is None or not hasattr(cfg, 'triangulation'):
+            return cls(paths=PathOptions())
+        
         obj: TriangulatorOptions = _structured_merge_to_obj(cls, cfg.triangulation)
         return replace(obj, paths=PathOptions.load(cfg))
 
@@ -201,7 +223,10 @@ class VIOptimizerOptions:
         pycolmap.IncrementalPipelineOptions()
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> "VIOptimizerOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> "VIOptimizerOptions":
+        if cfg is None or not hasattr(cfg, 'optimization'):
+            return cls(paths=PathOptions())
+        
         base: VIOptimizerOptions = OmegaConf.to_object(OmegaConf.structured(cls))
         opt = cfg.optimization
         cam = _structured_merge_to_obj(OptCamOptions, {
