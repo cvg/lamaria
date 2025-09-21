@@ -13,7 +13,7 @@ from hloc import (
 )
 
 from ... import logger
-from ..config.loaders import load_cfg
+from ..config.options import TriangulatorOptions
 
 
 def pairs_from_frames(recon: pycolmap.Reconstruction):
