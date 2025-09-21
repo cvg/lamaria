@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pycolmap
 from dataclasses import dataclass
+from bisect import bisect_left
 
 import projectaria_tools.core.mps as mps
 from projectaria_tools.core import data_provider
@@ -160,6 +161,61 @@ class ToColmap:
             matched = self._match_timestamps(max_diff)
 
         return matched
+    
+    def _get_estimate_timestamps(self):
+        assert self.options.paths.estimate is not None, \
+            "Estimate path must be provided if MPS is not used"
+        
+        with open(self.options.paths.estimate, 'r') as f:
+            lines = f.readlines()
+        
+        timestamps = []
+        for line in lines:
+            if line.startswith('#') or not line.strip():
+                continue
+            
+            ts = round_ns(line.split()[0])
+            timestamps.append(ts)
+        
+        return sorted(timestamps)
+    
+    def _match_estimate_ts_to_images(
+        self,
+        images: List[Tuple[Path, Path]],
+        est_timestamps: List[int],
+        max_diff: int = 1000000, # 1 ms
+    ) -> Tuple[List[Tuple[Path, Path]], List[int]]:
+        
+        left_ts = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
+        assert len(images) == len(left_ts), \
+            "Number of images and left timestamps must be equal"
+        
+        order = sorted(range(len(left_ts)), key=lambda i: left_ts[i])
+        left_ts = [left_ts[i] for i in order]
+        images = [images[i] for i in order]
+        
+        matched_images: List[Tuple[Path, Path]] = []
+        matched_timestamps: List[int] = []
+
+        # estimate timestamps will be in nanoseconds like vrs timestamps
+        for est in est_timestamps:
+            idx = bisect_left(left_ts, est)
+
+            cand_idxs = []
+            if idx > 0: cand_idxs.append(idx - 1)
+            if idx < len(left_ts): cand_idxs.append(idx)
+
+            if not cand_idxs:
+                continue
+
+            best = min(cand_idxs, key=lambda j: abs(left_ts[j] - est))
+            if (max_diff is not None) and (abs(left_ts[best] - est) > max_diff):
+                continue
+
+            matched_images.append(images[best])
+            matched_timestamps.append(left_ts[best])
+        
+        return matched_images, matched_timestamps
     
     def _match_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
         L = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
