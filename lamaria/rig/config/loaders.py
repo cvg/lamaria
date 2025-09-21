@@ -13,19 +13,31 @@ from .options import (
 )
 
 class Config:
-    def __init__(
-        self,
+    def __init__(self, cfg: OmegaConf):
+        self.config = cfg
+    
+    @classmethod
+    def load_default(
+        cls,
+    ) -> 'Config':
+        return cls.load()
+    
+    @classmethod
+    def load(
+        cls,
         base_file: str = "lamaria/rig/config/defaults.yaml",
         cli_overrides: Optional[Sequence[str]] = None
-    ):
-        self.config = OmegaConf.load(base_file)
+    ) -> 'Config':
+        
+        config = OmegaConf.load(base_file)
         if cli_overrides:
-            self.config = OmegaConf.merge(
-                self.config,
+            config = OmegaConf.merge(
+                config,
                 OmegaConf.from_dotlist(list(cli_overrides))
             )
-
-        OmegaConf.resolve(self.config)
+        
+        OmegaConf.resolve(config)
+        return cls(config)
     
     def get_paths(self) -> PathOptions:
         """ Get resolved paths from config. """
