@@ -105,7 +105,7 @@ def get_t_cam_a_cam_b_from_json(
 def add_cameras_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
     calibration_file: Path,
-):
+) -> None:
 
     for i, (key, _) in enumerate(ARIA_CAMERAS):
         cam = camera_colmap_from_json(
@@ -133,7 +133,7 @@ def add_cameras_to_reconstruction(
     reconstruction.add_rig(rig)
 
 
-def get_qvec_and_tvec_from_transform(transform):
+def get_qvec_and_tvec_from_transform(transform) -> Tuple[np.ndarray, np.ndarray]:
     """Returns qvec in format x,y,z,w and tvec in format x,y,z"""
     # to_quat() returns in wxyz format
     # https://github.com/facebookresearch/projectaria_tools/blob/867105e65cadbe777db355a407d90533c71d2d06/core/python/sophus/SO3PyBind.h#L161
@@ -165,7 +165,7 @@ def get_magnitude_from_transform(transform: pycolmap.Rigid3d) -> Tuple[float, fl
 def get_camera_params_for_colmap(
     camera_calibration: CameraCalibration,
     camera_model: str,
-):
+) -> List[float]:
     # params = [f_u {f_v} c_u c_v [k_0: k_{numK-1}]
     # {p_0 p_1} {s_0 s_1 s_2 s_3}]
     # projection_params is a 15 length vector,
