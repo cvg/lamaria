@@ -16,9 +16,10 @@ paths:
     keyframes: keyframes/
     kf_model: keyframe_recon/
 
+    hloc: hloc/
     pairs_file: pairs.txt
-    tri_model: triangulated_recon/
     
+    tri_model: triangulated_recon/
     optim_model: optim_recon/
 
     full_ts: timestamps/full.npy
@@ -32,13 +33,15 @@ sensor:
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
-  max_elapsed: 1.0
+  max_elapsed: 1e9 # 1 second in ns
 
 triangulation:
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
+  num_retrieval_matches: 5
 
+  # relaxed triangulation
   # https://github.com/colmap/colmap/blob/dbdb3cd5a9a90a01b7e1096905ba2ffc34a68b82/src/colmap/sfm/incremental_triangulator.h
   merge_max_reproj_error: 4.0
   complete_max_reproj_error: 4.0
