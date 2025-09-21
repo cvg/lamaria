@@ -22,6 +22,7 @@ from ...utils.general import (
     rigid3d_from_transform,
     get_closed_loop_data_from_mps,
     get_mps_poses_for_timestamps,
+    get_rig_from_worlds_from_estimate,
     extract_images_from_vrs,
     round_ns,
 )
@@ -80,6 +81,11 @@ class ToColmap:
             timestamps = self._get_estimate_timestamps()
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
+            
+            rig_from_worlds = get_rig_from_worlds_from_estimate(
+                self.options.paths.estimate,
+            )
+            self.per_frame_data = self._build_per_frame_data_from_estimate(images, timestamps, rig_from_worlds)
     
     def _build_per_frame_data_from_mps(self, images, timestamps, mps_poses) -> List[PerFrameData]:
         per_frame_data = []
@@ -127,6 +133,23 @@ class ToColmap:
 
         return per_frame_data
 
+    def _build_per_frame_data_from_estimate(self, images, timestamps, rig_from_worlds) -> List[PerFrameData]:
+        per_frame_data = []
+        assert len(images) == len(timestamps) == len(rig_from_worlds), \
+            "Number of images, timestamps and poses must be equal"
+        for (left_img, right_img), ts, rig_from_world \
+            in zip(images, timestamps, rig_from_worlds):
+            pfd = PerFrameData(
+                left_ts=ts,
+                right_ts=ts, # right timestamp is not available in estimate
+                left_img=left_img,
+                right_img=right_img,
+                rig_from_world=rig_from_world
+            )
+            per_frame_data.append(pfd)
+        
+        return per_frame_data
+    
     def _images_from_vrs(self, folder: Path, wrt_to: Path, ext: str =".jpg") -> List[Path]:
         if not folder.is_dir():
             return []
