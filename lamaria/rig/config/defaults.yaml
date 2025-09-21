@@ -71,3 +71,4 @@ optimization:
 mps:
   use_mps: false
   use_online_calibration: false # relevant only when use_mps is true (for online calib file)
+  has_slam_drops: false # check vrs json metadata file for each sequence
