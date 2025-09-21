@@ -7,6 +7,7 @@ import pycolmap
 from omegaconf import OmegaConf
 
 from projectaria_tools.core.stream_id import StreamId
+from .helpers import _p, _structured_merge_to_obj
 
 
 @dataclass(slots=True)
@@ -24,6 +25,7 @@ class PathOptions:
     kf_model: Optional[Path] = None
     kf_ts: Optional[Path] = None
     
+    hloc: Optional[Path] = None
     pairs_file: Optional[Path] = None
     tri_model: Optional[Path] = None
 
@@ -31,7 +33,51 @@ class PathOptions:
 
     @classmethod
     def load(cls, cfg: OmegaConf) -> PathOptions:
-        pass
+        """
+        Build PathOptions from `paths:` block, resolving relative paths
+        against `paths.base` and `paths.output.base`.
+        Layout from defaults.yaml.
+        """
+        cfg_paths = cfg.paths
+        base_root = Path(cfg_paths.base).resolve()
+        out_root  = _p(cfg_paths.output.base, base_root)
+
+        vrs      = _p(cfg_paths.vrs, base_root)
+        estimate = _p(cfg_paths.estimate, base_root)
+        mps      = _p(cfg_paths.mps, base_root)
+
+        images     = _p(cfg_paths.output.images, out_root)
+        init_model = _p(cfg_paths.output.init_model, out_root)
+        
+        keyframes  = _p(cfg_paths.output.keyframes, out_root)
+        kf_model   = _p(cfg_paths.output.kf_model, out_root)
+        
+        hloc     = _p(cfg_paths.output.hloc, out_root)
+        pairs_file = _p(cfg_paths.output.pairs_file, hloc)
+        
+        tri_model  = _p(cfg_paths.output.tri_model, out_root)
+        optim_model= _p(cfg_paths.output.optim_model, out_root)
+
+        full_ts = _p(cfg_paths.output.full_ts, out_root)
+        kf_ts   = _p(cfg_paths.output.kf_ts, out_root)
+        rect_imu= _p(cfg_paths.output.rect_imu, out_root)
+
+        return cls(
+            vrs=vrs,
+            estimate=estimate,
+            init_model=init_model,
+            images=images,
+            full_ts=full_ts,
+            mps=mps,
+            rect_imu=rect_imu,
+            keyframes=keyframes,
+            kf_model=kf_model,
+            kf_ts=kf_ts,
+            hloc=hloc,
+            pairs_file=pairs_file,
+            tri_model=tri_model,
+            optim_model=optim_model,
+        )
 
 # General options
 @dataclass(frozen=True, slots=True)
@@ -41,10 +87,7 @@ class MPSOptions:
 
     @classmethod
     def load(cls, cfg: OmegaConf) -> MPSOptions:
-        return MPSOptions(
-            use_mps=cfg.get("use_mps", False),
-            use_online_calibration=cfg.get("use_online_calibration", False),
-        )
+        return _structured_merge_to_obj(cls, cfg.mps)
 
 @dataclass(frozen=True, slots=True)
 class SensorOptions:
@@ -54,8 +97,15 @@ class SensorOptions:
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> SensorOptions:
-        pass
+    def load(cls, cfg) -> SensorOptions:
+        obj: SensorOptions = _structured_merge_to_obj(cls, cfg.sensor)
+        if not isinstance(obj.left_cam_stream_id, StreamId):
+            object.__setattr__(obj, "left_cam_stream_id", StreamId(str(obj.left_cam_stream_id)))
+        if not isinstance(obj.right_cam_stream_id, StreamId):
+            object.__setattr__(obj, "right_cam_stream_id", StreamId(str(obj.right_cam_stream_id)))
+        if not isinstance(obj.right_imu_stream_id, StreamId):
+            object.__setattr__(obj, "right_imu_stream_id", StreamId(str(obj.right_imu_stream_id)))
+        return obj
 
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
@@ -65,8 +115,12 @@ class ToColmapOptions:
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> ToColmapOptions:
-        pass
+    def load(cls, cfg) -> ToColmapOptions:
+        return cls(
+            paths=PathOptions.load(cfg),
+            mps=MPSOptions.load(cfg),
+            sensor=SensorOptions.load(cfg),
+        )
 
 # Keyframing options
 @dataclass(frozen=True, slots=True)
@@ -74,19 +128,25 @@ class KeyframeSelectorOptions:
     paths: PathOptions = field(default_factory=PathOptions)
 
     max_rotation: float = 20.0 # degrees
-    max_translation: float = 1.0 # meters
-    max_elapsed_time: float = 1e9 # 1 second in ns
+    max_distance: float = 1.0 # meters
+    max_elapsed: int = int(1e9) # 1 second in ns
 
     @classmethod
-    def load(cls, cfg: OmegaConf) -> KeyframeSelectorOptions:
-        pass
+    def load(cls, cfg) -> "KeyframeSelectorOptions":
+        section = {
+            "max_rotation": float(cfg.keyframing.max_rotation),
+            "max_distance": float(cfg.keyframing.max_distance),
+            "max_elapsed": int(float(cfg.keyframing.max_elapsed)),
+        }
+        obj: KeyframeSelectorOptions = _structured_merge_to_obj(cls, section)
+        return replace(obj, paths=PathOptions.load(cfg))
+
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
     paths: PathOptions = field(default_factory=PathOptions)
 
-    pairs_path: Optional[Path] = None
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
     retrieval_conf: str = "netvlad"
@@ -99,6 +159,11 @@ class TriangulatorOptions:
 
     filter_max_reproj_error: float = 4.0
     filter_min_tri_angle: float = 1.5
+
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> "TriangulatorOptions":
+        obj: TriangulatorOptions = _structured_merge_to_obj(cls, cfg.triangulation)
+        return replace(obj, paths=PathOptions.load(cfg))
 
 # Optimization options
 @dataclass(frozen=True, slots=True)
@@ -134,4 +199,36 @@ class VIOptimizerOptions:
 
     colmap_pipeline: pycolmap.IncrementalPipelineOptions = \
         pycolmap.IncrementalPipelineOptions()
+
+    @classmethod
+    def load(cls, cfg: OmegaConf) -> "VIOptimizerOptions":
+        base: VIOptimizerOptions = OmegaConf.to_object(OmegaConf.structured(cls))
+        opt = cfg.optimization
+        cam = _structured_merge_to_obj(OptCamOptions, {
+            "feature_std":            opt.feature_std,
+            "optimize_cam_intrinsics": opt.optimize_cam_intrinsics,
+            "optimize_cam_from_rig":   opt.optimize_cam_from_rig,
+        })
+        imu = _structured_merge_to_obj(OptIMUOptions, {
+            "gyro_infl":                opt.gyro_infl,
+            "acc_infl":                 opt.acc_infl,
+            "integration_noise_density": opt.integration_noise_density,
+            "optimize_scale":           opt.optimize_scale,
+            "optimize_gravity":         opt.optimize_gravity,
+            "optimize_imu_from_rig":    opt.optimize_imu_from_rig,
+            "optimize_bias":            opt.optimize_bias,
+        })
+        optim = _structured_merge_to_obj(OptOptions, {
+            "use_callback":        opt.use_callback,
+            "max_num_iterations":  opt.max_num_iterations,
+            "normalize_reconstruction": opt.normalize_reconstruction,
+        })
+        # leave colmap_pipeline as default
+        return replace(
+            base,
+            paths=PathOptions.load(cfg),
+            cam=cam,
+            imu=imu,
+            optim=optim,
+        )
     
