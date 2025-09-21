@@ -64,39 +64,36 @@ def postprocess_pairs_with_reconstruction(
 
 
 def run(
-    cfg=None,
-    num_retrieval_matches: int = 5,
+    options: TriangulatorOptions,
 ) -> Path:
-    
-    cfg = load_cfg() if cfg is None else cfg
 
-    keyframes_dir = cfg.result.output_folder_path / cfg.result.keyframes
+    keyframes_dir = options.paths.keyframes
     if not keyframes_dir.exists():
         raise FileNotFoundError(f"keyframes_dir not found at {keyframes_dir}")
     
-    hloc_outputs_dir = cfg.result.output_folder_path / "hloc"
+    hloc_outputs_dir = options.paths.hloc
     hloc_outputs_dir.mkdir(parents=True, exist_ok=True)
 
-    reference_model_path = cfg.result.output_folder_path / cfg.result.kf_model
+    reference_model_path = options.paths.kf_model
     if not reference_model_path.exists():
         raise FileNotFoundError(f"reference_model not found at {reference_model_path}")
 
-    triangulated_model_path = cfg.result.output_folder_path / cfg.result.tri_model
-    pairs_path = hloc_outputs_dir / cfg.triangulation.pairs_file
+    triangulated_model_path = options.paths.tri_model
+    pairs_path = options.paths.pairs_file
 
-    retrieval_conf = extract_features.confs[cfg.triangulation.retrieval_conf]
-    feature_conf   = extract_features.confs[cfg.triangulation.feature_conf]
-    matcher_conf   = match_features.confs[cfg.triangulation.matcher_conf]
+    retrieval_conf = extract_features.confs[options.retrieval_conf]
+    feature_conf   = extract_features.confs[options.feature_conf]
+    matcher_conf   = match_features.confs[options.matcher_conf]
 
     logger.info("HLOC confs: retrieval=%s, features=%s, matcher=%s",
-                cfg.triangulation.retrieval_conf,
-                cfg.triangulation.feature_conf,
-                cfg.triangulation.matcher_conf)
+                options.retrieval_conf,
+                options.feature_conf,
+                options.matcher_conf)
 
     retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes_dir, export_dir=hloc_outputs_dir)
     features_path = extract_features.main(feature_conf, image_dir=keyframes_dir, export_dir=hloc_outputs_dir)
 
-    pairs_from_retrieval.main(retrieval_path, pairs_path, num_retrieval_matches)
+    pairs_from_retrieval.main(retrieval_path, pairs_path, options.num_retrieval_matches)
     postprocess_pairs_with_reconstruction(pairs_path, reference_model_path)
 
     matches_path = match_features.main(
