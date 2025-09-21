@@ -1,10 +1,9 @@
 import pycolmap
-import numpy as np
+from typing import Optional
 from pathlib import Path
 from tqdm import tqdm
 from projectaria_tools.core import mps, data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
-from projectaria_tools.core.stream_id import StreamId
 
 from lamaria.utils.general import (
     IMU_STREAM_ID,
@@ -31,9 +30,9 @@ def get_online_params_for_imu_from_mps(
     return online_imu_calibs
 
 
-def get_online_imu_data_from_vrs(
+def get_imu_data_from_vrs(
     vrs_provider: data_provider.VrsDataProvider,
-    mps_folder: Path,
+    mps_folder: Optional[Path] = None,
 ):
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
@@ -43,29 +42,33 @@ def get_online_imu_data_from_vrs(
     )
     imu_stream_label = vrs_provider.get_label_from_stream_id(IMU_STREAM_ID)
 
-    online_calibs_file = mps_folder / "slam" / "online_calibration.jsonl"
-    online_imu_calibs = get_online_params_for_imu_from_mps(
-        online_calibs_file,
-        imu_stream_label
-    )
-
-    acceptable_diff_ms = 1 # 1 milliseconds
-
-    calib_timestamps = sorted(online_imu_calibs.keys())
+    if mps_folder is not None:
+        online_calibs_file = mps_folder / "slam" / "online_calibration.jsonl"
+        online_imu_calibs = get_online_params_for_imu_from_mps(
+            online_calibs_file,
+            imu_stream_label
+        )
+        acceptable_diff_ms = 1 # 1 milliseconds
+        calib_timestamps = sorted(online_imu_calibs.keys())
+    else:
+        device_calib = vrs_provider.get_device_calibration()
+        calibration = device_calib.get_imu_calib(imu_stream_label)
 
     ms = pycolmap.ImuMeasurements()
     for timestamp in tqdm(imu_timestamps, desc="Loading rect IMU data"):
-        quantized_timestamp = timestamp // int(1e6)
-        closest_ts = find_closest_timestamp(
-            calib_timestamps,
-            quantized_timestamp,
-            acceptable_diff_ms
-        )
+        if mps_folder is not None:
+            quantized_timestamp = timestamp // int(1e6)
+            closest_ts = find_closest_timestamp(
+                calib_timestamps,
+                quantized_timestamp,
+                acceptable_diff_ms
+            )
 
-        if closest_ts not in online_imu_calibs:
-            raise ValueError(f"No calibration found for timestamp {timestamp}")
+            if closest_ts not in online_imu_calibs:
+                raise ValueError(f"No calibration found for timestamp {timestamp}")
 
-        calibration = online_imu_calibs[closest_ts]
+            calibration = online_imu_calibs[closest_ts]
+        
         imu_data = vrs_provider.get_imu_data_by_time_ns(
             IMU_STREAM_ID,
             timestamp,
