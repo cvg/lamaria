@@ -261,6 +261,28 @@ def delete_files_in_folder(folder, exclude_pattern=None):
     else:
         os.makedirs(folder, exist_ok=True)
 
+def check_estimate_format(estimate_path: Path) -> bool:
+    """Estimate file format: ts t_x t_y t_z q_x q_y q_z q_w"""
+    with open(estimate_path, "r") as f:
+        lines = f.readlines()
+        lines = [line for line in lines if not line.startswith("#")]
+        if not lines:
+            raise ValueError(f"Estimate file {estimate_path} is empty \
+                             or has no valid lines.")
+
+        for line in lines:
+            parts = line.strip().split()
+            if len(parts) != 8:
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each line must have 8 values.")
+            
+            try:
+                [float(part) for part in parts]
+            except ValueError:
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each value must be a number.")
+    
+    return True
 
 def extract_images_from_vrs(
     vrs_file: Path,
