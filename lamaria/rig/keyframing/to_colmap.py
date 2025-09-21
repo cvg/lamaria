@@ -25,6 +25,7 @@ from ...utils.general import (
     get_rig_from_worlds_from_estimate,
     extract_images_from_vrs,
     round_ns,
+    check_estimate_format,
 )
 from ...utils.imu import (
     get_imu_data_from_vrs,
@@ -84,6 +85,10 @@ class ToColmap:
             timestamps = self._get_estimate_timestamps()
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
+            
+            flag = check_estimate_format(self.options.paths.estimate)
+            if not flag:
+                raise ValueError("Estimate file format is incorrect.")
             
             rig_from_worlds = get_rig_from_worlds_from_estimate(
                 self.options.paths.estimate,
