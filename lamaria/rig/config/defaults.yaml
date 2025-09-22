@@ -1,14 +1,12 @@
 # Default configuration for lamaria rig pipeline
 
-base: /media/arialamar/
+workspace: /media/arialamar/
 seq_name: 5cp
 
 estimate_to_colmap:
   vrs: recordings/${seq_name}.vrs
   estimate: est/${seq_name}.txt
-  mps: mps/mps_${seq_name}_vrs/ # necessary if use_mps is true
-
-  base: output/${seq_name}/
+  mps_folder: mps/mps_${seq_name}_vrs/ # necessary if use_mps is true
   images: image_stream
 
 sensor:
