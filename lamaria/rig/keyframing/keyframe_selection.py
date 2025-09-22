@@ -15,9 +15,13 @@ from ...utils.general import get_magnitude_from_transform
 
 
 class KeyframeSelector:
-    def __init__(self, options: KeyframeSelectorOptions):
+    def __init__(
+        self,
+        options: KeyframeSelectorOptions,
+        reconstruction: pycolmap.Reconstruction
+    ):
         self.options = options
-        self.init_recons = pycolmap.Reconstruction(self.options.paths.init_model)
+        self.init_recons = reconstruction
         self.timestamps = np.load(self.options.paths.full_ts).tolist()
 
         self.keyframed_recons = pycolmap.Reconstruction()
