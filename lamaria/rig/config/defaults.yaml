@@ -1,39 +1,32 @@
-paths:  
-  base: /media/arialamar/
-  seq_name: 5cp
+# Default configuration for lamaria rig pipeline
 
-  vrs: recordings/${paths.seq_name}.vrs
-  estimate: estimates/${paths.seq_name}.txt
+base: /media/arialamar/
+seq_name: 5cp
 
-  mps: mps/mps_${paths.seq_name}_vrs/ # necessary if use_mps is true
+estimate_to_colmap:
+  vrs: recordings/${seq_name}.vrs
+  estimate: est/${seq_name}.txt
+  mps: mps/mps_${seq_name}_vrs/ # necessary if use_mps is true
 
-  output:
-    base: output/${paths.seq_name}/
-    images: image_stream/
-
-    keyframes: keyframes/
-    kf_model: keyframe_recon/
-
-    hloc: hloc/
-    pairs_file: pairs.txt
-    
-    tri_model: triangulated_recon/
-    optim_model: optim_recon/
-
-    full_ts: timestamps/full.npy
-    kf_ts: timestamps/keyframe.npy
-
-    rect_imu: rect_imu.npy
+  base: output/${seq_name}/
+  images: image_stream
 
 sensor:
   camera_model: RAD_TAN_THIN_PRISM_FISHEYE
 
 keyframing:
+  keyframes: keyframes
+  kf_model: keyframe_recon
+  
   max_rotation: 20.0
   max_distance: 1.0
   max_elapsed: 1e9 # 1 second in ns
 
 triangulation:
+  hloc: hloc
+  pairs_file: pairs.txt
+  tri_model: triangulated_recon
+
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
@@ -50,6 +43,7 @@ triangulation:
   filter_min_tri_angle: 1.5
 
 optimization:
+  optim_model: optim_recon
   use_callback: true
   max_num_iterations: 10
   normalize_reconstruction: false
