@@ -148,8 +148,7 @@ class VIOptimizerOptions:
         if cfg is None or not hasattr(cfg, 'optimization'):
             return cls()
         
-        base: VIOptimizerOptions = OmegaConf.to_object(OmegaConf.structured(cls))
-
+        base = cls()
         cam = _structured_merge_to_obj(OptCamOptions, cfg.optimization.cam)
         imu = _structured_merge_to_obj(OptIMUOptions, cfg.optimization.imu)
         optim = _structured_merge_to_obj(OptOptions, cfg.optimization.opt)
