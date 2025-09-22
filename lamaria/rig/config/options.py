@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 import pycolmap
 from omegaconf import OmegaConf
 
@@ -87,6 +87,7 @@ class PathOptions:
 class MPSOptions:
     use_mps: bool = False
     use_online_calibration: bool = False # when use_mps is true (for online calib file)
+    has_slam_drops: bool = False # check vrs json metadata file for each sequence
 
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> MPSOptions:
@@ -97,23 +98,17 @@ class MPSOptions:
 
 @dataclass(frozen=True, slots=True)
 class SensorOptions:
-    left_cam_stream_id: StreamId = StreamId("1201-1")
-    right_cam_stream_id: StreamId = StreamId("1201-2")
-    right_imu_stream_id: StreamId = StreamId("1202-1")
+    left_cam_stream_id: str = "1201-1"
+    right_cam_stream_id: str = "1201-2"
+    right_imu_stream_id: str = "1202-1"
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> SensorOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> "SensorOptions":
         if cfg is None or not hasattr(cfg, 'sensor'):
             return cls()
         
         obj: SensorOptions = _structured_merge_to_obj(cls, cfg.sensor)
-        if not isinstance(obj.left_cam_stream_id, StreamId):
-            object.__setattr__(obj, "left_cam_stream_id", StreamId(str(obj.left_cam_stream_id)))
-        if not isinstance(obj.right_cam_stream_id, StreamId):
-            object.__setattr__(obj, "right_cam_stream_id", StreamId(str(obj.right_cam_stream_id)))
-        if not isinstance(obj.right_imu_stream_id, StreamId):
-            object.__setattr__(obj, "right_imu_stream_id", StreamId(str(obj.right_imu_stream_id)))
         return obj
 
 # To COLMAP options
