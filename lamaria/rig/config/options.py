@@ -1,86 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from pathlib import Path
-from typing import Optional, Any
+from typing import Optional
 import pycolmap
 from omegaconf import OmegaConf
 
-from projectaria_tools.core.stream_id import StreamId
-from .helpers import _p, _structured_merge_to_obj
+from .helpers import _structured_merge_to_obj
 
-
-@dataclass(slots=True)
-class PathOptions:
-    vrs: Optional[Path] = None
-    estimate: Optional[Path] = None
-    init_model: Optional[Path] = None
-    images: Optional[Path] = None
-    full_ts: Optional[Path] = None
-    mps: Optional[Path] = None
-
-    rect_imu: Optional[Path] = None
-
-    keyframes: Optional[Path] = None
-    kf_model: Optional[Path] = None
-    kf_ts: Optional[Path] = None
-    
-    hloc: Optional[Path] = None
-    pairs_file: Optional[Path] = None
-    tri_model: Optional[Path] = None
-
-    optim_model: Optional[Path] = None
-
-    @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> PathOptions:
-        """
-        Build PathOptions from `paths:` block, resolving relative paths
-        against `paths.base` and `paths.output.base`.
-        Layout from defaults.yaml.
-        """
-        if cfg is None or not hasattr(cfg, 'paths'):
-            return cls()
-
-        cfg_paths = cfg.paths
-        base_root = Path(cfg_paths.base).resolve()
-        out_root  = _p(cfg_paths.output.base, base_root)
-
-        vrs      = _p(cfg_paths.vrs, base_root)
-        estimate = _p(cfg_paths.estimate, base_root)
-        mps      = _p(cfg_paths.mps, base_root)
-
-        images     = _p(cfg_paths.output.images, out_root)
-        init_model = _p(cfg_paths.output.init_model, out_root)
-        
-        keyframes  = _p(cfg_paths.output.keyframes, out_root)
-        kf_model   = _p(cfg_paths.output.kf_model, out_root)
-        
-        hloc     = _p(cfg_paths.output.hloc, out_root)
-        pairs_file = _p(cfg_paths.output.pairs_file, hloc)
-        
-        tri_model  = _p(cfg_paths.output.tri_model, out_root)
-        optim_model= _p(cfg_paths.output.optim_model, out_root)
-
-        full_ts = _p(cfg_paths.output.full_ts, out_root)
-        kf_ts   = _p(cfg_paths.output.kf_ts, out_root)
-        rect_imu= _p(cfg_paths.output.rect_imu, out_root)
-
-        return cls(
-            vrs=vrs,
-            estimate=estimate,
-            init_model=init_model,
-            images=images,
-            full_ts=full_ts,
-            mps=mps,
-            rect_imu=rect_imu,
-            keyframes=keyframes,
-            kf_model=kf_model,
-            kf_ts=kf_ts,
-            hloc=hloc,
-            pairs_file=pairs_file,
-            tri_model=tri_model,
-            optim_model=optim_model,
-        )
 
 # General options
 @dataclass(frozen=True, slots=True)
@@ -114,7 +40,6 @@ class SensorOptions:
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
 class EstimateToColmapOptions:
-    paths: PathOptions = field(default_factory=PathOptions)
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
@@ -122,13 +47,11 @@ class EstimateToColmapOptions:
     def load(cls, cfg: Optional[OmegaConf] = None) -> EstimateToColmapOptions:
         if cfg is None:
             return cls(
-                paths=PathOptions(),
                 mps=MPSOptions(),
                 sensor=SensorOptions(),
             )
         
         return cls(
-            paths=PathOptions.load(cfg),
             mps=MPSOptions.load(cfg),
             sensor=SensorOptions.load(cfg),
         )
@@ -136,8 +59,6 @@ class EstimateToColmapOptions:
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KeyframeSelectorOptions:
-    paths: PathOptions = field(default_factory=PathOptions)
-
     max_rotation: float = 20.0 # degrees
     max_distance: float = 1.0 # meters
     max_elapsed: int = int(1e9) # 1 second in ns
@@ -145,7 +66,7 @@ class KeyframeSelectorOptions:
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "KeyframeSelectorOptions":
         if cfg is None or not hasattr(cfg, 'keyframing'):
-            return cls(paths=PathOptions())
+            return cls()
         
         section = {
             "max_rotation": float(cfg.keyframing.max_rotation),
@@ -153,14 +74,12 @@ class KeyframeSelectorOptions:
             "max_elapsed": int(float(cfg.keyframing.max_elapsed)),
         }
         obj: KeyframeSelectorOptions = _structured_merge_to_obj(cls, section)
-        return replace(obj, paths=PathOptions.load(cfg))
+        return obj
 
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
-    paths: PathOptions = field(default_factory=PathOptions)
-
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
     retrieval_conf: str = "netvlad"
@@ -177,10 +96,10 @@ class TriangulatorOptions:
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "TriangulatorOptions":
         if cfg is None or not hasattr(cfg, 'triangulation'):
-            return cls(paths=PathOptions())
+            return cls()
         
         obj: TriangulatorOptions = _structured_merge_to_obj(cls, cfg.triangulation)
-        return replace(obj, paths=PathOptions.load(cfg))
+        return obj
 
 # Optimization options
 @dataclass(frozen=True, slots=True)
@@ -208,8 +127,6 @@ class OptOptions:
 
 @dataclass(frozen=True, slots=True)
 class VIOptimizerOptions:
-    paths: PathOptions = field(default_factory=PathOptions)
-
     cam: OptCamOptions = field(default_factory=OptCamOptions)
     imu: OptIMUOptions = field(default_factory=OptIMUOptions)
     optim: OptOptions = field(default_factory=OptOptions)
@@ -220,7 +137,7 @@ class VIOptimizerOptions:
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "VIOptimizerOptions":
         if cfg is None or not hasattr(cfg, 'optimization'):
-            return cls(paths=PathOptions())
+            return cls()
         
         base: VIOptimizerOptions = OmegaConf.to_object(OmegaConf.structured(cls))
         opt = cfg.optimization
@@ -246,7 +163,6 @@ class VIOptimizerOptions:
         # leave colmap_pipeline as default
         return replace(
             base,
-            paths=PathOptions.load(cfg),
             cam=cam,
             imu=imu,
             optim=optim,
