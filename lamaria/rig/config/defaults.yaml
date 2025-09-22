@@ -11,8 +11,6 @@ paths:
     base: output/${paths.seq_name}/
     images: image_stream/
 
-    init_model: empty_recon/
-
     keyframes: keyframes/
     kf_model: keyframe_recon/
 
