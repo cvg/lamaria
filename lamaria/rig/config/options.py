@@ -40,6 +40,7 @@ class SensorOptions:
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
 class EstimateToColmapOptions:
+    images: str = "image_stream"
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
@@ -52,6 +53,7 @@ class EstimateToColmapOptions:
             )
         
         return cls(
+            images=cfg.estimate_to_colmap.images,
             mps=MPSOptions.load(cfg),
             sensor=SensorOptions.load(cfg),
         )
@@ -59,6 +61,9 @@ class EstimateToColmapOptions:
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KeyframeSelectorOptions:
+    keyframes: str = "keyframes"
+    kf_model: str = "keyframe_recon"
+    
     max_rotation: float = 20.0 # degrees
     max_distance: float = 1.0 # meters
     max_elapsed: int = int(1e9) # 1 second in ns
@@ -67,19 +72,22 @@ class KeyframeSelectorOptions:
     def load(cls, cfg: Optional[OmegaConf] = None) -> "KeyframeSelectorOptions":
         if cfg is None or not hasattr(cfg, 'keyframing'):
             return cls()
-        
-        section = {
-            "max_rotation": float(cfg.keyframing.max_rotation),
-            "max_distance": float(cfg.keyframing.max_distance),
-            "max_elapsed": int(float(cfg.keyframing.max_elapsed)),
-        }
-        obj: KeyframeSelectorOptions = _structured_merge_to_obj(cls, section)
+
+        obj: KeyframeSelectorOptions = _structured_merge_to_obj(
+            cls,
+            cfg.keyframing
+        )
+        obj.replace(max_elapsed=int(obj.max_elapsed))
         return obj
 
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
+    hloc: str = "hloc"
+    pairs_file: str = "pairs.txt"
+    tri_model: str = "triangulated_recon"
+
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
     retrieval_conf: str = "netvlad"
@@ -121,6 +129,7 @@ class OptIMUOptions:
 
 @dataclass(frozen=True, slots=True)
 class OptOptions:
+    optim_model: str = "optim_recon"
     use_callback: bool = True
     max_num_iterations: int = 10
     normalize_reconstruction: bool = False
@@ -140,26 +149,11 @@ class VIOptimizerOptions:
             return cls()
         
         base: VIOptimizerOptions = OmegaConf.to_object(OmegaConf.structured(cls))
-        opt = cfg.optimization
-        cam = _structured_merge_to_obj(OptCamOptions, {
-            "feature_std":            opt.feature_std,
-            "optimize_cam_intrinsics": opt.optimize_cam_intrinsics,
-            "optimize_cam_from_rig":   opt.optimize_cam_from_rig,
-        })
-        imu = _structured_merge_to_obj(OptIMUOptions, {
-            "gyro_infl":                opt.gyro_infl,
-            "acc_infl":                 opt.acc_infl,
-            "integration_noise_density": opt.integration_noise_density,
-            "optimize_scale":           opt.optimize_scale,
-            "optimize_gravity":         opt.optimize_gravity,
-            "optimize_imu_from_rig":    opt.optimize_imu_from_rig,
-            "optimize_bias":            opt.optimize_bias,
-        })
-        optim = _structured_merge_to_obj(OptOptions, {
-            "use_callback":        opt.use_callback,
-            "max_num_iterations":  opt.max_num_iterations,
-            "normalize_reconstruction": opt.normalize_reconstruction,
-        })
+
+        cam = _structured_merge_to_obj(OptCamOptions, cfg.optimization.cam)
+        imu = _structured_merge_to_obj(OptIMUOptions, cfg.optimization.imu)
+        optim = _structured_merge_to_obj(OptOptions, cfg.optimization.opt)
+
         # leave colmap_pipeline as default
         return replace(
             base,
