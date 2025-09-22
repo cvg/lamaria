@@ -40,7 +40,7 @@ class PerFrameData:
     rig_from_world: pycolmap.Rigid3d
 
 
-class ToColmap:
+class EstimateToColmap:
     def __init__(
         self,
         options: EstimateToColmapOptions
