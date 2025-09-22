@@ -1,10 +1,8 @@
-from pathlib import Path
-from typing import Optional, Sequence, Tuple
+from typing import Optional, Sequence
 from omegaconf import OmegaConf
 
 from .options import (
     MPSOptions,
-    PathOptions,
     SensorOptions,
     ToColmapOptions,
     VIOptimizerOptions,
@@ -39,10 +37,6 @@ class Config:
         
         OmegaConf.resolve(config)
         return cls(config)
-    
-    def get_paths(self) -> PathOptions:
-        """ Get resolved paths from config. """
-        return PathOptions.load(self.config)
 
     def get_mps_options(self) -> MPSOptions:
         """ Get MPS options from config. """
