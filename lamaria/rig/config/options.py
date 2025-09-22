@@ -113,13 +113,13 @@ class SensorOptions:
 
 # To COLMAP options
 @dataclass(frozen=True, slots=True)
-class ToColmapOptions:
+class EstimateToColmapOptions:
     paths: PathOptions = field(default_factory=PathOptions)
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> ToColmapOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> EstimateToColmapOptions:
         if cfg is None:
             return cls(
                 paths=PathOptions(),
