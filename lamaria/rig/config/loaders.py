@@ -3,6 +3,7 @@ from omegaconf import OmegaConf
 
 from .options import (
     MPSOptions,
+    PathOptions,
     SensorOptions,
     ToColmapOptions,
     VIOptimizerOptions,
@@ -38,6 +39,10 @@ class Config:
         OmegaConf.resolve(config)
         return cls(config)
 
+    def get_path_options(self) -> PathOptions:
+        """ Get path options from config. """
+        return PathOptions.load(self.config)
+    
     def get_mps_options(self) -> MPSOptions:
         """ Get MPS options from config. """
         return MPSOptions.load(self.config)
