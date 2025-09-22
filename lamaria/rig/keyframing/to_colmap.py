@@ -14,7 +14,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
-from ..config.options import ToColmapOptions
+from ..config.options import EstimateToColmapOptions
 from ...utils.general import (
     find_closest_timestamp,
     get_t_imu_camera,
@@ -43,7 +43,7 @@ class PerFrameData:
 class ToColmap:
     def __init__(
         self,
-        options: ToColmapOptions
+        options: EstimateToColmapOptions
     ):
         self.options = options
         self._init_io()
