@@ -64,6 +64,10 @@ class ToColmap:
         else:
             assert self.options.paths.estimate is not None, \
                 "Estimate path must be provided if MPS is not used"
+        
+        self.left_cam_stream_id = StreamId(self.options.sensor.left_cam_stream_id)
+        self.right_cam_stream_id = StreamId(self.options.sensor.right_cam_stream_id)
+        self.right_imu_stream_id = StreamId(self.options.sensor.right_imu_stream_id)
     
     def _init_data(self):
         """Extracts images, timestamps and builds per-frame data"""
@@ -98,7 +102,7 @@ class ToColmap:
     def _build_per_frame_data_from_mps(self, images, timestamps, mps_poses) -> List[PerFrameData]:
         per_frame_data = []
         imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.options.sensor.right_imu_stream_id
+            self.right_imu_stream_id
         )
         
         if not self.options.mps.use_online_calibration:
@@ -180,8 +184,8 @@ class ToColmap:
 
     def _get_mps_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
         if not self.options.mps.has_slam_drops:
-            L = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
-            R = self._ts_from_vrs(self.options.sensor.right_cam_stream_id)
+            L = self._ts_from_vrs(self.left_cam_stream_id)
+            R = self._ts_from_vrs(self.right_cam_stream_id)
             assert len(L) == len(R), "Unequal number of left and right timestamps"
             matched = list(zip(L, R))
             if not all(abs(l - r) < max_diff for l, r in matched):
@@ -216,8 +220,8 @@ class ToColmap:
         est_timestamps: List[int],
         max_diff: int = 1000000, # 1 ms
     ) -> Tuple[List[Tuple[Path, Path]], List[int]]:
-        
-        left_ts = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
+
+        left_ts = self._ts_from_vrs(self.left_cam_stream_id)
         assert len(images) == len(left_ts), \
             "Number of images and left timestamps must be equal"
         
@@ -249,8 +253,8 @@ class ToColmap:
         return matched_images, matched_timestamps
     
     def _match_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
-        L = self._ts_from_vrs(self.options.sensor.left_cam_stream_id)
-        R = self._ts_from_vrs(self.options.sensor.right_cam_stream_id)
+        L = self._ts_from_vrs(self.left_cam_stream_id)
+        R = self._ts_from_vrs(self.right_cam_stream_id)
         
         # matching timestamps is only when we have slam drops
         assert len(L) > 0 and len(R) > 0 and len(L) != len(R), \
@@ -283,7 +287,7 @@ class ToColmap:
     def _add_device_sensors(self) -> None:
         device_calibration = self.vrs_provider.get_device_calibration()
         imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.options.sensor.right_imu_stream_id
+            self.right_imu_stream_id
         )
         imu_calib = device_calibration.get_imu_calib(
             imu_stream_label
@@ -304,8 +308,8 @@ class ToColmap:
         rig.add_ref_sensor(imu.sensor_id)
 
         for cam_id, sid in \
-            [(2, self.options.sensor.left_cam_stream_id),
-                (3, self.options.sensor.right_cam_stream_id)
+            [(2, self.left_cam_stream_id),
+                (3, self.right_cam_stream_id)
         ]:
             stream_label = self.vrs_provider.get_label_from_stream_id(
                 sid
@@ -354,7 +358,7 @@ class ToColmap:
             sensor_id += 1
 
             imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-                self.options.sensor.right_imu_stream_id
+                self.right_imu_stream_id
             )
             imu_calib = None
             for calib in calibration.imu_calibs:
@@ -363,7 +367,7 @@ class ToColmap:
                     break
 
             for sid in \
-                [self.options.sensor.left_cam_stream_id, self.options.sensor.right_cam_stream_id
+                [self.left_cam_stream_id, self.right_cam_stream_id
             ]:
                 stream_label = self.vrs_provider.get_label_from_stream_id(
                     sid
@@ -469,7 +473,11 @@ class ToColmap:
 
         return self.empty_recons
 
+    def get_full_timestamps(self) -> List[int]:
+        return sorted([pfd.left_ts for pfd in self.per_frame_data])
+
     def write_reconstruction(self) -> Path:
+        """Writes the empty reconstruction. Returns the path to the reconstruction folder."""
         recon_path = self.options.paths.init_model
         recon_path.mkdir(parents=True, exist_ok=True)
 
