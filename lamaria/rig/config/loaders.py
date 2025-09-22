@@ -5,7 +5,7 @@ from .options import (
     MPSOptions,
     PathOptions,
     SensorOptions,
-    ToColmapOptions,
+    EstimateToColmapOptions,
     VIOptimizerOptions,
     TriangulatorOptions,
     KeyframeSelectorOptions,
@@ -51,9 +51,9 @@ class Config:
         """ Get sensor options from config. """
         return SensorOptions.load(self.config)
 
-    def get_to_colmap_options(self) -> ToColmapOptions:
+    def get_estimate_to_colmap_options(self) -> EstimateToColmapOptions:
         """ Get options for to_colmap pipeline from config. """
-        return ToColmapOptions.load(self.config)
+        return EstimateToColmapOptions.load(self.config)
 
     def get_keyframing_options(self) -> KeyframeSelectorOptions:
         """ Get keyframing options from config. """
