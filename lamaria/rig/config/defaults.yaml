@@ -43,7 +43,7 @@ triangulation:
   filter_min_tri_angle: 1.5
 
 optimization:
-  opt:
+  general:
     optim_model: optim_recon
     use_callback: true
     max_num_iterations: 10
