@@ -63,7 +63,7 @@ class PipelineOptions:
     
     @property
     def output_path(self) -> Path:
-        return self.workspace / "output" / self.seq_name
+        return self.workspace_path / "output" / self.seq_name
     
     def get_estimate_to_colmap_options(self) -> EstimateToColmapOptions:
         """Get EstimateToColmapOptions from config."""
