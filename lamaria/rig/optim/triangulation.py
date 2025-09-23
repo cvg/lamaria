@@ -45,7 +45,7 @@ def postprocess_pairs_with_reconstruction(
     reconstruction: pycolmap.Reconstruction | Path
 ):
     recon = (reconstruction if isinstance(reconstruction, pycolmap.Reconstruction)
-             else pycolmap.Reconstruction(str(reconstruction)))
+             else pycolmap.Reconstruction(reconstruction.as_posix()))
 
     frame_pairs, adj_pairs = pairs_from_frames(recon)
 
