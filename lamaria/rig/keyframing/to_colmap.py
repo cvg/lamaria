@@ -333,7 +333,7 @@ class EstimateToColmap:
         Each rig has its own online calibrated sensors.
         """
         sensor_id = 1
-        for id, pfd in enumerate(self._per_frame_data):
+        for fid, pfd in self._per_frame_data.items():
             t = pfd.left_ts
             calibration = self._mps_data_provider.get_online_calibration(
                 t, TimeQueryOptions.CLOSEST
@@ -341,7 +341,7 @@ class EstimateToColmap:
             if calibration is None:
                 continue
 
-            rig = pycolmap.Rig(rig_id=id + 1)
+            rig = pycolmap.Rig(rig_id=fid)
             w, h, p = self._get_dummy_imu_params()
             # DUMMY CAMERA FOR IMU
             imu = pycolmap.Camera(
@@ -394,10 +394,10 @@ class EstimateToColmap:
         image_id = 1
 
         rig = self.data.reconstruction.rigs[1]
-        for id, pfd in self._per_frame_data.items():
+        for fid, pfd in self._per_frame_data.items():
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
-            frame.frame_id = id + 1  # unique id
+            frame.frame_id = fid
             frame.rig_from_world = pfd.rig_from_world
             
             images_to_add = []
@@ -421,10 +421,10 @@ class EstimateToColmap:
         """Adds frame data for each rig, each rig has its own online calibrated sensors"""
         image_id = 1
 
-        for id, pfd in self._per_frame_data.items():
+        for fid, pfd in self._per_frame_data.items():
             frame = pycolmap.Frame()
-            frame.rig_id = id + 1
-            frame.frame_id = id + 1
+            frame.rig_id = fid
+            frame.frame_id = fid
             frame.rig_from_world = pfd.rig_from_world
 
             images_to_add = []
