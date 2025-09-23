@@ -186,7 +186,7 @@ class KeyframeSelector:
             rig_id += 1
 
     def run_keyframing(self) -> LamariaReconstruction:
-        """ Main function to run keyframing."""
+        """ Main function to run keyframing on input lamaria reconstruction."""
         self._select_keyframes()
         if len(self.init_recons.rigs.keys()) == 1: # device rig has been added
             self._build_device_keyframed_reconstruction()
@@ -202,14 +202,20 @@ class KeyframeSelector:
         self.keyframed_data.imu_measurements = deepcopy(self.init_data.imu_measurements)
 
         return self.keyframed_data
-    
-    def copy_images_to_keyframes_dir(self) -> Path:
-        """ Copy images corresponding to keyframes to a separate directory. """
+
+    def copy_images_to_keyframes_dir(
+        self,
+        images: Path,
+        output: Optional[Path] = None,
+    ) -> Path:
+        """ Copy images corresponding to keyframes to a separate directory. 
+        Images are expected to be in `images/left` and `images/right` subdirectories.
+        Check: `extract_images_from_vrs` in `lamaria/utils/general.py` for more details.
+        """
         if self.keyframe_frame_ids is None:
             raise ValueError("Keyframes not selected yet. Run `run_keyframing` first.")
 
-        output_dir = self.options.paths.keyframes
-        image_stream_root = self.options.paths.images
+        output_dir = output if output is not None else self.options.keyframes
 
         if output_dir.exists() and any(output_dir.iterdir()):
             shutil.rmtree(output_dir)
@@ -222,7 +228,7 @@ class KeyframeSelector:
                 image = self.init_recons.images[data_id.id]
                 
                 subdir = "left" if "1201-1" in image.name else "right"
-                src_path = image_stream_root / subdir / image.name
+                src_path = images / subdir / image.name
                 dst_path = output_dir / image.name
                 
                 shutil.copy2(src_path, dst_path)
