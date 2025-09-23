@@ -102,6 +102,10 @@ def run_triangulation(
         pairs_file,
         tri_model,
     )
+    
+    if tri_model.exists():
+        tri_lamaria_recon = LamariaReconstruction.read(tri_model)
+        return tri_lamaria_recon
 
     triangulated_model_path = triangulation_run(
         options,
