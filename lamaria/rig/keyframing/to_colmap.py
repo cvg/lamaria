@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from pathlib import Path
 import numpy as np
 import pycolmap
@@ -74,7 +74,9 @@ class EstimateToColmap:
             self._mps_data_provider = mps.MpsDataProvider(data_paths)
     
     def _init_data(self):
-        """Extracts images, timestamps and builds per-frame data"""
+        """Extracts images, timestamps and builds per-frame data object.
+        Per-frame data is used to create the initial Lamaria reconstruction.
+        """
 
         extract_images_from_vrs(
             vrs_file=self.options.vrs,
@@ -88,7 +90,11 @@ class EstimateToColmap:
             closed_loop_data = get_closed_loop_data_from_mps(self.options.mps)
             pose_timestamps = [ l for l, _ in timestamps ]
             mps_poses = get_mps_poses_for_timestamps(closed_loop_data, pose_timestamps)
-            self._per_frame_data = self._build_per_frame_data_from_mps(images, timestamps, mps_poses)
+            self._per_frame_data = self._build_per_frame_data_from_mps(
+                images,
+                timestamps,
+                mps_poses
+            )
         else:
             flag = check_estimate_format(self.options.estimate)
             if not flag:
@@ -101,10 +107,19 @@ class EstimateToColmap:
             rig_from_worlds = get_rig_from_worlds_from_estimate(
                 self.options.estimate,
             )
-            self._per_frame_data = self._build_per_frame_data_from_estimate(images, timestamps, rig_from_worlds)
-    
-    def _build_per_frame_data_from_mps(self, images, timestamps, mps_poses) -> List[PerFrameData]:
-        per_frame_data = []
+            self._per_frame_data = self._build_per_frame_data_from_estimate(
+                images,
+                timestamps,
+                rig_from_worlds
+            )
+
+    def _build_per_frame_data_from_mps(
+        self,
+        images,
+        timestamps,
+        mps_poses
+    ) -> Dict[int, PerFrameData]:
+        per_frame_data: Dict[int, PerFrameData] = {}
         imu_stream_label = self._vrs_provider.get_label_from_stream_id(
             self._right_imu_sid
         )
@@ -114,6 +129,8 @@ class EstimateToColmap:
             imu_calib = device_calibration.get_imu_calib(
                 imu_stream_label
             )
+
+        frame_id = 1
 
         for (left_img, right_img), (left_ts, right_ts), t_world_device \
             in zip(images, timestamps, mps_poses):
@@ -145,24 +162,34 @@ class EstimateToColmap:
                 right_img=right_img,
                 rig_from_world=rig_from_world
             )
-            per_frame_data.append(pfd)
+            per_frame_data[frame_id] = pfd
+            frame_id += 1
 
         return per_frame_data
 
-    def _build_per_frame_data_from_estimate(self, images, timestamps, rig_from_worlds) -> List[PerFrameData]:
-        per_frame_data = []
+    def _build_per_frame_data_from_estimate(
+        self,
+        images,
+        timestamps,
+        rig_from_worlds
+    ) -> Dict[int, PerFrameData]:
+        per_frame_data: Dict[int, PerFrameData] = {}
         assert len(images) == len(timestamps) == len(rig_from_worlds), \
             "Number of images, timestamps and poses must be equal"
+        
+        frame_id = 1
+        
         for (left_img, right_img), ts, rig_from_world \
             in zip(images, timestamps, rig_from_worlds):
             pfd = PerFrameData(
                 left_ts=ts,
-                right_ts=ts, # right timestamp is not available in estimate
+                right_ts=ts,
                 left_img=left_img,
                 right_img=right_img,
                 rig_from_world=rig_from_world
             )
-            per_frame_data.append(pfd)
+            per_frame_data[frame_id] = pfd
+            frame_id += 1
         
         return per_frame_data
     
@@ -250,6 +277,8 @@ class EstimateToColmap:
         return width, height, random_params
 
     def _add_device_sensors(self) -> None:
+        """Adds a new rig with device calibrated sensors.
+        The rig is consistent across all frames"""
         device_calibration = self._vrs_provider.get_device_calibration()
         imu_stream_label = self._vrs_provider.get_label_from_stream_id(
             self._right_imu_sid
@@ -298,7 +327,9 @@ class EstimateToColmap:
         self.data.reconstruction.add_rig(rig)
 
     def _add_online_sensors(self) -> None:
-        """Adds a new rig for each timestamp, with sensors calibrated online"""
+        """Adds a new rig for each frame timestamp.
+        Each rig has its own online calibrated sensors.
+        """
         sensor_id = 1
         for id, pfd in enumerate(self._per_frame_data):
             t = pfd.left_ts
@@ -357,10 +388,11 @@ class EstimateToColmap:
             self.data.reconstruction.add_rig(rig)
 
     def _add_device_frames(self) -> None:
+        """Adds frame data for each rig, all rigs share same device calibrated sensors"""
         image_id = 1
 
         rig = self.data.reconstruction.rigs[1]
-        for id, pfd in enumerate(self._per_frame_data):
+        for id, pfd in self._per_frame_data.items():
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
             frame.frame_id = id + 1  # unique id
@@ -384,9 +416,10 @@ class EstimateToColmap:
                 self.data.reconstruction.add_image(im)
 
     def _add_online_frames(self) -> None:
+        """Adds frame data for each rig, each rig has its own online calibrated sensors"""
         image_id = 1
 
-        for id, pfd in enumerate(self._per_frame_data):
+        for id, pfd in self._per_frame_data.items():
             frame = pycolmap.Frame()
             frame.rig_id = id + 1
             frame.frame_id = id + 1
