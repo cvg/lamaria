@@ -63,23 +63,23 @@ def postprocess_pairs_with_reconstruction(
             f.write(f"{a} {b}\n")
 
 
-def run(
+def run_triangulation(
     options: TriangulatorOptions,
+    reference_model: Path, # reconstruction path
+    keyframes: Path,
 ) -> Path:
 
-    keyframes_dir = options.paths.keyframes
-    if not keyframes_dir.exists():
-        raise FileNotFoundError(f"keyframes_dir not found at {keyframes_dir}")
+    if not keyframes.exists():
+        raise FileNotFoundError(f"keyframes_dir not found at {keyframes}")
     
-    hloc_outputs_dir = options.paths.hloc
+    hloc_outputs_dir = options.hloc
     hloc_outputs_dir.mkdir(parents=True, exist_ok=True)
 
-    reference_model_path = options.paths.kf_model
-    if not reference_model_path.exists():
-        raise FileNotFoundError(f"reference_model not found at {reference_model_path}")
+    if not reference_model.exists():
+        raise FileNotFoundError(f"reference_model not found at {reference_model}")
 
-    triangulated_model_path = options.paths.tri_model
-    pairs_path = options.paths.pairs_file
+    triangulated_model_path = options.tri_model
+    pairs_path = options.pairs_file
 
     retrieval_conf = extract_features.confs[options.retrieval_conf]
     feature_conf   = extract_features.confs[options.feature_conf]
@@ -90,11 +90,11 @@ def run(
                 options.feature_conf,
                 options.matcher_conf)
 
-    retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes_dir, export_dir=hloc_outputs_dir)
-    features_path = extract_features.main(feature_conf, image_dir=keyframes_dir, export_dir=hloc_outputs_dir)
+    retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes, export_dir=hloc_outputs_dir)
+    features_path = extract_features.main(feature_conf, image_dir=keyframes, export_dir=hloc_outputs_dir)
 
     pairs_from_retrieval.main(retrieval_path, pairs_path, options.num_retrieval_matches)
-    postprocess_pairs_with_reconstruction(pairs_path, reference_model_path)
+    postprocess_pairs_with_reconstruction(pairs_path, reference_model)
 
     matches_path = match_features.main(
         conf=matcher_conf,
@@ -105,8 +105,8 @@ def run(
 
     _ = triangulation.main(
         sfm_dir=triangulated_model_path,
-        reference_model=reference_model_path,
-        image_dir=keyframes_dir,
+        reference_model=reference_model,
+        image_dir=keyframes,
         pairs=pairs_path,
         features=features_path,
         matches=matches_path,
