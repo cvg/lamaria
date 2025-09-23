@@ -1,13 +1,13 @@
 import numpy as np
 import pycolmap
-from typing import List
+from typing import Dict
 from pathlib import Path
 
 from .. import logger
 
 class LamariaReconstruction:
     reconstruction: pycolmap.Reconstruction
-    timestamps: List[int]
+    timestamps: Dict[int, int]
     imu_measurements: pycolmap.ImuMeasurements
 
     @classmethod
@@ -22,7 +22,13 @@ class LamariaReconstruction:
         ts_path = input_folder / "timestamps.txt"
         assert ts_path.exists(), f"Timestamps file {ts_path} does not exist in {input_folder}"
         with open(ts_path, 'r') as f:
-            instance.timestamps = [int(line.strip()) for line in f if line.strip().isdigit()]
+            lines = f.readlines()
+            instance.timestamps = {}
+            for line in lines:
+                if line.startswith("#"):
+                    continue
+                frame_id, ts = line.strip().split()
+                instance.timestamps[int(frame_id)] = int(ts)
         
         rectified_imu_data_npy = input_folder / "rectified_imu_data.npy"
         assert rectified_imu_data_npy.exists(), \
@@ -41,10 +47,13 @@ class LamariaReconstruction:
     ) -> None:
         output_folder.mkdir(parents=True, exist_ok=True)
         self.reconstruction.write(output_folder.as_posix())
+        
         ts_path = output_folder / "timestamps.txt"
+        frame_ids = sorted(self.timestamps.keys())
         with open(ts_path, 'w') as f:
-            for ts in self.timestamps:
-                f.write(f"{ts}\n")
+            f.write("# FrameID Timestamp(ns)\n")
+            for frame_id in frame_ids:
+                f.write(f"{frame_id} {self.timestamps[frame_id]}\n")
 
         rectified_imu_data_npy = output_folder / "rectified_imu_data.npy"
         np.save(rectified_imu_data_npy, self.imu_measurements.data)
