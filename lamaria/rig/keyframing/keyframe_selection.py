@@ -198,7 +198,7 @@ class KeyframeSelector:
             for frame_id in self.keyframe_frame_ids
         }
 
-        self.keyframed_data.imu_measurements = deepcopy(self.init_data.imu_measurements)
+        self.keyframed_data.imu_measurements = self.init_data.imu_measurements
 
         return self.keyframed_data
 
