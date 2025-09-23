@@ -3,12 +3,10 @@ import pycolmap
 from typing import Dict
 from pathlib import Path
 
-from .. import logger
-
 class LamariaReconstruction:
     def __init__(self) -> None:
         self.reconstruction = pycolmap.Reconstruction()
-        self.timestamps = {}
+        self.timestamps: Dict[int, int] = {}
         self.imu_measurements = pycolmap.ImuMeasurements([])
 
     @classmethod
