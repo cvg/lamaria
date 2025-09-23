@@ -77,8 +77,9 @@ class PipelineOptions:
             vrs=self.workspace_path / options.vrs,
             estimate=self.workspace_path / options.estimate,
             images=self.output_path / options.images,
-            mps_folder=(self.workspace_path / options.mps_folder) if options.mps_folder else None,
+            colmap_model=self.output_path / options.colmap_model,
             output_path=self.output_path,
+            mps_folder=(self.workspace_path / options.mps_folder) if options.mps_folder else None,
         )
     
     def get_keyframing_options(self) -> KeyframeSelectorOptions:
@@ -107,7 +108,7 @@ class PipelineOptions:
         options = VIOptimizerOptions.load(self._cfg.optimization)
         return replace(
             options,
-            optim_model=self.output_path / options.optim_model,
+            optim_model=self.output_path / options.optim.optim_model,
             output_path=self.output_path,
         )
         
