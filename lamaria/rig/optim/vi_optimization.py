@@ -34,13 +34,13 @@ class VIOptimizer:
     def _setup_incremental_mapper(self, database_path: Path):
         """Setup the incremental mapper"""
         database = pycolmap.Database.open(database_path)
-        image_names = [self.session.reconstruction.images[image_id].name 
-                      for image_id in self.session.reconstruction.reg_image_ids()]
+        image_names = [self.session.data.reconstruction.images[image_id].name 
+                      for image_id in self.session.data.reconstruction.reg_image_ids()]
         database_cache = pycolmap.DatabaseCache.create(
             database, 15, False, set(image_names)
         )
         mapper = pycolmap.IncrementalMapper(database_cache)
-        mapper.begin_reconstruction(self.session.reconstruction)
+        mapper.begin_reconstruction(self.session.data.reconstruction)
         return mapper
 
     def _get_incremental_pipeline_options(self):
