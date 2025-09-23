@@ -108,7 +108,10 @@ class PipelineOptions:
         options = VIOptimizerOptions.load(self._cfg.optimization)
         return replace(
             options,
-            optim_model=self.output_path / options.optim.optim_model,
+            optim=replace(
+                options.optim,
+                optim_model=self.output_path / options.optim.optim_model,
+            ),
             output_path=self.output_path,
         )
         
