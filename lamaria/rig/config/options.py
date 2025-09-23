@@ -41,11 +41,11 @@ class SensorOptions:
 # Estimate to COLMAP options
 @dataclass(frozen=True, slots=True)
 class EstimateToColmapOptions:
-    vrs: str = "recordings/xyz.vrs"
-    estimate: str = "estimates/xyz.txt"
-    images: str = "image_stream"
-    mps_folder: str = "mps/mps_xyz_vrs" # necessary if use_mps is true
-    
+    vrs: Path = Path("recordings/xyz.vrs")
+    estimate: Path = Path("estimates/xyz.txt")
+    images: Path = Path("image_stream")
+    mps_folder: Path = Path("mps/mps_xyz_vrs") # necessary if use_mps is true
+
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
@@ -68,13 +68,30 @@ class EstimateToColmapOptions:
             mps=MPSOptions.load(cfg_mps),
             sensor=SensorOptions.load(cfg_sensor)
         )
-        
+
+    def set_custom_paths(
+        self,
+        output_path: Path,
+        vrs: Path,
+        estimate: Path,
+        images: Path,
+        mps_folder: Optional[Path] = None,
+    ) -> EstimateToColmapOptions:
+        return replace(
+            self,
+            output_path=output_path,
+            vrs=vrs,
+            estimate=estimate,
+            images=images,
+            mps_folder=mps_folder if mps_folder is not None else self.mps_folder
+        )
+
 
 # Keyframing options
 @dataclass(frozen=True, slots=True)
 class KeyframeSelectorOptions:
-    keyframes: str = "keyframes"
-    kf_model: str = "keyframe_recon"
+    keyframes: Path = Path("keyframes")
+    kf_model: Path = Path("keyframe_recon")
 
     max_rotation: float = 20.0 # degrees
     max_distance: float = 1.0 # meters
@@ -94,14 +111,27 @@ class KeyframeSelectorOptions:
         
         obj: KeyframeSelectorOptions = _structured_merge_to_obj(cls, cfg)
         return obj
+    
+    def set_custom_paths(
+        self,
+        output_path: Path,
+        keyframes: Path,
+        kf_model: Path
+    ) -> KeyframeSelectorOptions:
+        return replace(
+            self,
+            output_path=output_path,
+            keyframes=keyframes,
+            kf_model=kf_model
+        )
 
 
 # Triangulation options
 @dataclass(frozen=True, slots=True)
 class TriangulatorOptions:
-    hloc: str = "hloc"
-    pairs_file: str = "pairs.txt"
-    tri_model: str = "triangulated_recon"
+    hloc: Path = Path("hloc")
+    pairs_file: Path = Path("pairs.txt")
+    tri_model: Path = Path("triangulated_recon")
 
     feature_conf: str = "aliked-n16"
     matcher_conf: str = "aliked+lightglue"
@@ -124,6 +154,22 @@ class TriangulatorOptions:
             return cls()
         
         return _structured_merge_to_obj(cls, cfg)
+    
+    def set_custom_paths(
+        self,
+        output_path: Path,
+        hloc: Path,
+        pairs_file: Path,
+        tri_model: Path
+    ) -> TriangulatorOptions:
+        return replace(
+            self,
+            output_path=output_path,
+            hloc=hloc,
+            pairs_file=pairs_file,
+            tri_model=tri_model
+        )
+    
 
 # Optimization options
 @dataclass(frozen=True, slots=True)
@@ -177,3 +223,11 @@ class VIOptimizerOptions:
             optim=optim,
         )
     
+    def set_custom_paths(
+        self,
+        optim_model: Path,
+    ) -> VIOptimizerOptions:
+        return replace(
+            self,
+            optim=replace(self.optim, optim_model=optim_model)
+        )
