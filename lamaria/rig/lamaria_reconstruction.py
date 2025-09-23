@@ -47,6 +47,12 @@ class LamariaReconstruction:
         
         ts_path = output_folder / "timestamps.txt"
         frame_ids = sorted(self.timestamps.keys())
+
+        # sanity check of frame ids in reconstruction and timestamps
+        recon_frame_ids = np.array(sorted(self.reconstruction.frames.keys()))
+        assert np.array_equal(np.array(frame_ids), recon_frame_ids), \
+            "Frame IDs in reconstruction and timestamps do not match"
+
         with open(ts_path, 'w') as f:
             f.write("# FrameID Timestamp(ns)\n")
             for frame_id in frame_ids:
