@@ -34,12 +34,14 @@ def run_estimate_to_colmap(
         mps_folder,
     )
 
-    est_to_colmap = EstimateToColmap(options)
-    lamaria_recon = est_to_colmap.create()
-
-    if not colmap_model.exists():
+    if colmap_model.exists():
+        lamaria_recon = LamariaReconstruction.read(colmap_model)
+        return lamaria_recon
+    else:
         colmap_model.mkdir(parents=True, exist_ok=True)
 
+    est_to_colmap = EstimateToColmap(options)
+    lamaria_recon = est_to_colmap.create()
     lamaria_recon.write(colmap_model)
 
     return lamaria_recon
@@ -63,11 +65,14 @@ def run_keyframe_selection(
         kf_model,
     )
 
+    if kf_model.exists():
+        kf_lamaria_recon = LamariaReconstruction.read(kf_model)
+        return kf_lamaria_recon
+    else:
+        kf_model.mkdir(parents=True, exist_ok=True)
+
     kf_selector = KeyframeSelector(options, input_recon)
     kf_lamaria_recon = kf_selector.run_keyframing()
-
-    if not kf_model.exists():
-        kf_model.mkdir(parents=True, exist_ok=True)
     
     kf_lamaria_recon.write(kf_model)
 
@@ -109,11 +114,8 @@ def run_triangulation(
 
     tri_lamaria_recon = LamariaReconstruction()
     tri_lamaria_recon.reconstruction = tri_recon
-    tri_lamaria_recon.timestamps = \
-        deepcopy(input_lamaria_recon.timestamps)
-    tri_lamaria_recon.imu_measurements = \
-        deepcopy(input_lamaria_recon.imu_measurements)
-    
+    tri_lamaria_recon.timestamps = input_lamaria_recon.timestamps
+    tri_lamaria_recon.imu_measurements = input_lamaria_recon.imu_measurements
     tri_lamaria_recon.write(triangulated_model_path)
 
     return tri_lamaria_recon
