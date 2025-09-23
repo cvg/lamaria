@@ -11,7 +11,7 @@ from .options import (
 )
 
 class PipelineOptions:
-    default_cfg: Path = Path("lamaria/rig/config/defaults.yaml")
+    default_cfg: Path = Path("defaults.yaml")
     workspace: Path = Path("/media/lamaria/")
     seq_name: str = "5cp"
     
