@@ -1,8 +1,6 @@
 import numpy as np
 import pyceres
 import pycolmap
-from copy import deepcopy
-from typing import List, Tuple
 import pycolmap.cost_functions
 from tqdm import tqdm
 
@@ -24,8 +22,8 @@ class IMUResidualManager:
         for k in range(len(self.session.preintegrated_imu_measurements)):
             i = frame_ids[k]
             j = frame_ids[k + 1]
-            frame_i = self.session.reconstruction.frames[i]
-            frame_j = self.session.reconstruction.frames[j]
+            frame_i = self.session.data.reconstruction.frames[i]
+            frame_j = self.session.data.reconstruction.frames[j]
             i_from_world = frame_i.rig_from_world
             j_from_world = frame_j.rig_from_world
 
@@ -61,14 +59,14 @@ class IMUResidualManager:
         )
         
         # Apply optimization constraints based on configuration
-        if not self.session.imu_params.optimize_scale:
+        if not self.session.imu_options.optimize_scale:
             problem.set_parameter_block_constant(self.session.log_scale)
-        if not self.session.imu_params.optimize_gravity:
+        if not self.session.imu_options.optimize_gravity:
             problem.set_parameter_block_constant(self.session.gravity)
-        if not self.session.imu_params.optimize_imu_from_rig:
+        if not self.session.imu_options.optimize_imu_from_rig:
             problem.set_parameter_block_constant(self.session.imu_from_rig.rotation.quat)
             problem.set_parameter_block_constant(self.session.imu_from_rig.translation)
-        if not self.session.imu_params.optimize_bias:
+        if not self.session.imu_options.optimize_bias:
             constant_idxs = np.arange(3, 9)
             for frame_id in self.session.imu_states.keys():
                 problem.set_manifold(
@@ -109,11 +107,11 @@ class ImageResidualManager:
         loss: pyceres.LossFunction,
     ):
         logger.info("Setting up optimization problem")
-        assert session.reconstruction is not None
+        assert session.data.reconstruction is not None
         for image_id in tqdm(self.config.image_ids):
             self.add_image_to_problem(session, image_id, loss)
-        self.parameterize_cameras(session.reconstruction)
-        self.parameterize_points(session.reconstruction)
+        self.parameterize_cameras(session.data.reconstruction)
+        self.parameterize_points(session.data.reconstruction)
         logger.info("Optimization problem set up")
         return self.problem
 
@@ -129,9 +127,9 @@ class ImageResidualManager:
         image_id: int,
         loss: pyceres.LossFunction,
     ):
-        image = session.reconstruction.images[image_id]
-        frame = session.reconstruction.frames[image.frame_id]
-        rig = session.reconstruction.rigs[frame.rig_id]
+        image = session.data.reconstruction.images[image_id]
+        frame = session.data.reconstruction.frames[image.frame_id]
+        rig = session.data.reconstruction.rigs[frame.rig_id]
         camera = session.recon.cameras[image.camera_id]
         rig_from_world = frame.rig_from_world
         
@@ -140,9 +138,9 @@ class ImageResidualManager:
             if image.camera_id == sensor.id:
                 cam_from_rig = sensor_from_rig
 
-        optimize_cam_from_rig = session.cam_params.optimize_cam_from_rig
-        optimize_cam_intrinsics = session.cam_params.optimize_cam_intrinsics
-        feature_std = session.cam_params.feature_std
+        optimize_cam_from_rig = session.cam_options.optimize_cam_from_rig
+        optimize_cam_intrinsics = session.cam_options.optimize_cam_intrinsics
+        feature_std = session.cam_options.feature_std
         
         num_observations = 0
         for point2D in image.points2D:
