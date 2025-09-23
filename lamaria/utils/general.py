@@ -54,25 +54,27 @@ def find_closest_timestamp(
 
 
 def get_matched_timestamps(
-    left_timestamps: list,
-    right_timestamps: list,
+    left_timestamps: List[int],
+    right_timestamps: List[int],
     max_diff: float,
-) -> list[tuple[int, int]]:
-    
+) -> List[Tuple[int, int]]:
+
     matched_timestamps = []
 
-    assert all(isinstance(ts, int) for ts in left_timestamps)
-    assert all(isinstance(ts, int) for ts in right_timestamps)
+    assert all(isinstance(ts, int) for ts in left_timestamps), \
+        "Left timestamps must be integers"
+    assert all(isinstance(ts, int) for ts in right_timestamps), \
+        "Right timestamps must be integers"
 
     if len(left_timestamps) < len(right_timestamps):
         for lts in left_timestamps:
             closest_rts = find_closest_timestamp(right_timestamps, lts, max_diff)
-            if abs(lts - closest_rts) < max_diff:
+            if closest_rts is not None:
                 matched_timestamps.append((lts, closest_rts))
     else:
         for rts in right_timestamps:
             closest_lts = find_closest_timestamp(left_timestamps, rts, max_diff)
-            if abs(rts - closest_lts) < max_diff:
+            if closest_lts is not None:
                 matched_timestamps.append((closest_lts, rts))
 
     return matched_timestamps
@@ -284,6 +286,33 @@ def check_estimate_format(estimate_path: Path) -> bool:
     
     return True
 
+def get_estimate_timestamps(estimate_path: Path) -> List[int]:
+    """Estimate file format: ts t_x t_y t_z q_x q_y q_z q_w"""
+    timestamps = []
+    with open(estimate_path, "r") as f:
+        lines = f.readlines()
+        lines = [line for line in lines if not line.startswith("#")]
+        if not lines:
+            raise ValueError(f"Estimate file {estimate_path} is empty \
+                             or has no valid lines.")
+
+        for line in lines:
+            parts = line.strip().split()
+            if len(parts) != 8:
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each line must have 8 values.")
+            
+            try:
+                ts = round_ns(parts[0])
+            except ValueError:
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each value must be a number.")
+            
+            timestamps.append(ts)
+        
+    return timestamps
+
+
 def extract_images_from_vrs(
     vrs_file: Path,
     image_folder: Path,
@@ -347,10 +376,16 @@ def get_rig_from_worlds_from_estimate(
             
             parts = line.strip().split()
             if len(parts) != 8:
-                continue
-            
-            tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
-            qvec = np.array([float(parts[4]), float(parts[5]), float(parts[6]), float(parts[7])])
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each line must have 8 values.")
+
+            try:
+                tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
+                qvec = np.array([float(parts[4]), float(parts[5]), float(parts[6]), float(parts[7])])
+            except ValueError:
+                raise ValueError(f"Estimate file {estimate_path} has invalid format. \
+                                 Each value must be a number.")
+
             pose = pycolmap.Rigid3d(pycolmap.Rotation3d(qvec), tvec)
             rig_from_world = pose.inverse()
             rig_from_worlds.append(rig_from_world)
