@@ -1,4 +1,4 @@
-# Default configuration for lamaria rig pipeline
+# Default configuration for run_pipeline.py
 
 workspace: /media/arialamar/
 seq_name: 5cp
