@@ -1,7 +1,7 @@
 import pycolmap
 from pathlib import Path
 
-from ... import logger
+from ..lamaria_reconstruction import LamariaReconstruction
 from .session import SingleSeqSession
 from .iterative_global_ba import IterativeRefinement
 
@@ -12,7 +12,7 @@ class VIOptimizer:
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
-    def optimize(self, database_path: Path, output_folder: Path):
+    def optimize(self, database_path: Path):
         """Run the complete VI optimization pipeline"""
         
         # Setup mapper
@@ -26,10 +26,7 @@ class VIOptimizer:
             pipeline_options,
         )
         
-        # Save results
-        optimized_reconstruction = mapper.reconstruction
-        output_folder.mkdir(parents=True, exist_ok=True)
-        optimized_reconstruction.write(output_folder.as_posix())
+        return mapper.reconstruction
 
     def _setup_incremental_mapper(self, database_path: Path):
         """Setup the incremental mapper"""
@@ -54,12 +51,13 @@ def create_vi_optimizer(session: SingleSeqSession) -> VIOptimizer:
     """Factory function to create VI optimizer"""
     return VIOptimizer(session)
 
-
-def run(session: SingleSeqSession, 
-        database_path: Path,
-        output_folder: Path,
-) -> None:
+def run(
+    session: SingleSeqSession, 
+    database_path: Path,
+) -> pycolmap.Reconstruction:
     
     """Run VI optimization with given session and database"""
     optimizer = create_vi_optimizer(session)
-    optimizer.optimize(database_path, output_folder)
+    optimized_recon = optimizer.optimize(database_path)
+
+    return optimized_recon
