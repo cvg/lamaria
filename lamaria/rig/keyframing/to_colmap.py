@@ -119,6 +119,7 @@ class EstimateToColmap:
         timestamps,
         mps_poses
     ) -> Dict[int, PerFrameData]:
+        
         per_frame_data: Dict[int, PerFrameData] = {}
         imu_stream_label = self._vrs_provider.get_label_from_stream_id(
             self._right_imu_sid
@@ -173,6 +174,7 @@ class EstimateToColmap:
         timestamps,
         rig_from_worlds
     ) -> Dict[int, PerFrameData]:
+        
         per_frame_data: Dict[int, PerFrameData] = {}
         assert len(images) == len(timestamps) == len(rig_from_worlds), \
             "Number of images, timestamps and poses must be equal"
