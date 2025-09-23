@@ -43,7 +43,7 @@ class VIOptimizer:
     def _get_incremental_pipeline_options(self):
         """Get incremental pipeline options"""
         pipeline_options = pycolmap.IncrementalPipelineOptions()
-        pipeline_options.fix_existing_images = False
+        pipeline_options.fix_existing_frames = False
         return pipeline_options
 
 
