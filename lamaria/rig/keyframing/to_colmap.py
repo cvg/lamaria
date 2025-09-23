@@ -14,9 +14,10 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
+from ..lamaria_reconstruction import LamariaReconstruction
 from ..config.options import EstimateToColmapOptions
 from ...utils.general import (
-    find_closest_timestamp,
+    get_matched_timestamps,
     get_t_imu_camera,
     camera_colmap_from_calib,
     rigid3d_from_transform,
@@ -51,62 +52,59 @@ class EstimateToColmap:
 
     def _init_io(self):
         """Initializes output and data providers"""
-        self.empty_recons = pycolmap.Reconstruction()
-        output_base = self.options.paths.init_model.parent
-        output_base.mkdir(parents=True, exist_ok=True)
-        
-        self.vrs_provider = data_provider.create_vrs_data_provider(
-            self.options.paths.vrs.as_posix()
+        self.data = LamariaReconstruction()
+        self._vrs_provider = data_provider.create_vrs_data_provider(
+            self.options.vrs.as_posix()
         )
-        if self.options.mps.use_mps:
-            data_paths = mps.MpsDataPathsProvider(self.cfg.mps_path.as_posix()).get_data_paths()
-            self.mps_data_provider = mps.MpsDataProvider(data_paths)
-        else:
-            assert self.options.paths.estimate is not None, \
-                "Estimate path must be provided if MPS is not used"
+
+        # Initialize stream IDs
+        self._left_cam_sid = StreamId(self.options.sensor.left_cam_stream_id)
+        self._right_cam_sid = StreamId(self.options.sensor.right_cam_stream_id)
+        self._right_imu_sid = StreamId(self.options.sensor.right_imu_stream_id)
         
-        self.left_cam_stream_id = StreamId(self.options.sensor.left_cam_stream_id)
-        self.right_cam_stream_id = StreamId(self.options.sensor.right_cam_stream_id)
-        self.right_imu_stream_id = StreamId(self.options.sensor.right_imu_stream_id)
+        # Initialize MPS data provider if needed
+        if self.options.mps.use_mps:
+            data_paths = mps.MpsDataPathsProvider(self.options.mps_folder.as_posix()).get_data_paths()
+            self._mps_data_provider = mps.MpsDataProvider(data_paths)
     
     def _init_data(self):
         """Extracts images, timestamps and builds per-frame data"""
 
         extract_images_from_vrs(
-            vrs_file=self.options.paths.vrs,
-            image_folder=self.options.paths.images,
+            vrs_file=self.options.vrs,
+            image_folder=self.options.images,
         )
 
         images = self._get_images()
 
         if self.options.mps.use_mps:
             timestamps = self._get_mps_timestamps()
-            closed_loop_data = get_closed_loop_data_from_mps(self.options.paths.mps)
+            closed_loop_data = get_closed_loop_data_from_mps(self.options.mps)
             pose_timestamps = [ l for l, _ in timestamps ]
             mps_poses = get_mps_poses_for_timestamps(closed_loop_data, pose_timestamps)
-            self.per_frame_data = self._build_per_frame_data_from_mps(images, timestamps, mps_poses)
+            self._per_frame_data = self._build_per_frame_data_from_mps(images, timestamps, mps_poses)
         else:
+            flag = check_estimate_format(self.options.estimate)
+            if not flag:
+                raise ValueError("Estimate file format is incorrect.")
+            
             timestamps = self._get_estimate_timestamps()
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
             
-            flag = check_estimate_format(self.options.paths.estimate)
-            if not flag:
-                raise ValueError("Estimate file format is incorrect.")
-            
             rig_from_worlds = get_rig_from_worlds_from_estimate(
-                self.options.paths.estimate,
+                self.options.estimate,
             )
-            self.per_frame_data = self._build_per_frame_data_from_estimate(images, timestamps, rig_from_worlds)
+            self._per_frame_data = self._build_per_frame_data_from_estimate(images, timestamps, rig_from_worlds)
     
     def _build_per_frame_data_from_mps(self, images, timestamps, mps_poses) -> List[PerFrameData]:
         per_frame_data = []
-        imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.right_imu_stream_id
+        imu_stream_label = self._vrs_provider.get_label_from_stream_id(
+            self._right_imu_sid
         )
         
         if not self.options.mps.use_online_calibration:
-            device_calibration = self.vrs_provider.get_device_calibration()
+            device_calibration = self._vrs_provider.get_device_calibration()
             imu_calib = device_calibration.get_imu_calib(
                 imu_stream_label
             )
@@ -118,7 +116,7 @@ class EstimateToColmap:
                 continue
 
             if self.options.mps.use_online_calibration:
-                ocalib = self.mps_data_provider.get_online_calibration(
+                ocalib = self._mps_data_provider.get_online_calibration(
                     left_ts, TimeQueryOptions.CLOSEST
                 )
                 if ocalib is None:
@@ -171,11 +169,11 @@ class EstimateToColmap:
 
     def _ts_from_vrs(self, sid: StreamId) -> List[int]:
         """Timestamps in nanoseconds"""
-        return sorted(self.vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME))
+        return sorted(self._vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME))
 
     def _get_images(self) -> List[Tuple[Path, Path]]:
-        left_img_dir = self.options.paths.images / "left"
-        right_img_dir = self.options.paths.images / "right"
+        left_img_dir = self.options.images / "left"
+        right_img_dir = self.options.images / "right"
 
         left_images = self._images_from_vrs(left_img_dir, left_img_dir)
         right_images = self._images_from_vrs(right_img_dir, right_img_dir)
@@ -184,8 +182,8 @@ class EstimateToColmap:
 
     def _get_mps_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
         if not self.options.mps.has_slam_drops:
-            L = self._ts_from_vrs(self.left_cam_stream_id)
-            R = self._ts_from_vrs(self.right_cam_stream_id)
+            L = self._ts_from_vrs(self._left_cam_sid)
+            R = self._ts_from_vrs(self._right_cam_sid)
             assert len(L) == len(R), "Unequal number of left and right timestamps"
             matched = list(zip(L, R))
             if not all(abs(l - r) < max_diff for l, r in matched):
@@ -193,15 +191,15 @@ class EstimateToColmap:
                     f"Left and right timestamps differ by more than {max_diff} ns"
                 )
         else:
-            matched = self._match_timestamps(max_diff)
+            matched = get_matched_timestamps(L, R, max_diff)
 
         return matched
     
     def _get_estimate_timestamps(self):
-        assert self.options.paths.estimate is not None, \
+        assert self.options.estimate is not None, \
             "Estimate path must be provided if MPS is not used"
-        
-        with open(self.options.paths.estimate, 'r') as f:
+
+        with open(self.options.estimate, 'r') as f:
             lines = f.readlines()
         
         timestamps = []
@@ -221,7 +219,7 @@ class EstimateToColmap:
         max_diff: int = 1000000, # 1 ms
     ) -> Tuple[List[Tuple[Path, Path]], List[int]]:
 
-        left_ts = self._ts_from_vrs(self.left_cam_stream_id)
+        left_ts = self._ts_from_vrs(self._left_cam_sid)
         assert len(images) == len(left_ts), \
             "Number of images and left timestamps must be equal"
         
@@ -251,28 +249,6 @@ class EstimateToColmap:
             matched_timestamps.append(left_ts[best])
         
         return matched_images, matched_timestamps
-    
-    def _match_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
-        L = self._ts_from_vrs(self.left_cam_stream_id)
-        R = self._ts_from_vrs(self.right_cam_stream_id)
-        
-        # matching timestamps is only when we have slam drops
-        assert len(L) > 0 and len(R) > 0 and len(L) != len(R), \
-            "Streams must have data and unequal lengths"
-        
-        matched = []
-
-        if len(L) < len(R):
-            for l in L:
-                r = find_closest_timestamp(R, l, max_diff)
-                if r is not None:
-                    matched.append((l, r))
-        else:
-            for r in R:
-                l = find_closest_timestamp(L, r, max_diff)
-                if l is not None:
-                    matched.append((l, r))
-        return matched
 
     def _get_dummy_imu_params(self) -> List:
         # Dummy values for IMU "camera"
@@ -285,9 +261,9 @@ class EstimateToColmap:
         return width, height, random_params
 
     def _add_device_sensors(self) -> None:
-        device_calibration = self.vrs_provider.get_device_calibration()
-        imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-            self.right_imu_stream_id
+        device_calibration = self._vrs_provider.get_device_calibration()
+        imu_stream_label = self._vrs_provider.get_label_from_stream_id(
+            self._right_imu_sid
         )
         imu_calib = device_calibration.get_imu_calib(
             imu_stream_label
@@ -304,14 +280,14 @@ class EstimateToColmap:
             height=h,
             params=p,
         )
-        self.empty_recons.add_camera(imu)
+        self.data.reconstruction.add_camera(imu)
         rig.add_ref_sensor(imu.sensor_id)
 
         for cam_id, sid in \
-            [(2, self.left_cam_stream_id),
-                (3, self.right_cam_stream_id)
+            [(2, self._left_cam_sid),
+                (3, self._right_cam_sid)
         ]:
-            stream_label = self.vrs_provider.get_label_from_stream_id(
+            stream_label = self._vrs_provider.get_label_from_stream_id(
                 sid
             )
             camera_calib = device_calibration.get_camera_calib(
@@ -327,17 +303,17 @@ class EstimateToColmap:
             t_camera_imu = t_imu_camera.inverse()
             sensor_from_rig = rigid3d_from_transform(t_camera_imu)
             
-            self.empty_recons.add_camera(cam)
+            self.data.reconstruction.add_camera(cam)
             rig.add_sensor(cam.sensor_id, sensor_from_rig)
         
-        self.empty_recons.add_rig(rig)
+        self.data.reconstruction.add_rig(rig)
 
     def _add_online_sensors(self) -> None:
         """Adds a new rig for each timestamp, with sensors calibrated online"""
         sensor_id = 1
-        for id, pfd in enumerate(self.per_frame_data):
+        for id, pfd in enumerate(self._per_frame_data):
             t = pfd.left_ts
-            calibration = self.mps_data_provider.get_online_calibration(
+            calibration = self._mps_data_provider.get_online_calibration(
                 t, TimeQueryOptions.CLOSEST
             )
             if calibration is None:
@@ -353,12 +329,12 @@ class EstimateToColmap:
                 height=h,
                 params=p,
             )
-            self.empty_recons.add_camera(imu)
+            self.data.reconstruction.add_camera(imu)
             rig.add_ref_sensor(imu.sensor_id)
             sensor_id += 1
 
-            imu_stream_label = self.vrs_provider.get_label_from_stream_id(
-                self.right_imu_stream_id
+            imu_stream_label = self._vrs_provider.get_label_from_stream_id(
+                self._right_imu_sid
             )
             imu_calib = None
             for calib in calibration.imu_calibs:
@@ -367,9 +343,9 @@ class EstimateToColmap:
                     break
 
             for sid in \
-                [self.left_cam_stream_id, self.right_cam_stream_id
+                [self._left_cam_sid, self._right_cam_sid
             ]:
-                stream_label = self.vrs_provider.get_label_from_stream_id(
+                stream_label = self._vrs_provider.get_label_from_stream_id(
                     sid
                 )
                 camera_calib = calibration.get_camera_calib(
@@ -386,16 +362,16 @@ class EstimateToColmap:
                 t_camera_imu = t_imu_camera.inverse()
                 sensor_from_rig = rigid3d_from_transform(t_camera_imu)
 
-                self.empty_recons.add_camera(cam)
+                self.data.reconstruction.add_camera(cam)
                 rig.add_sensor(cam.sensor_id, sensor_from_rig)
 
-            self.empty_recons.add_rig(rig)
+            self.data.reconstruction.add_rig(rig)
 
     def _add_device_frames(self) -> None:
         image_id = 1
 
-        rig = self.empty_recons.rigs[1]
-        for id, pfd in enumerate(self.per_frame_data):
+        rig = self.data.reconstruction.rigs[1]
+        for id, pfd in enumerate(self._per_frame_data):
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
             frame.frame_id = id + 1  # unique id
@@ -414,14 +390,14 @@ class EstimateToColmap:
                 images_to_add.append(im)
                 image_id += 1
 
-            self.empty_recons.add_frame(frame)
+            self.data.reconstruction.add_frame(frame)
             for im in images_to_add:
-                self.empty_recons.add_image(im)
+                self.data.reconstruction.add_image(im)
 
     def _add_online_frames(self) -> None:
         image_id = 1
 
-        for id, pfd in enumerate(self.per_frame_data):
+        for id, pfd in enumerate(self._per_frame_data):
             frame = pycolmap.Frame()
             frame.rig_id = id + 1
             frame.frame_id = id + 1
@@ -441,55 +417,36 @@ class EstimateToColmap:
                 images_to_add.append(im)
                 image_id += 1
             
-            self.empty_recons.add_frame(frame)
+            self.data.reconstruction.add_frame(frame)
             for im in images_to_add:
-                self.empty_recons.add_image(im)
+                self.data.reconstruction.add_image(im)
 
-    def save_imu_measurements(self) -> Path:
-        """Saves rectified IMU measurements to a numpy file"""
+    def _get_rectified_imu_data(self) -> Path:
+        """Generates rectified IMU data from VRS file"""
         if self.options.mps.use_online_calibration \
             and self.options.mps.use_mps:
             ms = get_imu_data_from_vrs(
-                self.vrs_provider,
+                self._vrs_provider,
                 self.options.paths.mps,
             )
         else:
             ms = get_imu_data_from_vrs(
-                self.vrs_provider,
+                self._vrs_provider,
             )
-        
-        np.save(self.options.paths.rect_imu, ms.data)
 
-        return self.options.paths.rect_imu
+        return ms
     
-    def create(self) -> pycolmap.Reconstruction:
+    def create(self) -> LamariaReconstruction:
         """Creates an empty COLMAP reconstruction with cameras and frames"""
-        if self.options.mps.use_online_calibration:
+        if self.options.mps.use_online_calibration  \
+            and self.options.mps.use_mps:
             self._add_online_sensors()
             self._add_online_frames()
         else:
             self._add_device_sensors()
             self._add_device_frames()
+        
+        ms = self._get_rectified_imu_data()
+        self.data.imu_measurements = ms
 
-        return self.empty_recons
-
-    def get_full_timestamps(self) -> List[int]:
-        return sorted([pfd.left_ts for pfd in self.per_frame_data])
-
-    def write_reconstruction(self) -> Path:
-        """Writes the empty reconstruction. Returns the path to the reconstruction folder."""
-        recon_path = self.options.paths.init_model
-        recon_path.mkdir(parents=True, exist_ok=True)
-
-        logger.info(f"Init {self.empty_recons.summary()}")
-        self.empty_recons.write(recon_path.as_posix())
-
-        return recon_path
-
-    def write_full_timestamps(self) -> Path:
-        ts_path = self.options.paths.full_ts
-        ts_path.parent.mkdir(parents=True, exist_ok=True)
-        left_ts = np.array(sorted([pfd.left_ts for pfd in self.per_frame_data]))
-        np.save(ts_path, left_ts)
-
-        return ts_path
+        return self.data
