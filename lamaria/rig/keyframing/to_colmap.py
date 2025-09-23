@@ -23,10 +23,12 @@ from ...utils.general import (
     rigid3d_from_transform,
     get_closed_loop_data_from_mps,
     get_mps_poses_for_timestamps,
-    get_rig_from_worlds_from_estimate,
     extract_images_from_vrs,
-    round_ns,
+)
+from ...utils.estimate import (
     check_estimate_format,
+    get_estimate_timestamps,
+    get_rig_from_worlds_from_estimate,
 )
 from ...utils.imu import (
     get_imu_data_from_vrs,
@@ -87,8 +89,8 @@ class EstimateToColmap:
             flag = check_estimate_format(self.options.estimate)
             if not flag:
                 raise ValueError("Estimate file format is incorrect.")
-            
-            timestamps = self._get_estimate_timestamps()
+
+            timestamps = get_estimate_timestamps(self.options.estimate)
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
             
@@ -194,23 +196,6 @@ class EstimateToColmap:
             matched = get_matched_timestamps(L, R, max_diff)
 
         return matched
-    
-    def _get_estimate_timestamps(self):
-        assert self.options.estimate is not None, \
-            "Estimate path must be provided if MPS is not used"
-
-        with open(self.options.estimate, 'r') as f:
-            lines = f.readlines()
-        
-        timestamps = []
-        for line in lines:
-            if line.startswith('#') or not line.strip():
-                continue
-            
-            ts = round_ns(line.split()[0])
-            timestamps.append(ts)
-        
-        return sorted(timestamps)
     
     def _match_estimate_ts_to_images(
         self,
