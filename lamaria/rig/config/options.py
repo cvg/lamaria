@@ -44,12 +44,13 @@ class EstimateToColmapOptions:
     vrs: Path = Path("recordings/xyz.vrs")
     estimate: Path = Path("estimates/xyz.txt")
     images: Path = Path("image_stream")
-    mps_folder: Path = Path("mps/mps_xyz_vrs") # necessary if use_mps is true
+    colmap_model: Path = Path("initial_recon")
 
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
-    output_path: Path = Path("/output")
+    mps_folder: Optional[Path] = None # necessary if use_mps is true
+    output_path: Optional[Path] = None
 
     @classmethod
     def load(
@@ -71,18 +72,20 @@ class EstimateToColmapOptions:
 
     def set_custom_paths(
         self,
-        output_path: Path,
         vrs: Path,
         estimate: Path,
         images: Path,
+        colmap_model: Path,
+        output_path: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> EstimateToColmapOptions:
         return replace(
             self,
-            output_path=output_path,
             vrs=vrs,
             estimate=estimate,
             images=images,
+            colmap_model=colmap_model,
+            output_path=output_path if output_path is not None else self.output_path,
             mps_folder=mps_folder if mps_folder is not None else self.mps_folder
         )
 
@@ -97,7 +100,7 @@ class KeyframeSelectorOptions:
     max_distance: float = 1.0 # meters
     max_elapsed: int = int(1e9) # 1 second in ns
 
-    output_path: Path = Path("/output")
+    output_path: Optional[Path] = None
 
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "KeyframeSelectorOptions":
@@ -114,15 +117,15 @@ class KeyframeSelectorOptions:
     
     def set_custom_paths(
         self,
-        output_path: Path,
         keyframes: Path,
-        kf_model: Path
+        kf_model: Path,
+        output_path: Optional[Path] = None,
     ) -> KeyframeSelectorOptions:
         return replace(
             self,
-            output_path=output_path,
             keyframes=keyframes,
-            kf_model=kf_model
+            kf_model=kf_model,
+            output_path=output_path if output_path is not None else self.output_path,
         )
 
 
@@ -146,7 +149,7 @@ class TriangulatorOptions:
     filter_max_reproj_error: float = 4.0
     filter_min_tri_angle: float = 1.5
 
-    output_path: Path = Path("/output")
+    output_path: Optional[Path] = None
 
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "TriangulatorOptions":
@@ -157,17 +160,17 @@ class TriangulatorOptions:
     
     def set_custom_paths(
         self,
-        output_path: Path,
         hloc: Path,
         pairs_file: Path,
-        tri_model: Path
+        tri_model: Path,
+        output_path: Optional[Path] = None,
     ) -> TriangulatorOptions:
         return replace(
             self,
-            output_path=output_path,
             hloc=hloc,
             pairs_file=pairs_file,
-            tri_model=tri_model
+            tri_model=tri_model,
+            output_path=output_path if output_path is not None else self.output_path
         )
     
 
@@ -204,6 +207,8 @@ class VIOptimizerOptions:
 
     colmap_pipeline: pycolmap.IncrementalPipelineOptions = \
         pycolmap.IncrementalPipelineOptions()
+    
+    output_path: Optional[Path] = None
 
     @classmethod
     def load(cls, cfg: Optional[OmegaConf] = None) -> "VIOptimizerOptions":
@@ -226,8 +231,10 @@ class VIOptimizerOptions:
     def set_custom_paths(
         self,
         optim_model: Path,
+        output_path: Optional[Path] = None
     ) -> VIOptimizerOptions:
         return replace(
             self,
-            optim=replace(self.optim, optim_model=optim_model)
+            optim=replace(self.optim, optim_model=optim_model),
+            output_path=output_path if output_path is not None else self.output_path
         )
