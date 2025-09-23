@@ -63,7 +63,7 @@ def postprocess_pairs_with_reconstruction(
             f.write(f"{a} {b}\n")
 
 
-def run_triangulation(
+def run(
     options: TriangulatorOptions,
     reference_model: Path, # reconstruction path
     keyframes: Path,
