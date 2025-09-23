@@ -17,13 +17,13 @@ class RigConstraintManager:
     def apply_constraints(self, problem):
         """Apply rig-specific constraints to the problem"""
         # Fix the first rig pose
-        frame_ids = sorted(self.session.reconstruction.frames.keys())
-        first_frame = self.session.reconstruction.frames[frame_ids[0]]
+        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
+        first_frame = self.session.data.reconstruction.frames[frame_ids[0]]
         problem.set_parameter_block_constant(first_frame.rotation.quat)
         problem.set_parameter_block_constant(first_frame.translation)
 
         # Fix 1 DoF translation of the second rig
-        second_frame = self.session.reconstruction.frames[frame_ids[1]]
+        second_frame = self.session.data.reconstruction.frames[frame_ids[1]]
         problem.set_manifold(
             second_frame.translation,
             pyceres.SubsetManifold(3, np.array([0])),
@@ -38,8 +38,8 @@ class VIBundleAdjuster:
         self.session = session
 
     def _init_callback(self):
-        frame_ids = sorted(self.session.reconstruction.frames.keys())
-        poses = list(self.session.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
+        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
+        poses = list(self.session.data.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
         callback = RefinementCallback(poses)
 
         return callback
@@ -60,7 +60,7 @@ class VIBundleAdjuster:
         problem = bundle_adjuster.problem
         
         # Add IMU residuals if enabled
-        if self.session.imu_params.keep_imu_residuals:
+        if self.session.imu_options.keep_imu_residuals:
             problem = imu_manager.add_residuals(problem)
         
         # Apply rig constraints
@@ -69,13 +69,13 @@ class VIBundleAdjuster:
         logger.info("Constrained the rig problem")
         
         # Setup solver
-        if self.session.opt_params.use_callback:
+        if self.session.opt_options.use_callback:
             callback = self._init_callback()
             solver_options.callbacks = [callback]
 
         solver_options.minimizer_progress_to_stdout = True
         solver_options.update_state_every_iteration = True
-        solver_options.max_num_iterations = self.session.opt_params.max_num_iterations
+        solver_options.max_num_iterations = self.session.opt_options.max_num_iterations
         
         # Solve
         summary = pyceres.SolverSummary()
@@ -165,7 +165,7 @@ class IterativeRefinement:
                 pipeline_options,
             )
             
-            if self.session.opt_params.normalize_reconstruction:
+            if self.session.opt_options.normalize_reconstruction:
                 reconstruction.normalize()
             
             # Check convergence

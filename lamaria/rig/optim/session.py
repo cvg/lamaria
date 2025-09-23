@@ -5,32 +5,24 @@ from pathlib import Path
 import pycolmap
 import numpy as np
 
-from ..config.loaders import load_cfg
 from .imu import (
     load_imu_states,
     load_preintegrated_imu_measurements,
 )
-from .params import (
-    CamParams,
-    OptParams,
-    IMUParams
-)
+from ..config.options import VIOptimizerOptions
+from ..lamaria_reconstruction import LamariaReconstruction
 
 class SingleSeqSession:
     def __init__(
         self,
-        reconstruction: pycolmap.Reconstruction,
-        timestamps: List[int],
-        rect_imu_data_npy: Path,
-        cfg=None
+        options: VIOptimizerOptions,
+        data: LamariaReconstruction,
     ):
-        cfg = cfg if cfg is not None else load_cfg()
-        self.reconstruction: pycolmap.Reconstruction = reconstruction
-        self.timestamps: List[int] = timestamps
-        self._init_params(cfg)
-        self._init_imu_data(rect_imu_data_npy)
+        self.data = data
+        self._init_options(options)
+        self._init_imu_data()
 
-    def _init_imu_data(self, rect_imu_data_npy: Path):
+    def _init_imu_data(self):
         self.preintegrated_imu_measurements = \
             load_preintegrated_imu_measurements(
                 rect_imu_data_npy,
