@@ -8,7 +8,6 @@ from typing import List, Optional
 
 import pycolmap
 
-from ... import logger
 from ..lamaria_reconstruction import LamariaReconstruction
 from ..config.options import KeyframeSelectorOptions
 from ...utils.transformation import get_magnitude_from_transform
