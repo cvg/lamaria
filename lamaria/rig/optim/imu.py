@@ -10,22 +10,21 @@ from ..lamaria_reconstruction import LamariaReconstruction
 
 
 def load_preintegrated_imu_measurements(
-    rect_imu_data_npy: Path,
-    reconstruction: pycolmap.Reconstruction,
-    timestamps: List[int],  # must be a sorted list in ns
-    params: OptIMUOptions = OptIMUOptions(),
-) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
+    options: OptIMUOptions,
+    data: LamariaReconstruction,
+) -> Dict[int, pycolmap.PreintegratedImuMeasurement]:
 
     preintegrated_measurements = {}
-    rect_imu_data = np.load(rect_imu_data_npy, allow_pickle=True)
-    imu_measurements = pycolmap.ImuMeasurements(rect_imu_data.tolist())
-    
-    options = pycolmap.ImuPreintegrationOptions()
-    options.integration_noise_density = params.integration_noise_density
-    imu_calib = load_imu_calibration(params.gyro_infl, params.acc_infl)
 
-    frame_ids = sorted(reconstruction.frames.keys())
-    assert len(timestamps) == len(frame_ids), "Unequal timestamps and frames for preinteg calc"
+    imu_measurements = data.imu_measurements
+    
+    colmap_imu_opts = pycolmap.ImuPreintegrationOptions()
+    colmap_imu_opts.integration_noise_density = options.integration_noise_density
+    imu_calib = load_imu_calibration(options.gyro_infl, options.acc_infl)
+
+    frame_ids = sorted(data.reconstruction.frames.keys())
+    timestamps = [data.timestamps[fid] for fid in frame_ids]
+
     assert len(frame_ids) >= 2, "Need at least two frames to compute preinteg measurements"
     ts_sec = np.asarray(timestamps, dtype=np.float64) / 1e9
 
@@ -39,7 +38,7 @@ def load_preintegrated_imu_measurements(
         if len(ms) == 0:
             continue
         integrated_m = pycolmap.PreintegratedImuMeasurement(
-            options,
+            colmap_imu_opts,
             imu_calib,
             t1,
             t2,
@@ -50,14 +49,14 @@ def load_preintegrated_imu_measurements(
     return preintegrated_measurements
 
 def load_imu_states(
-    reconstruction: pycolmap.Reconstruction,
-    timestamps: List[int] # must be a sorted list in ns
-) -> dict[int, pycolmap.ImuState]:
+    data: LamariaReconstruction,
+) -> Dict[int, pycolmap.ImuState]:
     imu_states = {} 
 
-    frame_ids = sorted(reconstruction.frames.keys())
-    assert len(timestamps) == len(frame_ids), "Unequal timestamps and frames for imu state calc"
-    assert len(frame_ids) >= 2, "Need at least two frames to compute velocity"
+    frame_ids = sorted(data.reconstruction.frames.keys())
+    timestamps = [data.timestamps[fid] for fid in frame_ids]
+
+    assert len(frame_ids) >= 2, "Need at least two frames to compute imu states"
 
     ts_sec = np.asarray(timestamps, dtype=np.float64) / 1e9
 
@@ -73,8 +72,8 @@ def load_imu_states(
         if dt == 0:
             raise ValueError(f"Zero dt between frames {i} and {j}")
         
-        pi = reconstruction.frames[i].rig_from_world.inverse().translation
-        pj = reconstruction.frames[j].rig_from_world.inverse().translation
+        pi = data.reconstruction.frames[i].rig_from_world.inverse().translation
+        pj = data.reconstruction.frames[j].rig_from_world.inverse().translation
 
         vel = (pj - pi) / dt
         s = pycolmap.ImuState()
