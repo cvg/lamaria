@@ -6,12 +6,13 @@ from pathlib import Path
 from .. import logger
 
 class LamariaReconstruction:
-    reconstruction: pycolmap.Reconstruction
-    timestamps: Dict[int, int]
-    imu_measurements: pycolmap.ImuMeasurements
+    def __init__(self) -> None:
+        self.reconstruction = pycolmap.Reconstruction()
+        self.timestamps = {}
+        self.imu_measurements = pycolmap.ImuMeasurements([])
 
     @classmethod
-    def read_reconstruction(
+    def read(
         cls,
         input_folder: Path,
     ) -> "LamariaReconstruction":
@@ -41,7 +42,7 @@ class LamariaReconstruction:
         
         return instance
 
-    def write_reconstruction(
+    def write(
         self,
         output_folder: Path,
     ) -> None:
