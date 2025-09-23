@@ -216,9 +216,9 @@ class VIOptimizerOptions:
             return cls()
         
         base = cls()
-        cam = _structured_merge_to_obj(OptCamOptions, cfg.optimization.cam)
-        imu = _structured_merge_to_obj(OptIMUOptions, cfg.optimization.imu)
-        optim = _structured_merge_to_obj(OptOptions, cfg.optimization.general)
+        cam = _structured_merge_to_obj(OptCamOptions, cfg.cam)
+        imu = _structured_merge_to_obj(OptIMUOptions, cfg.imu)
+        optim = _structured_merge_to_obj(OptOptions, cfg.general)
 
         # leave colmap_pipeline as default
         return replace(
