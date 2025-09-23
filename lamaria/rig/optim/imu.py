@@ -1,12 +1,12 @@
 import numpy as np
 import pycolmap
-from typing import List
-from pathlib import Path
+from typing import Dict
 
 from tqdm import tqdm
 
 from ... import logger
 from ..config.options import OptIMUOptions
+from ..lamaria_reconstruction import LamariaReconstruction
 
 
 def load_preintegrated_imu_measurements(
