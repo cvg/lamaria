@@ -4,11 +4,16 @@ from pathlib import Path
 from tqdm import tqdm
 from projectaria_tools.core import mps, data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core.stream_id import StreamId
 
 from lamaria.utils.general import (
-    IMU_STREAM_ID,
     find_closest_timestamp,
 )
+
+RIGHT_IMU_STREAM_ID = StreamId("1202-1")
+RIGHT_IMU_STREAM_LABEL = "imu-right"
+
+
 
 def get_online_params_for_imu_from_mps(
     online_calibs_file: Path,
@@ -38,11 +43,11 @@ def get_imu_data_from_vrs(
     calibration data from MPS folder. Otherwise, use device calibration from VRS file. """
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
-            IMU_STREAM_ID,
+            RIGHT_IMU_STREAM_ID,
             TimeDomain.DEVICE_TIME
         )
     )
-    imu_stream_label = vrs_provider.get_label_from_stream_id(IMU_STREAM_ID)
+    imu_stream_label = vrs_provider.get_label_from_stream_id(RIGHT_IMU_STREAM_ID)
 
     if mps_folder is not None:
         online_calibs_file = mps_folder / "slam" / "online_calibration.jsonl"
@@ -72,7 +77,7 @@ def get_imu_data_from_vrs(
             calibration = online_imu_calibs[closest_ts]
         
         imu_data = vrs_provider.get_imu_data_by_time_ns(
-            IMU_STREAM_ID,
+            RIGHT_IMU_STREAM_ID,
             timestamp,
             TimeDomain.DEVICE_TIME,
             TimeQueryOptions.CLOSEST,
