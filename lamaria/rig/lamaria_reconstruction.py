@@ -37,8 +37,6 @@ class LamariaReconstruction:
                 does not exist in {input_folder}"
         rectified_imu_data = np.load(rectified_imu_data_npy, allow_pickle=True)
         instance.imu_measurements = pycolmap.ImuMeasurements(rectified_imu_data.tolist())
-
-        logger.info(f"Reconstruction read from {input_folder}")
         
         return instance
 
@@ -58,4 +56,3 @@ class LamariaReconstruction:
 
         rectified_imu_data_npy = output_folder / "rectified_imu_data.npy"
         np.save(rectified_imu_data_npy, self.imu_measurements.data)
-        logger.info(f"Reconstruction written to {output_folder}")
