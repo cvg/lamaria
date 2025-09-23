@@ -1,7 +1,4 @@
 from __future__ import annotations
-
-from typing import List
-from pathlib import Path
 import pycolmap
 import numpy as np
 
@@ -25,22 +22,17 @@ class SingleSeqSession:
     def _init_imu_data(self):
         self.preintegrated_imu_measurements = \
             load_preintegrated_imu_measurements(
-                rect_imu_data_npy,
-                self.reconstruction,
-                self.timestamps,
-                self.imu_params
+                self.imu_options,
+                self.data
             )
-        self.imu_states = load_imu_states(
-            self.reconstruction,
-            self.timestamps
-        )
+        self.imu_states = load_imu_states(self.data)
         self.imu_from_rig = pycolmap.Rigid3d()
         self.gravity = np.array([0.0, 0.0, -1.0])
         self.log_scale = np.array([0.0])
 
-    def _init_params(self, cfg):
-        self.cam_params = CamParams.from_cfg(cfg)
-        self.imu_params = IMUParams.from_cfg(cfg)
-        self.opt_params = OptParams.from_cfg(cfg)
+    def _init_options(self, options: VIOptimizerOptions):
+        self.cam_options = options.cam
+        self.imu_options = options.imu
+        self.opt_options = options.optim
 
 
