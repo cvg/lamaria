@@ -445,7 +445,7 @@ class EstimateToColmap:
             for im in images_to_add:
                 self.data.reconstruction.add_image(im)
 
-    def _get_rectified_imu_data(self) -> Path:
+    def _get_rectified_imu_data(self) -> pycolmap.ImuMeasurements:
         """Generates rectified IMU data from VRS file"""
         if self.options.mps.use_online_calibration \
             and self.options.mps.use_mps:
@@ -461,7 +461,7 @@ class EstimateToColmap:
         return ms
     
     def create(self) -> LamariaReconstruction:
-        """Creates an empty COLMAP reconstruction with cameras and frames"""
+        """Creates Lamaria reconstruction with timestamps, IMU data, sensors and frames"""
         if self.options.mps.use_online_calibration  \
             and self.options.mps.use_mps:
             self._add_online_sensors()
@@ -470,7 +470,14 @@ class EstimateToColmap:
             self._add_device_sensors()
             self._add_device_frames()
         
+        # Populating IMU data
         ms = self._get_rectified_imu_data()
         self.data.imu_measurements = ms
+
+        # Populating timestamps map
+        self.data.timestamps = {
+            frame_id: pfd.left_ts
+            for frame_id, pfd in self._per_frame_data.items()
+        }
 
         return self.data
