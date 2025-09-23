@@ -4,27 +4,28 @@ import shutil
 import numpy as np
 from pathlib import Path
 from copy import deepcopy
-from dataclasses import dataclass
 from typing import List, Optional
 
 import pycolmap
 
 from ... import logger
+from ..lamaria_reconstruction import LamariaReconstruction
 from ..config.options import KeyframeSelectorOptions
-from ...utils.general import get_magnitude_from_transform
+from ...utils.transformation import get_magnitude_from_transform
 
 
 class KeyframeSelector:
     def __init__(
         self,
         options: KeyframeSelectorOptions,
-        reconstruction: pycolmap.Reconstruction
+        data: LamariaReconstruction,
     ):
         self.options = options
-        self.init_recons = reconstruction
-        self.timestamps = np.load(self.options.paths.full_ts).tolist()
+        self.init_data: LamariaReconstruction = data
+        self.init_recons = data.reconstruction # pycolmap.Reconstruction
+        self.timestamps = data.timestamps # frame id to timestamp mapping
 
-        self.keyframed_recons = pycolmap.Reconstruction()
+        self.keyframed_data: LamariaReconstruction = LamariaReconstruction()
         self.keyframe_frame_ids: Optional[List[int]] = None
 
     def _select_keyframes(self):
@@ -44,7 +45,7 @@ class KeyframeSelector:
             current_rig_from_previous_rig = current_rig_from_world * previous_rig_from_world.inverse()
 
             dr_dt += np.array(get_magnitude_from_transform(current_rig_from_previous_rig))
-            dts += self.timestamps[i+1] - self.timestamps[i]
+            dts += self.timestamps[curr] - self.timestamps[prev]
 
             if dr_dt[0] > self.options.max_rotation or \
                 dr_dt[1] > self.options.max_distance or \
@@ -64,7 +65,7 @@ class KeyframeSelector:
         cam_map[ref_sensor_id] = camera_id
         new_ref_sensor = self._clone_camera(ref_sensor_id, camera_id)
         camera_id += 1
-        self.keyframed_recons.add_camera(new_ref_sensor)
+        self.keyframed_data.reconstruction.add_camera(new_ref_sensor)
         new_rig.add_ref_sensor(new_ref_sensor.sensor_id)
 
         for sensor, sensor_from_rig in old_rig.non_ref_sensors.items():
@@ -72,10 +73,10 @@ class KeyframeSelector:
             cam_map[sensor.id] = camera_id
             camera_id += 1
             new_sensor_from_rig = deepcopy(sensor_from_rig)
-            self.keyframed_recons.add_camera(new_sensor)
+            self.keyframed_data.reconstruction.add_camera(new_sensor)
             new_rig.add_sensor(new_sensor.sensor_id, new_sensor_from_rig)
         
-        self.keyframed_recons.add_rig(new_rig)
+        self.keyframed_data.reconstruction.add_rig(new_rig)
 
         image_id = 1
         for i, frame_id in enumerate(self.keyframe_frame_ids):
@@ -105,9 +106,9 @@ class KeyframeSelector:
                 images_to_add.append(new_image)
                 image_id += 1
 
-            self.keyframed_recons.add_frame(new_frame)
+            self.keyframed_data.reconstruction.add_frame(new_frame)
             for img in images_to_add:
-                self.keyframed_recons.add_image(img)
+                self.keyframed_data.reconstruction.add_image(img)
 
     def _clone_camera(self, old_camera_id: int, new_camera_id: int) -> pycolmap.Camera:
         old_camera = self.init_recons.cameras[old_camera_id]
@@ -135,7 +136,7 @@ class KeyframeSelector:
             # IMU cosplaying as a dummy camera
             old_ref_sensor_id = old_rig.ref_sensor_id.id
             new_ref_sensor = self._clone_camera(old_ref_sensor_id, camera_id)
-            self.keyframed_recons.add_camera(new_ref_sensor)
+            self.keyframed_data.reconstruction.add_camera(new_ref_sensor)
             cam_id_map[old_ref_sensor_id] = camera_id
             camera_id += 1
 
@@ -147,14 +148,14 @@ class KeyframeSelector:
 
                 if old_sensor_id not in cam_id_map:
                     new_sensor = self._clone_camera(old_sensor_id, camera_id)
-                    self.keyframed_recons.add_camera(new_sensor)
+                    self.keyframed_data.reconstruction.add_camera(new_sensor)
                     cam_id_map[old_sensor_id] = camera_id
                     camera_id += 1
                 
                 new_sensor_from_rig = deepcopy(sensor_from_rig)
                 new_rig.add_sensor(new_sensor.sensor_id, new_sensor_from_rig)
 
-            self.keyframed_recons.add_rig(new_rig)
+            self.keyframed_data.reconstruction.add_rig(new_rig)
 
             new_frame = pycolmap.Frame()
             new_frame.rig_id = new_rig.rig_id
@@ -178,21 +179,29 @@ class KeyframeSelector:
                 images_to_add.append(new_image)
                 image_id += 1
             
-            self.keyframed_recons.add_frame(new_frame)
+            self.keyframed_data.reconstruction.add_frame(new_frame)
             for img in images_to_add:
-                self.keyframed_recons.add_image(img)
+                self.keyframed_data.reconstruction.add_image(img)
             
             rig_id += 1
 
-    def run_keyframing(self) -> pycolmap.Reconstruction:
+    def run_keyframing(self) -> LamariaReconstruction:
         """ Main function to run keyframing."""
         self._select_keyframes()
         if len(self.init_recons.rigs.keys()) == 1: # device rig has been added
             self._build_device_keyframed_reconstruction()
         else:
             self._build_online_keyframed_reconstruction()
+        
+        # set timestamps keys as the new frame ids
+        self.keyframed_data.timestamps = {
+            frame_id: self.timestamps[frame_id]
+            for frame_id in self.keyframe_frame_ids
+        }
 
-        return self.keyframed_recons
+        self.keyframed_data.imu_measurements = deepcopy(self.init_data.imu_measurements)
+
+        return self.keyframed_data
     
     def copy_images_to_keyframes_dir(self) -> Path:
         """ Copy images corresponding to keyframes to a separate directory. """
@@ -219,17 +228,3 @@ class KeyframeSelector:
                 shutil.copy2(src_path, dst_path)
         
         return output_dir
-
-    def write_keyframe_timestamps(self) -> Path:
-        output_path = self.options.paths.kf_ts
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        keyframed_timestamps = np.array([self.timestamps[i - 1] for i in self.keyframe_frame_ids])
-        np.save(output_path, keyframed_timestamps)
-        return output_path
-
-    def write_reconstruction(self) -> Path:
-        output_path = self.options.paths.kf_model
-        output_path.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Keyframed {self.keyframed_recons.summary()}")
-        self.keyframed_recons.write(output_path)
-        return output_path
