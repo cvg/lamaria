@@ -1,4 +1,4 @@
-# options.py
+# options.py helper functions
 from __future__ import annotations
 from pathlib import Path
 from typing import Optional
@@ -8,7 +8,7 @@ def _p(
     x: Optional[str] | Optional[Path],
     root: Optional[Path] = None
 ) -> Optional[Path]:
-    
+
     if x is None:
         return None
     x = Path(x)
@@ -18,8 +18,9 @@ def _p(
 
 def _structured_merge_to_obj(cls, section) -> object:
     """
-    Merge a YAML section onto a structured config made from the dataclass `cls`,
-    then return a dataclass instance (OmegaConf handles the casting).
+    Merge a YAML section onto a structured
+    config made from the dataclass `cls`,
+    then return a dataclass instance.
     """
     base = OmegaConf.structured(cls)
     merged = OmegaConf.merge(base, section or {})
