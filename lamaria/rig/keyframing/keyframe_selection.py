@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 from pathlib import Path
 from copy import deepcopy
-from typing import List, Optional
+from typing import Optional, Dict
 
 import pycolmap
 
@@ -25,18 +25,20 @@ class KeyframeSelector:
         self.timestamps = data.timestamps # frame id to timestamp mapping
 
         self.keyframed_data: LamariaReconstruction = LamariaReconstruction()
-        self.keyframe_frame_ids: Optional[List[int]] = None
+        self.keyframe_frame_ids: Optional[Dict[int, int]] = None
 
     def _select_keyframes(self):
-        self.keyframe_frame_ids = []  
+        self.keyframe_frame_ids: Dict[int, int] = {}
         dr_dt = np.array([0.0, 0.0])
         dts = 0.0
 
         init_frame_ids = sorted(self.init_recons.frames.keys())
+        new_frame_id = 1
 
         for i, (prev, curr) in enumerate(zip(init_frame_ids[:-1], init_frame_ids[1:])):
             if i == 0:
-                self.keyframe_frame_ids.append(prev)
+                self.keyframe_frame_ids[new_frame_id] = prev
+                new_frame_id += 1
                 continue
 
             current_rig_from_world = self.init_recons.frames[curr].rig_from_world
@@ -50,7 +52,8 @@ class KeyframeSelector:
                 dr_dt[1] > self.options.max_distance or \
                     dts > self.options.max_elapsed:
                 
-                self.keyframe_frame_ids.append(curr)
+                self.keyframe_frame_ids[new_frame_id] = curr
+                new_frame_id += 1
                 dr_dt = np.array([0.0, 0.0])
                 dts = 0.0
                 
@@ -78,12 +81,12 @@ class KeyframeSelector:
         self.keyframed_data.reconstruction.add_rig(new_rig)
 
         image_id = 1
-        for i, frame_id in enumerate(self.keyframe_frame_ids):
+        for new_fid, frame_id in self.keyframe_frame_ids.items():
             old_frame = self.init_recons.frames[frame_id]
             
             new_frame = pycolmap.Frame()
             new_frame.rig_id = 1
-            new_frame.frame_id = i + 1
+            new_frame.frame_id = new_fid
             new_frame.rig_from_world = deepcopy(old_frame.rig_from_world)
 
             old_image_ids = sorted([d.id for d in old_frame.data_ids])
@@ -123,9 +126,8 @@ class KeyframeSelector:
     def _build_online_keyframed_reconstruction(self):
         camera_id = 1
         image_id = 1
-        rig_id = 1
 
-        for i, frame_id in enumerate(self.keyframe_frame_ids):
+        for new_fid, frame_id in self.keyframe_frame_ids.items():
             old_frame = self.init_recons.frames[frame_id]
             old_rig_id = old_frame.rig_id
             old_rig = self.init_recons.rigs[old_rig_id]
@@ -139,7 +141,7 @@ class KeyframeSelector:
             cam_id_map[old_ref_sensor_id] = camera_id
             camera_id += 1
 
-            new_rig = pycolmap.Rig(rig_id=rig_id)
+            new_rig = pycolmap.Rig(rig_id=new_fid)
             new_rig.add_ref_sensor(new_ref_sensor.sensor_id)
 
             for old_sensor, sensor_from_rig in old_rig.non_ref_sensors.items():
@@ -158,7 +160,7 @@ class KeyframeSelector:
 
             new_frame = pycolmap.Frame()
             new_frame.rig_id = new_rig.rig_id
-            new_frame.frame_id = i + 1
+            new_frame.frame_id = new_fid
             new_frame.rig_from_world = deepcopy(old_frame.rig_from_world)
 
             old_image_ids = sorted([d.id for d in old_frame.data_ids])
@@ -181,8 +183,6 @@ class KeyframeSelector:
             self.keyframed_data.reconstruction.add_frame(new_frame)
             for img in images_to_add:
                 self.keyframed_data.reconstruction.add_image(img)
-            
-            rig_id += 1
 
     def run_keyframing(self) -> LamariaReconstruction:
         """ Main function to run keyframing on input lamaria reconstruction."""
@@ -192,10 +192,10 @@ class KeyframeSelector:
         else:
             self._build_online_keyframed_reconstruction()
         
-        # set timestamps keys as the new frame ids
+        # set timestamps keys with new frame ids
         self.keyframed_data.timestamps = {
-            frame_id: self.timestamps[frame_id]
-            for frame_id in self.keyframe_frame_ids
+            new_fid: self.timestamps[old_fid] 
+            for new_fid, old_fid in self.keyframe_frame_ids.items()
         }
 
         self.keyframed_data.imu_measurements = self.init_data.imu_measurements
@@ -221,7 +221,7 @@ class KeyframeSelector:
         
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        for frame_id in self.keyframe_frame_ids:
+        for _, frame_id in self.keyframe_frame_ids.items():
             frame = self.init_recons.frames[frame_id]
             for data_id in frame.data_ids:
                 image = self.init_recons.images[data_id.id]
