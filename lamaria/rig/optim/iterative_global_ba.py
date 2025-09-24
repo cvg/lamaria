@@ -25,13 +25,11 @@ class VIBundleAdjuster:
 
     def solve(self, ba_options, ba_config):
         """Solve VI bundle adjustment problem"""
-        bundle_adjuster = BundleAdjuster(ba_options, ba_config)
+        bundle_adjuster = pycolmap.create_default_bundle_adjuster(
+            ba_options, ba_config, self.session.data.reconstruction
+        )
         imu_manager = IMUResidualManager(self.session)
         
-        bundle_adjuster.set_up_problem(
-            self.session,
-            ba_options.create_loss_function(),
-        )
         problem = bundle_adjuster.problem
         
         solver_options = ba_options.create_solver_options(
