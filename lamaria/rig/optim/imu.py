@@ -76,15 +76,12 @@ def load_imu_states(
         pj = data.reconstruction.frames[j].rig_from_world.inverse().translation
 
         vel = (pj - pi) / dt
-        s = pycolmap.ImuState()
-        s.set_velocity(vel)
-        imu_states[i] = s
+        imu_states[i] = pycolmap.ImuState()
+        imu_states[i].set_velocity(vel)
     
-    last_id = frame_ids[-1]
-    prev_id = frame_ids[-2]
-    last_state = pycolmap.ImuState()
-    last_state.set_velocity(imu_states[prev_id].velocity)
-    imu_states[last_id] = last_state
+    imu_states[frame_ids[-1]] = pycolmap.ImuState()
+    vel = imu_states[frame_ids[-2]].velocity
+    imu_states[frame_ids[-1]].set_velocity(vel)
 
     return imu_states
 
