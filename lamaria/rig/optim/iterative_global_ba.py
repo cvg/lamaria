@@ -4,6 +4,7 @@ import pyceres
 from typing import List, Tuple
 from copy import deepcopy
 import numpy as np
+
 from ... import logger
 from .session import SingleSeqSession
 from .residual_manager import BundleAdjuster, IMUResidualManager
