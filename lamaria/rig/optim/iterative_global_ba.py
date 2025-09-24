@@ -1,11 +1,12 @@
 import pycolmap
+from pycolmap import logging
 import pyceres
 from typing import List, Tuple
 from copy import deepcopy
 import numpy as np
 from ... import logger
 from .session import SingleSeqSession
-from .residual_manager import ImageResidualManager, IMUResidualManager
+from .residual_manager import BundleAdjuster, IMUResidualManager
 
 
 class RigConstraintManager:
@@ -46,22 +47,20 @@ class VIBundleAdjuster:
 
     def solve(self, ba_options, ba_config):
         """Solve VI bundle adjustment problem"""
-        bundle_adjuster = ImageResidualManager(ba_options, ba_config)
+        bundle_adjuster = BundleAdjuster(ba_options, ba_config)
         imu_manager = IMUResidualManager(self.session)
         
         bundle_adjuster.set_up_problem(
             self.session,
             ba_options.create_loss_function(),
         )
-        
-        solver_options = bundle_adjuster.set_up_solver_options(
-            bundle_adjuster.problem, ba_options.solver_options
-        )
         problem = bundle_adjuster.problem
         
-        # Add IMU residuals if enabled
-        if self.session.imu_options.keep_imu_residuals:
-            problem = imu_manager.add_residuals(problem)
+        solver_options = ba_options.create_solver_options(
+            ba_config, problem
+        )
+        
+        problem = imu_manager.add_residuals(problem)
         
         # Apply rig constraints
         constraint_manager = RigConstraintManager(self.session)
@@ -150,7 +149,9 @@ class IterativeRefinement:
         tri_options = pipeline_options.get_triangulation()
         mapper.complete_and_merge_tracks(tri_options)
         num_retriangulated_observations = mapper.retriangulate(tri_options)
-        logger.info(1, f"=> Retriangulated observations: {num_retriangulated_observations}")
+        logging.verbose(
+            1, f"=> Retriangulated observations: {num_retriangulated_observations}"
+        )
 
         # Configure mapper options
         mapper_options = self._configure_mapper_options(pipeline_options)
@@ -174,7 +175,7 @@ class IterativeRefinement:
             changed = (num_changed_observations / num_observations 
                       if num_observations > 0 else 0)
             
-            logger.info(1, f"=> Changed observations: {changed:.6f}")
+            logging.verbose(1, f"=> Changed observations: {changed:.6f}")
             if changed < pipeline_options.ba_global_max_refinement_change:
                 break
     
