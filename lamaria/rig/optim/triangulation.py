@@ -13,7 +13,7 @@ from hloc import (
 )
 
 from ... import logger
-from ..config.options import TriangulatorOptions
+from ...config.options import TriangulatorOptions
 
 
 def pairs_from_frames(recon: pycolmap.Reconstruction):
@@ -67,19 +67,18 @@ def run(
     options: TriangulatorOptions,
     reference_model: Path, # reconstruction path
     keyframes: Path,
+    hloc_dir: Path,
+    pairs_path: Path,
+    triangulated_model_path: Path,
 ) -> Path:
 
     if not keyframes.exists():
         raise FileNotFoundError(f"keyframes_dir not found at {keyframes}")
     
-    hloc_outputs_dir = options.hloc
-    hloc_outputs_dir.mkdir(parents=True, exist_ok=True)
+    hloc_dir.mkdir(parents=True, exist_ok=True)
 
     if not reference_model.exists():
         raise FileNotFoundError(f"reference_model not found at {reference_model}")
-
-    triangulated_model_path = options.tri_model
-    pairs_path = options.pairs_file
 
     retrieval_conf = extract_features.confs[options.retrieval_conf]
     feature_conf   = extract_features.confs[options.feature_conf]
@@ -90,8 +89,8 @@ def run(
                 options.feature_conf,
                 options.matcher_conf)
 
-    retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes, export_dir=hloc_outputs_dir)
-    features_path = extract_features.main(feature_conf, image_dir=keyframes, export_dir=hloc_outputs_dir)
+    retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes, export_dir=hloc_dir)
+    features_path = extract_features.main(feature_conf, image_dir=keyframes, export_dir=hloc_dir)
 
     pairs_from_retrieval.main(retrieval_path, pairs_path, options.num_retrieval_matches)
     postprocess_pairs_with_reconstruction(pairs_path, reference_model)
@@ -100,7 +99,7 @@ def run(
         conf=matcher_conf,
         pairs=pairs_path,
         features=feature_conf["output"],
-        export_dir=hloc_outputs_dir,
+        export_dir=hloc_dir,
     )
 
     _ = triangulation.main(
