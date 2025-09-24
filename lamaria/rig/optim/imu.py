@@ -5,7 +5,7 @@ from typing import Dict
 from tqdm import tqdm
 
 from ... import logger
-from ..config.options import OptIMUOptions
+from ...config.options import OptIMUOptions
 from ..lamaria_reconstruction import LamariaReconstruction
 
 
