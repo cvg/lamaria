@@ -17,7 +17,7 @@ class IMUResidualManager:
         """Add IMU residuals to the optimization problem"""
         loss = pyceres.TrivialLoss()
         
-        frame_ids = sorted(self.session.preintegrated_imu_measurements.keys())
+        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
         
         for k in range(len(self.session.preintegrated_imu_measurements)):
             i = frame_ids[k]
@@ -75,7 +75,7 @@ class IMUResidualManager:
                 )
 
 
-class ImageResidualManager:
+class BundleAdjuster:
     """Handles image residual setup and constraints"""
     def __init__(
         self,
@@ -95,8 +95,8 @@ class ImageResidualManager:
         self.set_up_problem(reconstruction, loss)
         if self.problem.num_residuals() == 0:
             return False
-        solver_options = self.set_up_solver_options(
-            self.problem, self.options.solver_options
+        solver_options = self.options.create_solver_options(
+            self.config, self.problem
         )
         pyceres.solve(solver_options, self.problem, self.summary)
         return True
@@ -108,18 +108,12 @@ class ImageResidualManager:
     ):
         logger.info("Setting up optimization problem")
         assert session.data.reconstruction is not None
-        for image_id in tqdm(self.config.image_ids):
+        for image_id in tqdm(self.config.images):
             self.add_image_to_problem(session, image_id, loss)
         self.parameterize_cameras(session.data.reconstruction)
         self.parameterize_points(session.data.reconstruction)
         logger.info("Optimization problem set up")
         return self.problem
-
-    def set_up_solver_options(
-        self, problem: pyceres.Problem, solver_options: pyceres.SolverOptions
-    ):
-        bundle_adjuster = pycolmap.BundleAdjuster(self.options, self.config)
-        return bundle_adjuster.set_up_solver_options(problem, solver_options)
 
     def add_image_to_problem(
         self,
@@ -130,7 +124,7 @@ class ImageResidualManager:
         image = session.data.reconstruction.images[image_id]
         frame = session.data.reconstruction.frames[image.frame_id]
         rig = session.data.reconstruction.rigs[frame.rig_id]
-        camera = session.recon.cameras[image.camera_id]
+        camera = session.data.reconstruction.cameras[image.camera_id]
         rig_from_world = frame.rig_from_world
         
         cam_from_rig = None
@@ -151,7 +145,7 @@ class ImageResidualManager:
                 self.point3D_num_observations[point2D.point3D_id] = 0
             self.point3D_num_observations[point2D.point3D_id] += 1
             
-            point3D = session.recon.points3D[point2D.point3D_id]
+            point3D = session.data.reconstruction.points3D[point2D.point3D_id]
             assert point3D.track.length() > 1
             if not optimize_cam_from_rig:
                 cost = pycolmap.cost_functions.RigReprojErrorCost(
@@ -245,6 +239,6 @@ class ImageResidualManager:
             point3D = reconstruction.points3D[point3D_id]
             if point3D.track.length() > num_observations:
                 self.problem.set_parameter_block_constant(point3D.xyz)
-        for point3D_id in self.config.constant_point3D_ids:
+        for point3D_id in self.config.constant_points:
             point3D = reconstruction.points3D[point3D_id]
             self.problem.set_parameter_block_constant(point3D.xyz)
