@@ -1,31 +1,16 @@
 # Default configuration for run_pipeline.py
 
-workspace: /media/arialamar/
-seq_name: 5cp
-
-estimate_to_colmap:
-  vrs: recordings/${seq_name}.vrs
-  estimate: est/${seq_name}.txt
-  mps_folder: mps/mps_${seq_name}_vrs/ # necessary if use_mps is true
-  images: image_stream
-  colmap_model: initial_recon
+output_path: /output
 
 sensor:
   camera_model: RAD_TAN_THIN_PRISM_FISHEYE
 
 keyframing:
-  keyframes: keyframes
-  kf_model: keyframe_recon
-  
   max_rotation: 20.0
   max_distance: 1.0
   max_elapsed: 1e9 # 1 second in ns
 
 triangulation:
-  hloc: hloc
-  pairs_file: pairs.txt
-  tri_model: triangulated_recon
-
   feature_conf: aliked-n16
   matcher_conf: aliked+lightglue
   retrieval_conf: netvlad
@@ -43,7 +28,6 @@ triangulation:
 
 optimization:
   general:
-    optim_model: optim_recon
     use_callback: true
     max_num_iterations: 10
     normalize_reconstruction: false
