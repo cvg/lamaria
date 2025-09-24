@@ -59,6 +59,7 @@ class VIBundleAdjuster:
         solver_options = ba_options.create_solver_options(
             ba_config, problem
         )
+        pyceres_solver_options = pyceres.SolverOptions(solver_options)
         
         problem = imu_manager.add_residuals(problem)
         
@@ -70,15 +71,15 @@ class VIBundleAdjuster:
         # Setup solver
         if self.session.opt_options.use_callback:
             callback = self._init_callback()
-            solver_options.callbacks = [callback]
+            pyceres_solver_options.callbacks = [callback]
 
-        solver_options.minimizer_progress_to_stdout = True
-        solver_options.update_state_every_iteration = True
-        solver_options.max_num_iterations = self.session.opt_options.max_num_iterations
+        pyceres_solver_options.minimizer_progress_to_stdout = True
+        pyceres_solver_options.update_state_every_iteration = True
+        pyceres_solver_options.max_num_iterations = self.session.opt_options.max_num_iterations
         
         # Solve
         summary = pyceres.SolverSummary()
-        pyceres.solve(solver_options, problem, summary)
+        pyceres.solve(pyceres_solver_options, problem, summary)
         print(summary.BriefReport())
         
         return summary, problem
