@@ -1,19 +1,20 @@
 import pycolmap
-from copy import deepcopy
+import shutil
 from typing import Optional
 from pathlib import Path
 
 from lamaria.rig.lamaria_reconstruction import LamariaReconstruction
 from lamaria.rig.keyframing.to_colmap import EstimateToColmap
 from lamaria.rig.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.rig.optim.triangulation import run as triangulation_run
+from lamaria.rig.optim.triangulation import run as triangulate
 from lamaria.rig.optim.session import SingleSeqSession
-from lamaria.rig.optim.vi_optimization import run
+from lamaria.rig.optim.vi_optimization import run as run_vi_optimization
 from lamaria.rig.config.pipeline import PipelineOptions
 from lamaria.rig.config.options import (
     EstimateToColmapOptions,
     KeyframeSelectorOptions,
-    TriangulatorOptions
+    TriangulatorOptions,
+    VIOptimizerOptions,
 )
 
 
@@ -37,8 +38,8 @@ def run_estimate_to_colmap(
     if colmap_model.exists():
         lamaria_recon = LamariaReconstruction.read(colmap_model)
         return lamaria_recon
-    else:
-        colmap_model.mkdir(parents=True, exist_ok=True)
+        
+    colmap_model.mkdir(parents=True, exist_ok=True)
 
     est_to_colmap = EstimateToColmap(options)
     lamaria_recon = est_to_colmap.create()
@@ -68,8 +69,8 @@ def run_keyframe_selection(
     if kf_model.exists():
         kf_lamaria_recon = LamariaReconstruction.read(kf_model)
         return kf_lamaria_recon
-    else:
-        kf_model.mkdir(parents=True, exist_ok=True)
+    
+    kf_model.mkdir(parents=True, exist_ok=True)
 
     kf_selector = KeyframeSelector(options, input_recon)
     kf_lamaria_recon = kf_selector.run_keyframing()
@@ -107,7 +108,7 @@ def run_triangulation(
         tri_lamaria_recon = LamariaReconstruction.read(tri_model)
         return tri_lamaria_recon
 
-    triangulated_model_path = triangulation_run(
+    triangulated_model_path = triangulate(
         options,
         reference_model=input,
         keyframes=keyframes,
@@ -125,10 +126,46 @@ def run_triangulation(
     return tri_lamaria_recon
 
 
+def run_optimization(
+    options: VIOptimizerOptions,
+    input: Path, # path to LamariaReconstruction
+    optim_model: Path,
+) -> LamariaReconstruction:
+    if not isinstance(input, Path):
+        raise ValueError("Input must be a Path to the reconstruction")
+    
+    db_path = input / "database.db"
+    assert db_path.exists(), f"Database path {db_path} does not exist in input reconstruction"
+    if optim_model.exists():
+        optim_lamaria_recon = LamariaReconstruction.read(optim_model)
+        return optim_lamaria_recon
+    
+    optim_model.mkdir(parents=True, exist_ok=True)
+    db_dst = optim_model / "database.db"
+    shutil.copy(db_path, db_dst)
+    
+    init_lamaria_recon = LamariaReconstruction.read(input)
+    session = SingleSeqSession(
+        options,
+        init_lamaria_recon,
+    )
+
+    optimized_recon = run_vi_optimization(
+        session,
+        db_dst,
+    )
+
+    optim_lamaria_recon = LamariaReconstruction()
+    optim_lamaria_recon.reconstruction = optimized_recon
+    optim_lamaria_recon.timestamps = init_lamaria_recon.timestamps
+    optim_lamaria_recon.imu_measurements = init_lamaria_recon.imu_measurements
+    optim_lamaria_recon.write(optim_model)
+
+
 def run_pipeline():
     pipeline_options = PipelineOptions()
 
-    # Step 1: Estimate to COLMAP
+    # Estimate to COLMAP
     est_options = pipeline_options.get_estimate_to_colmap_options()
     _ = run_estimate_to_colmap(
         est_options,
@@ -138,7 +175,7 @@ def run_pipeline():
         est_options.colmap_model,
     )
 
-    # Step 2: Keyframe Selection
+    # Keyframe Selection
     kf_options = pipeline_options.get_keyframing_options()
     _ = run_keyframe_selection(
         kf_options,
@@ -148,7 +185,7 @@ def run_pipeline():
         kf_options.kf_model,
     )
 
-    # Step 3: Triangulation
+    # Triangulation
     tri_options = pipeline_options.get_triangulator_options()
     _ = run_triangulation(
         tri_options,
@@ -157,6 +194,14 @@ def run_pipeline():
         tri_options.hloc,
         tri_options.pairs_file,
         tri_options.tri_model,
+    )
+
+    # Visual-Inertial Optimization
+    vi_options = pipeline_options.get_vi_optimizer_options()
+    _ = run_optimization(
+        vi_options,
+        tri_options.tri_model,
+        vi_options.optim.optim_model,
     )
 
 if __name__ == "__main__":
