@@ -90,7 +90,7 @@ class PipelineOptions:
     
     @property
     def pairs_file(self) -> Path:
-        return self._output_path / "pairs.txt"
+        return self._output_path / "hloc" / "pairs.txt"
     
     @property
     def tri_model(self) -> Path:
