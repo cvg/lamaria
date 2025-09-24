@@ -1,7 +1,6 @@
 from pathlib import Path
-from typing import Optional, Sequence, Any
+from typing import Optional, Sequence
 from omegaconf import OmegaConf, DictConfig
-from dataclasses import replace, field
 
 from .options import (
     EstimateToColmapOptions,
@@ -11,73 +10,98 @@ from .options import (
 )
 
 class PipelineOptions:
-    output_path: Path = Path("/media/lamaria/output/")
+    def __init__(self) -> None:
+        self._output_path: Path = Path("/output/")
+        self._estimate_to_colmap_options: EstimateToColmapOptions = EstimateToColmapOptions()
+        self._keyframing_options: KeyframeSelectorOptions = KeyframeSelectorOptions()
+        self._triangulator_options: TriangulatorOptions = TriangulatorOptions()
+        self._vi_optimizer_options: VIOptimizerOptions = VIOptimizerOptions()
 
-    # this should be initialized at load(config)
-    estimate_to_colmap_options: EstimateToColmapOptions = field(
-        default_factory=EstimateToColmapOptions
-    )
-    keyframing_options: KeyframeSelectorOptions = field(
-        default_factory=KeyframeSelectorOptions
-    )
-    triangulator_options: TriangulatorOptions = field(
-        default_factory=TriangulatorOptions
-    )
-    vi_optimizer_options: VIOptimizerOptions = field(
-        default_factory=VIOptimizerOptions
-    )
-
-    @classmethod
     def load(
-        cls,
+        self,
         yaml: Path | str,
         cli_overrides: Optional[Sequence[str]] = None,
-    ) -> "PipelineOptions":
+    ) -> None:
+        """Load configuration from a YAML file and apply any overrides."""
         cfg = OmegaConf.load(str(yaml))
         if cli_overrides:
             cfg = OmegaConf.merge(cfg, OmegaConf.from_dotlist(list(cli_overrides)))
         OmegaConf.resolve(cfg)
-        return cls._from_cfg(cfg)
-    
-    @classmethod
-    def _from_cfg(cls, cfg: DictConfig) -> "PipelineOptions":
-        obj = cls.__new__(cls)
-        obj.output_path = Path(cls._select(cfg, "output_path", obj.output_path))
-        obj.estimate_to_colmap_options = EstimateToColmapOptions.load(
+
+        self._update_from_cfg(cfg)
+
+    def _update_from_cfg(self, cfg: DictConfig) -> None:
+        """Update object attributes from a config."""
+        self._estimate_to_colmap_options = EstimateToColmapOptions.load(
             cfg.mps,
             cfg.sensor,
         )
-        obj.keyframing_options = KeyframeSelectorOptions.load(cfg.keyframing)
-        obj.triangulator_options = TriangulatorOptions.load(cfg.triangulation)
-        obj.vi_optimizer_options = VIOptimizerOptions.load(cfg.optimization)
-        return obj
+        self._keyframing_options = KeyframeSelectorOptions.load(cfg.keyframing)
+        self._triangulator_options = TriangulatorOptions.load(cfg.triangulation)
+        self._vi_optimizer_options = VIOptimizerOptions.load(cfg.optimization)
 
-    @staticmethod
-    def _select(cfg: DictConfig, key: str, default: Any = None) -> Any:
-        val = OmegaConf.select(cfg, key)
-        return default if val is None else val
-    
+        out = cfg.get("output_path", None)
+        self._output_path = Path(out) if out is not None else Path("/output/")
+
     @property
     def output_path(self) -> Path:
-        return self.output_path
+        """Get the parent output path."""
+        return self._output_path
     
+    @output_path.setter
+    def output_path(self, path: Path) -> None:
+        """Set the parent output path."""
+        self._output_path = path
+    
+    # Properties for estimate to COLMAP
     @property
     def estimate_to_colmap_options(self) -> EstimateToColmapOptions:
-        return self.estimate_to_colmap_options
+        return self._estimate_to_colmap_options
+    
+    @property
+    def images(self) -> Path:
+        return self._output_path / "images"
     
     @property
     def colmap_model(self) -> Path:
-        return self.output_path / "initial_recon"
+        return self._output_path / "initial_recon"
     
+    # Properties for keyframing
     @property
     def keyframing_options(self) -> KeyframeSelectorOptions:
-        return self.keyframing_options
+        return self._keyframing_options
     
+    @property
+    def keyframes(self) -> Path:
+        return self._output_path / "keyframes"
+    
+    @property
+    def kf_model(self) -> Path:
+        return self._output_path / "keyframed_recon"
+    
+    # Properties for triangulation
     @property
     def triangulator_options(self) -> TriangulatorOptions:
-        return self.triangulator_options
+        return self._triangulator_options
+
+    @property
+    def hloc(self) -> Path:
+        return self._output_path / "hloc"
     
     @property
+    def pairs_file(self) -> Path:
+        return self._output_path / "pairs.txt"
+    
+    @property
+    def tri_model(self) -> Path:
+        return self._output_path / "triangulated_recon"
+    
+    # Properties for visual-inertial optimization
+    @property
     def vi_optimizer_options(self) -> VIOptimizerOptions:
-        return self.vi_optimizer_options
+        return self._vi_optimizer_options
+    
+    @property
+    def optim_model(self) -> Path:
+        return self._output_path / "optim_recon"
         
