@@ -15,7 +15,7 @@ from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
 from ..lamaria_reconstruction import LamariaReconstruction
-from ..config.options import EstimateToColmapOptions
+from ...config.options import EstimateToColmapOptions
 from ...utils.general import (
     get_matched_timestamps,
     extract_images_from_vrs,
