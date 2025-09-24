@@ -52,9 +52,6 @@ class EstimateToColmapOptions:
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
-    mps_folder: Optional[Path] = None # necessary if use_mps is true
-    output_path: Optional[Path] = None
-
     @classmethod
     def load(
         cls, 
@@ -62,7 +59,7 @@ class EstimateToColmapOptions:
         cfg_sensor: Optional[OmegaConf] = None,
     ) -> EstimateToColmapOptions:
         
-        if cfg_mps or cfg_sensor is None:
+        if cfg_mps is None or cfg_sensor is None:
             return cls()
         
         base = cls()
