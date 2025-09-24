@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional
 from pathlib import Path
 import numpy as np
 import pycolmap
@@ -216,9 +216,9 @@ class EstimateToColmap:
         return list(zip(left_images, right_images))
 
     def _get_mps_timestamps(self, max_diff=1e6) -> List[Tuple[int, int]]:
+        L = self._ts_from_vrs(self._left_cam_sid)
+        R = self._ts_from_vrs(self._right_cam_sid)
         if not self.options.mps.has_slam_drops:
-            L = self._ts_from_vrs(self._left_cam_sid)
-            R = self._ts_from_vrs(self._right_cam_sid)
             assert len(L) == len(R), "Unequal number of left and right timestamps"
             matched = list(zip(L, R))
             if not all(abs(l - r) < max_diff for l, r in matched):
@@ -280,7 +280,11 @@ class EstimateToColmap:
 
     def _add_device_sensors(self) -> None:
         """Adds a new rig with device calibrated sensors.
-        The rig is consistent across all frames"""
+        The rig is consistent across all frames
+        
+        Camera ID layout:
+        rig_id=1 -> (imu=1, left=2, right=3)
+        """
         device_calibration = self._vrs_provider.get_device_calibration()
         imu_stream_label = self._vrs_provider.get_label_from_stream_id(
             self._right_imu_sid
@@ -331,6 +335,12 @@ class EstimateToColmap:
     def _add_online_sensors(self) -> None:
         """Adds a new rig for each frame timestamp.
         Each rig has its own online calibrated sensors.
+
+        Camera ID layout:
+        rig_id=1 -> (imu=1, left=2, right=3);
+        rig_id=2 -> (imu=4, left=5, right=6);
+        rig_id=3 -> (imu=7, left=8, right=9);
+        ...
         """
         sensor_id = 1
         for fid, pfd in self._per_frame_data.items():
@@ -418,7 +428,14 @@ class EstimateToColmap:
                 self.data.reconstruction.add_image(im)
 
     def _add_online_frames(self) -> None:
-        """Adds frame data for each rig, each rig has its own online calibrated sensors"""
+        """Adds frame data for each rig, each rig has its own online calibrated sensors
+        
+        Frame ID layout:
+        fid=1 -> (imu=1, left=2, right=3), (image IDs: 1, 2);
+        fid=2 -> (imu=4, left=5, right=6), (image IDs: 3, 4);
+        fid=3 -> (imu=7, left=8, right=9), (image IDs: 5, 6);
+        ...
+        """
         image_id = 1
 
         for fid, pfd in self._per_frame_data.items():
@@ -428,8 +445,12 @@ class EstimateToColmap:
             frame.rig_from_world = pfd.rig_from_world
 
             images_to_add = []
+            # Camera ID layout from _add_online_sensors():
+            # fid=1 -> (imu=1, left=2, right=3); fid=2 -> (imu=4, left=5, right=6); ...
+            left_cam_id = 3 * fid - 1
+            right_cam_id = 3 * fid
 
-            for cam_id, img_path in [(3*id + 2, pfd.left_img), (3*id + 3, pfd.right_img)]:
+            for cam_id, img_path in [(left_cam_id, pfd.left_img), (right_cam_id, pfd.right_img)]:
                 im = pycolmap.Image(
                     str(img_path),
                     pycolmap.Point2DList(),
