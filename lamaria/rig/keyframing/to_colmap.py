@@ -62,7 +62,7 @@ class EstimateToColmap:
     
     
     @classmethod
-    def run(
+    def convert(
         cls,
         options: EstimateToColmapOptions,
         vrs: Path,
