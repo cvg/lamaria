@@ -59,20 +59,24 @@ class EstimateToColmap:
         self._right_cam_sid: StreamId | None = None
         self._right_imu_sid: StreamId | None = None
         self._per_frame_data: Dict[int, PerFrameData] = {}
-    
-    
-    @classmethod
+
+
+    @staticmethod
     def convert(
-        cls,
         options: EstimateToColmapOptions,
         vrs: Path,
         images: Path,
         estimate: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
-        """Class method to run the full pipeline."""
-        return cls(options).process(vrs, images, estimate, mps_folder)
-    
+        """Static method to run the full pipeline."""
+        converter = EstimateToColmap(options)
+        return converter.process(
+            vrs,
+            images,
+            estimate,
+            mps_folder
+        )
 
     # -------- public API --------
     def process(
@@ -82,7 +86,7 @@ class EstimateToColmap:
         estimate: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
-        """Main one-shot runner."""
+        """Main runner."""
         self._init_data(vrs, images, estimate, mps_folder)
 
         if self.options.mps.use_online_calibration and self.options.mps.use_mps:
