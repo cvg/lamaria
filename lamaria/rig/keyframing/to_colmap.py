@@ -70,7 +70,7 @@ class EstimateToColmap:
         estimate: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
-        """Static method to run the full pipeline."""
+        """Class method to run the full pipeline."""
         return cls(options).process(vrs, images, estimate, mps_folder)
     
 
@@ -93,7 +93,7 @@ class EstimateToColmap:
             self._add_device_frames()
 
         # IMU + timestamps
-        ms = self._get_rectified_imu_data()
+        ms = self._get_rectified_imu_data(mps_folder)
         self.data.imu_measurements = ms
         self.data.timestamps = {fid: pfd.left_ts for fid, pfd in self._per_frame_data.items()}
         return self.data
@@ -321,7 +321,7 @@ class EstimateToColmap:
         
         return matched_images, matched_timestamps
 
-    def _get_dummy_imu_params(self) -> List:
+    def _get_dummy_imu_params(self) -> Tuple[int, int, List[float]]:
         # Dummy values for IMU "camera"
         width = 640
         height = 480
@@ -519,13 +519,17 @@ class EstimateToColmap:
             for im in images_to_add:
                 self.data.reconstruction.add_image(im)
 
-    def _get_rectified_imu_data(self) -> pycolmap.ImuMeasurements:
+    def _get_rectified_imu_data(
+        self,
+        mps_folder: Optional[Path] = None,
+    ) -> pycolmap.ImuMeasurements:
         """Generates rectified IMU data from VRS file"""
         if self.options.mps.use_online_calibration \
             and self.options.mps.use_mps:
+            assert mps_folder is not None, "MPS folder path must be provided if using MPS"
             ms = get_imu_data_from_vrs(
                 self._vrs_provider,
-                self.options.paths.mps,
+                mps_folder,
             )
         else:
             ms = get_imu_data_from_vrs(
