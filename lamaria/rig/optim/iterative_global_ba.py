@@ -108,8 +108,12 @@ class GlobalBundleAdjustment:
         
         # Configure bundle adjustment
         ba_config = pycolmap.BundleAdjustmentConfig()
-        for image_id in reconstruction.reg_image_ids():
-            ba_config.add_image(image_id)
+        for frame_id in reconstruction.reg_frame_ids():
+            frame = reconstruction.frame(frame_id)
+            for data_id in frame.data_ids:
+                if data_id.sensor_id.type != pycolmap.SensorType.CAMERA:
+                    continue
+                ba_config.add_image(data_id.id)
         
         # Run bundle adjustment
         vi_bundle_adjuster = VIBundleAdjuster(self.session)
