@@ -14,6 +14,8 @@ from ...utils.transformation import get_magnitude_from_transform
 
 
 class KeyframeSelector:
+    """Class to perform keyframe selection on a LamariaReconstruction object."""
+    
     def __init__(
         self,
         options: KeyframeSelectorOptions,
@@ -27,6 +29,21 @@ class KeyframeSelector:
         self.keyframed_data: LamariaReconstruction = LamariaReconstruction()
         self.keyframe_frame_ids: Optional[Dict[int, int]] = None
 
+    @staticmethod
+    def run(
+        options: KeyframeSelectorOptions,
+        data: LamariaReconstruction,
+        original_image_dir: Path,
+        keyframes_dir: Path,
+    ) -> LamariaReconstruction:
+        """ Static method to run keyframing and copy images to keyframes directory."""
+        
+        selector = KeyframeSelector(options, data)
+        kf_recon = selector.run_keyframing()
+        selector.copy_images_to_keyframes_dir(original_image_dir, keyframes_dir)
+
+        return kf_recon
+    
     def _select_keyframes(self):
         self.keyframe_frame_ids: Dict[int, int] = {}
         dr_dt = np.array([0.0, 0.0])
@@ -184,8 +201,9 @@ class KeyframeSelector:
             for img in images_to_add:
                 self.keyframed_data.reconstruction.add_image(img)
 
+    # -------- public API --------
     def run_keyframing(self) -> LamariaReconstruction:
-        """ Main function to run keyframing on input lamaria reconstruction."""
+        """ Function to run keyframing on lamaria reconstruction."""
         self._select_keyframes()
         if len(self.init_recons.rigs.keys()) == 1: # device rig has been added
             self._build_device_keyframed_reconstruction()
@@ -205,7 +223,7 @@ class KeyframeSelector:
     def copy_images_to_keyframes_dir(
         self,
         images: Path,
-        output: Optional[Path] = None,
+        output: Path,
     ) -> Path:
         """ Copy images corresponding to keyframes to a separate directory. 
         Images are expected to be in `images/left` and `images/right` subdirectories.
@@ -214,12 +232,10 @@ class KeyframeSelector:
         if self.keyframe_frame_ids is None:
             raise ValueError("Keyframes not selected yet. Run `run_keyframing` first.")
 
-        output_dir = output if output is not None else self.options.keyframes
+        if output.exists() and any(output.iterdir()):
+            shutil.rmtree(output)
 
-        if output_dir.exists() and any(output_dir.iterdir()):
-            shutil.rmtree(output_dir)
-        
-        output_dir.mkdir(parents=True, exist_ok=True)
+        output.mkdir(parents=True, exist_ok=True)
 
         for _, frame_id in self.keyframe_frame_ids.items():
             frame = self.init_recons.frames[frame_id]
@@ -228,8 +244,8 @@ class KeyframeSelector:
                 
                 subdir = "left" if "1201-1" in image.name else "right"
                 src_path = images / subdir / image.name
-                dst_path = output_dir / image.name
+                dst_path = output / image.name
                 
                 shutil.copy2(src_path, dst_path)
-        
-        return output_dir
+
+        return output
