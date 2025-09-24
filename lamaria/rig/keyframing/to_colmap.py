@@ -52,7 +52,7 @@ class EstimateToColmap:
 
     def __init__(self, options: EstimateToColmapOptions):
         self.options = options
-        self.data: LamariaReconstruction | None = None
+        self.data: LamariaReconstruction = LamariaReconstruction()
         self._vrs_provider = None
         self._mps_data_provider = None
         self._left_cam_sid: StreamId | None = None
@@ -109,8 +109,6 @@ class EstimateToColmap:
         """Initializes data providers and extracts images, timestamps and builds per-frame data object.
         Per-frame data is used to create the initial Lamaria reconstruction.
         """
-
-        self.data = LamariaReconstruction()
         
         # Initialize VRS data provider
         self._vrs_provider = data_provider.create_vrs_data_provider(
@@ -322,7 +320,7 @@ class EstimateToColmap:
         return matched_images, matched_timestamps
 
     def _get_dummy_imu_params(self) -> Tuple[int, int, List[float]]:
-        # Dummy values for IMU "camera"
+        """Generates dummy IMU camera parameters for COLMAP."""
         width = 640
         height = 480
         random_params = [241.604, 241.604, 322.895, 240.444, \
