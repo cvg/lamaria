@@ -48,19 +48,73 @@ class PerFrameData:
 
 
 class EstimateToColmap:
-    def __init__(
-        self,
-        options: EstimateToColmapOptions
-    ):
-        self.options = options
-        self._init_io()
-        self._init_data()
+    """Converts estimate or MPS data to COLMAP format."""
 
-    def _init_io(self):
-        """Initializes output and data providers"""
+    def __init__(self, options: EstimateToColmapOptions):
+        self.options = options
+        self.data: LamariaReconstruction | None = None
+        self._vrs_provider = None
+        self._mps_data_provider = None
+        self._left_cam_sid: StreamId | None = None
+        self._right_cam_sid: StreamId | None = None
+        self._right_imu_sid: StreamId | None = None
+        self._per_frame_data: Dict[int, PerFrameData] = {}
+    
+    
+    @classmethod
+    def run(
+        cls,
+        options: EstimateToColmapOptions,
+        vrs: Path,
+        images: Path,
+        estimate: Optional[Path] = None,
+        mps_folder: Optional[Path] = None,
+    ) -> LamariaReconstruction:
+        """Static method to run the full pipeline."""
+        return cls(options).process(vrs, images, estimate, mps_folder)
+    
+
+    # -------- public API --------
+    def process(
+        self,
+        vrs: Path,
+        images: Path,
+        estimate: Optional[Path] = None,
+        mps_folder: Optional[Path] = None,
+    ) -> LamariaReconstruction:
+        """Main one-shot runner."""
+        self._init_data(vrs, images, estimate, mps_folder)
+
+        if self.options.mps.use_online_calibration and self.options.mps.use_mps:
+            self._add_online_sensors()
+            self._add_online_frames()
+        else:
+            self._add_device_sensors()
+            self._add_device_frames()
+
+        # IMU + timestamps
+        ms = self._get_rectified_imu_data()
+        self.data.imu_measurements = ms
+        self.data.timestamps = {fid: pfd.left_ts for fid, pfd in self._per_frame_data.items()}
+        return self.data
+    
+    # -------- internal methods --------
+    def _init_data(
+        self,
+        vrs: Path,
+        image_folder: Path,
+        estimate: Optional[Path] = None,
+        mps_folder: Optional[Path] = None
+    ) -> None:
+        """Initializes data providers and extracts images, timestamps and builds per-frame data object.
+        Per-frame data is used to create the initial Lamaria reconstruction.
+        """
+
         self.data = LamariaReconstruction()
+        
+        # Initialize VRS data provider
         self._vrs_provider = data_provider.create_vrs_data_provider(
-            self.options.vrs.as_posix()
+            vrs.as_posix()
         )
 
         # Initialize stream IDs
@@ -70,24 +124,22 @@ class EstimateToColmap:
         
         # Initialize MPS data provider if needed
         if self.options.mps.use_mps:
-            data_paths = mps.MpsDataPathsProvider(self.options.mps_folder.as_posix()).get_data_paths()
+            assert mps_folder is not None, "MPS folder path must be provided if using MPS"
+            data_paths = mps.MpsDataPathsProvider(mps_folder.as_posix()).get_data_paths()
             self._mps_data_provider = mps.MpsDataProvider(data_paths)
-    
-    def _init_data(self):
-        """Extracts images, timestamps and builds per-frame data object.
-        Per-frame data is used to create the initial Lamaria reconstruction.
-        """
 
+        # Extract images from VRS file
         extract_images_from_vrs(
-            vrs_file=self.options.vrs,
-            image_folder=self.options.images,
+            vrs_file=vrs,
+            image_folder=image_folder,
         )
 
-        images = self._get_images()
+        images = self._get_images(image_folder)
 
+        # Get timestamps and build per-frame data
         if self.options.mps.use_mps:
             timestamps = self._get_mps_timestamps()
-            closed_loop_data = get_closed_loop_data_from_mps(self.options.mps)
+            closed_loop_data = get_closed_loop_data_from_mps(mps_folder)
             pose_timestamps = [ l for l, _ in timestamps ]
             mps_poses = get_mps_poses_for_timestamps(closed_loop_data, pose_timestamps)
             self._per_frame_data = self._build_per_frame_data_from_mps(
@@ -96,16 +148,17 @@ class EstimateToColmap:
                 mps_poses
             )
         else:
-            flag = check_estimate_format(self.options.estimate)
+            assert estimate is not None, "Estimate path must be provided if not using MPS"
+            flag = check_estimate_format(estimate)
             if not flag:
                 raise ValueError("Estimate file format is incorrect.")
 
-            timestamps = get_estimate_timestamps(self.options.estimate)
+            timestamps = get_estimate_timestamps(estimate)
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(images, timestamps)
             
             rig_from_worlds = get_rig_from_worlds_from_estimate(
-                self.options.estimate,
+                estimate,
             )
             self._per_frame_data = self._build_per_frame_data_from_estimate(
                 images,
@@ -206,9 +259,9 @@ class EstimateToColmap:
         """Timestamps in nanoseconds"""
         return sorted(self._vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME))
 
-    def _get_images(self) -> List[Tuple[Path, Path]]:
-        left_img_dir = self.options.images / "left"
-        right_img_dir = self.options.images / "right"
+    def _get_images(self, images: Path) -> List[Tuple[Path, Path]]:
+        left_img_dir = images / "left"
+        right_img_dir = images / "right"
 
         left_images = self._images_from_vrs(left_img_dir, left_img_dir)
         right_images = self._images_from_vrs(right_img_dir, right_img_dir)
@@ -480,25 +533,3 @@ class EstimateToColmap:
             )
 
         return ms
-    
-    def create(self) -> LamariaReconstruction:
-        """Creates Lamaria reconstruction with timestamps, IMU data, sensors and frames"""
-        if self.options.mps.use_online_calibration  \
-            and self.options.mps.use_mps:
-            self._add_online_sensors()
-            self._add_online_frames()
-        else:
-            self._add_device_sensors()
-            self._add_device_frames()
-        
-        # Populating IMU data
-        ms = self._get_rectified_imu_data()
-        self.data.imu_measurements = ms
-
-        # Populating timestamps map
-        self.data.timestamps = {
-            frame_id: pfd.left_ts
-            for frame_id, pfd in self._per_frame_data.items()
-        }
-
-        return self.data
