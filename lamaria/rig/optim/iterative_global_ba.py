@@ -10,29 +10,6 @@ from .session import SingleSeqSession
 from .residual_manager import BundleAdjuster, IMUResidualManager
 
 
-class RigConstraintManager:
-    """Handles rig-specific constraints and problem setup"""
-    
-    def __init__(self, session: SingleSeqSession):
-        self.session = session
-    
-    def apply_constraints(self, problem):
-        """Apply rig-specific constraints to the problem"""
-        # Fix the first rig pose
-        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
-        first_frame = self.session.data.reconstruction.frames[frame_ids[0]]
-        problem.set_parameter_block_constant(first_frame.rotation.quat)
-        problem.set_parameter_block_constant(first_frame.translation)
-
-        # Fix 1 DoF translation of the second rig
-        second_frame = self.session.data.reconstruction.frames[frame_ids[1]]
-        problem.set_manifold(
-            second_frame.translation,
-            pyceres.SubsetManifold(3, np.array([0])),
-        )
-        return problem
-
-
 class VIBundleAdjuster:
     """Visual-Inertial Bundle Adjuster that combines visual and IMU residuals"""
     
@@ -63,11 +40,6 @@ class VIBundleAdjuster:
         pyceres_solver_options = pyceres.SolverOptions(solver_options)
         
         problem = imu_manager.add_residuals(problem)
-        
-        # Apply rig constraints
-        constraint_manager = RigConstraintManager(self.session)
-        problem = constraint_manager.apply_constraints(problem)
-        logger.info("Constrained the rig problem")
         
         # Setup solver
         if self.session.opt_options.use_callback:
@@ -115,6 +87,8 @@ class GlobalBundleAdjustment:
                 if data_id.sensor_id.type != pycolmap.SensorType.CAMERA:
                     continue
                 ba_config.add_image(data_id.id)
+        
+        ba_config.fix_gauge(pycolmap.BundleAdjustmentGauge.TWO_CAMS_FROM_WORLD)
         
         # Run bundle adjustment
         vi_bundle_adjuster = VIBundleAdjuster(self.session)
