@@ -180,7 +180,7 @@ def run_pipeline(
     estimate: Optional[Path] = None,
     mps_folder: Optional[Path] = None,
 ):
-    # Using setter to set output path for entire pipeline
+    # Setting output path for entire pipeline
     options.output_path = output_path
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
