@@ -9,7 +9,7 @@ from typing import Optional, Dict
 import pycolmap
 
 from ..lamaria_reconstruction import LamariaReconstruction
-from ..config.options import KeyframeSelectorOptions
+from ...config.options import KeyframeSelectorOptions
 from ...utils.transformation import get_magnitude_from_transform
 
 
