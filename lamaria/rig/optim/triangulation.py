@@ -118,7 +118,6 @@ def run(
     )
 
     colmap_opts = set_colmap_triangulation_options(options)
-    logger.info("COLMAP options: %s", colmap_opts)
 
     _ = triangulation.main(
         sfm_dir=triangulated_model_path,
