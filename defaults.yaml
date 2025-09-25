@@ -34,7 +34,9 @@ optimization:
   
   cam:
     feature_std: 1.0
-    optimize_cam_intrinsics: false
+    optimize_focal_length: false
+    optimize_principal_point: false
+    optimize_extra_params: false
     optimize_cam_from_rig: false
   
   imu:
