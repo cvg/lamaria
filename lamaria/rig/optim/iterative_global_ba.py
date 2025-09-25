@@ -9,6 +9,23 @@ from .residual_manager import IMUResidualManager
 from .callback import RefinementCallback
 
 
+def apply_constraints(problem, session: SingleSeqSession):
+    """Apply rig-specific constraints to the problem"""
+    # Fix the first rig pose
+    frame_ids = sorted(session.data.reconstruction.frames.keys())
+    first_frame = session.data.reconstruction.frames[frame_ids[0]]
+    problem.set_parameter_block_constant(first_frame.rig_from_world.rotation.quat)
+    problem.set_parameter_block_constant(first_frame.rig_from_world.translation)
+
+    # Fix 1 DoF translation of the second rig
+    second_frame = session.data.reconstruction.frames[frame_ids[1]]
+    problem.set_manifold(
+        second_frame.rig_from_world.translation,
+        pyceres.SubsetManifold(3, np.array([0])),
+    )
+    return problem
+
+
 class VIBundleAdjuster:
     """Visual-Inertial Bundle Adjuster that combines visual and IMU residuals"""
     
