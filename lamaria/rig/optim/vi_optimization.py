@@ -77,7 +77,7 @@ class VIOptimizer:
         if not self.vi_options.cam.optimize_extra_params:
             pipeline_options.ba_refine_extra_params = False
 
-        # Setting up relaxed triangulation
+        # Setting up triangulation and mapper options
         pipeline_options.triangulation.merge_max_reproj_error = self.triangulator_options.merge_max_reproj_error
         pipeline_options.triangulation.complete_max_reproj_error = self.triangulator_options.complete_max_reproj_error
         pipeline_options.triangulation.min_angle = self.triangulator_options.min_angle
