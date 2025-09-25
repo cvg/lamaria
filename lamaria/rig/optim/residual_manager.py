@@ -4,11 +4,17 @@ import pycolmap
 
 from ... import logger
 from .session import SingleSeqSession
+from ...config.options import OptIMUOptions
 
 
 class IMUResidualManager:
     """Handles IMU residual setup and constraints"""
-    def __init__(self, session: SingleSeqSession):
+    def __init__(
+        self,
+        imu_options: OptIMUOptions,
+        session: SingleSeqSession
+    ):
+        self.imu_options = imu_options
         self.session = session
 
     @classmethod
@@ -66,14 +72,14 @@ class IMUResidualManager:
         )
         
         # Apply optimization constraints based on configuration
-        if not self.session.imu_options.optimize_scale:
+        if not self.imu_options.optimize_scale:
             problem.set_parameter_block_constant(self.session.log_scale)
-        if not self.session.imu_options.optimize_gravity:
+        if not self.imu_options.optimize_gravity:
             problem.set_parameter_block_constant(self.session.gravity)
-        if not self.session.imu_options.optimize_imu_from_rig:
+        if not self.imu_options.optimize_imu_from_rig:
             problem.set_parameter_block_constant(self.session.imu_from_rig.rotation.quat)
             problem.set_parameter_block_constant(self.session.imu_from_rig.translation)
-        if not self.session.imu_options.optimize_bias:
+        if not self.imu_options.optimize_bias:
             constant_idxs = np.arange(3, 9)
             for frame_id in self.session.imu_states.keys():
                 problem.set_manifold(
