@@ -24,7 +24,12 @@ def add_cameras_to_reconstruction(
     calibration_file: Path,
 ) -> None:
     """ Add Aria cameras to COLMAP reconstruction from calibration json file found on website:
-    https://lamaria.ethz.ch/slam_datasets"""
+    https://lamaria.ethz.ch/slam_datasets
+    
+    Args:
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction to which cameras will be added
+        calibration_file (Path): Path to the Aria calibration json file
+    """
 
     for i, (key, _) in enumerate(ARIA_CAMERAS):
         cam = camera_colmap_from_json(
