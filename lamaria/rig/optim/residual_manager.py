@@ -106,12 +106,12 @@ class DefaultBundleAdjuster:
         session: SingleSeqSession,
         loss: pyceres.LossFunction,
     ):
-        logger.info("Setting up optimization problem")
         assert session.data.reconstruction is not None
-        for image_id in tqdm(self.config.images):
+        for image_id in tqdm(self.config.images, desc="Adding images to problem"):
             self.add_image_to_problem(session, image_id, loss)
-        self.parameterize_cameras(session.data.reconstruction)
-        self.parameterize_points(session.data.reconstruction)
+        
+        self.parameterize_cameras(session)
+        self.parameterize_points(session)
         logger.info("Optimization problem set up")
         return self.problem
 
@@ -125,6 +125,7 @@ class DefaultBundleAdjuster:
         frame = session.data.reconstruction.frames[image.frame_id]
         rig = session.data.reconstruction.rigs[frame.rig_id]
         camera = session.data.reconstruction.cameras[image.camera_id]
+        rig_from_world = frame.rig_from_world
         
         cam_from_rig = None
         for sensor, sensor_from_rig in rig.non_ref_sensors.items():
@@ -163,8 +164,8 @@ class DefaultBundleAdjuster:
                     cost,
                     loss,
                     [
-                        frame.rig_from_world.rotation.quat,
-                        frame.rig_from_world.translation,
+                        rig_from_world.rotation.quat,
+                        rig_from_world.translation,
                         point3D.xyz,
                         camera.params,
                     ],
@@ -181,8 +182,8 @@ class DefaultBundleAdjuster:
                     [
                         cam_from_rig.rotation.quat,
                         cam_from_rig.translation,
-                        frame.rig_from_world.rotation.quat,
-                        frame.rig_from_world.translation,
+                        rig_from_world.rotation.quat,
+                        rig_from_world.translation,
                         point3D.xyz,
                         camera.params,
                     ],
@@ -190,11 +191,21 @@ class DefaultBundleAdjuster:
 
         if num_observations > 0:
             self.camera_ids.add(image.camera_id) # to parameterize later
-            # Set pose parameterization
-            self.problem.set_manifold(
-                frame.rig_from_world.rotation.quat,
-                pyceres.EigenQuaternionManifold(),
-            )
+
+            # Set pose parameterization and apply gauge constraints
+            if frame.frame_id == 1: # first frame of the sequence
+                self.problem.set_parameter_block_constant(rig_from_world.rotation.quat)
+                self.problem.set_parameter_block_constant(rig_from_world.translation)
+            elif frame.frame_id == 2: # second frame of the sequence
+                self.problem.set_manifold(
+                    rig_from_world.translation,
+                    pyceres.SubsetManifold(3, np.array([0])),
+                )
+            else:
+                self.problem.set_manifold(
+                    rig_from_world.rotation.quat,
+                    pyceres.EigenQuaternionManifold(),
+                )
 
             if optimize_cam_from_rig:
                 self.problem.set_manifold(
@@ -203,10 +214,10 @@ class DefaultBundleAdjuster:
                 )
 
     def parameterize_cameras(self, session: SingleSeqSession):
-        constant_camera = all(
-            not session.cam_options.optimize_focal_length,
-            not session.cam_options.optimize_principal_point,
-            not session.cam_options.optimize_extra_params,
+        constant_camera = not (
+            session.cam_options.optimize_focal_length
+            or session.cam_options.optimize_principal_point
+            or session.cam_options.optimize_extra_params
         )
         
         for camera_id in self.camera_ids:
