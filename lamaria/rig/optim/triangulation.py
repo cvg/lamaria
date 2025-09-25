@@ -16,6 +16,21 @@ from ... import logger
 from ...config.options import TriangulatorOptions
 
 
+def set_colmap_triangulation_options(
+    options: TriangulatorOptions,
+) -> pycolmap.IncrementalPipelineOptions:
+    
+    colmap_options = pycolmap.IncrementalPipelineOptions()
+    colmap_options.triangulation.merge_max_reproj_error = options.merge_max_reproj_error
+    colmap_options.triangulation.complete_max_reproj_error = options.complete_max_reproj_error
+    colmap_options.triangulation.min_angle = options.min_angle
+
+    colmap_options.mapper.filter_max_reproj_error = options.filter_max_reproj_error
+    colmap_options.mapper.filter_min_tri_angle = options.filter_min_tri_angle
+
+    return colmap_options
+
+
 def pairs_from_frames(recon: pycolmap.Reconstruction):
     frame_pairs = set()
     by_index = defaultdict(list)
@@ -102,6 +117,9 @@ def run(
         export_dir=hloc_dir,
     )
 
+    colmap_opts = set_colmap_triangulation_options(options)
+    logger.info("COLMAP options: %s", colmap_opts)
+
     _ = triangulation.main(
         sfm_dir=triangulated_model_path,
         reference_model=reference_model,
@@ -109,6 +127,7 @@ def run(
         pairs=pairs_path,
         features=features_path,
         matches=matches_path,
+        mapper_options=colmap_opts,
     )
 
     return triangulated_model_path
