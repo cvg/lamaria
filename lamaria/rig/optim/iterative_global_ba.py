@@ -5,7 +5,7 @@ import numpy as np
 
 from ... import logger
 from .session import SingleSeqSession
-from .residual_manager import IMUResidualManager
+from .residual import IMUResidualManager
 from .callback import RefinementCallback
 from ...config.options import VIOptimizerOptions
 

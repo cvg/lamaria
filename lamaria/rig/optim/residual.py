@@ -3,7 +3,6 @@ import pyceres
 import pycolmap
 from tqdm import tqdm
 
-from ... import logger
 from .session import SingleSeqSession
 from ...config.options import OptIMUOptions
 
