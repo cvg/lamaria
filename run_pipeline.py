@@ -239,6 +239,7 @@ def run_pipeline(
     vi_options = options.vi_optimizer_options
     _ = run_optimization(
         vi_options,
+        tri_options,
         options.tri_model,
         options.optim_model,
     )
