@@ -36,7 +36,7 @@ class KeyframeSelector:
         original_image_dir: Path,
         keyframes_dir: Path,
     ) -> LamariaReconstruction:
-        """ Static method to run keyframing and copy images to keyframes directory."""
+        """ Entry point to run keyframing and copy keyframes into keyframe directory."""
         
         selector = KeyframeSelector(options, data)
         kf_recon = selector.run_keyframing()
