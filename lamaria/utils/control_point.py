@@ -15,8 +15,13 @@ from .general import (
 
 
 def construct_control_points_from_json(
-    cp_json_file: str,
-):
+    cp_json_file: Path,
+) -> Dict:
+    """Construct control points dict from JSON file
+    Args:
+        cp_json_file (Path): Path to the sparse GT JSON file
+    """
+    
     cp_data = json.load(open(cp_json_file, 'r'))
     control_points = {}
     for geo_id, data in cp_data["control_points"].items():

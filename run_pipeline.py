@@ -9,7 +9,7 @@ from lamaria.rig.keyframing.to_colmap import EstimateToColmap
 from lamaria.rig.keyframing.keyframe_selection import KeyframeSelector
 from lamaria.rig.optim.triangulation import run as triangulate
 from lamaria.rig.optim.session import SingleSeqSession
-from lamaria.rig.optim.vi_optimization import run as run_vi_optimization
+from lamaria.rig.optim.vi_optimization import VIOptimizer
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.config.options import (
     EstimateToColmapOptions,
@@ -139,7 +139,8 @@ def run_triangulation(
 
 
 def run_optimization(
-    options: VIOptimizerOptions,
+    vi_options: VIOptimizerOptions,
+    triangulator_options: TriangulatorOptions,
     input: Path, # path to LamariaReconstruction
     optim_model: Path,
 ) -> LamariaReconstruction:
@@ -158,13 +159,15 @@ def run_optimization(
     
     init_lamaria_recon = LamariaReconstruction.read(input)
     session = SingleSeqSession(
-        options,
+        vi_options.imu,
         init_lamaria_recon,
     )
 
-    optimized_recon = run_vi_optimization(
+    optimized_recon = VIOptimizer.optimize(
+        vi_options,
+        triangulator_options,
         session,
-        db_dst,
+        db_dst
     )
 
     optim_lamaria_recon = LamariaReconstruction()
