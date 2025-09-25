@@ -61,9 +61,15 @@ def get_camera_params_for_colmap(
     camera_calibration: CameraCalibration,
     camera_model: str,
 ) -> List[float]:
-    """ Convert Aria CameraCalibration to COLMAP camera parameters.
+    """ 
+    Convert Aria CameraCalibration to COLMAP camera parameters.
     Supported models: OPENCV_FISHEYE, FULL_OPENCV, RAD_TAN_THIN_PRISM_FISHEYE
-"""
+    Args:
+        camera_calibration (CameraCalibration): The projectaria_tools CameraCalibration object
+        camera_model (str): The COLMAP camera model to use
+    Returns:
+        List[float]: The camera parameters in COLMAP format
+    """
     # params = [f_u {f_v} c_u c_v [k_0: k_{numK-1}]
     # {p_0 p_1} {s_0 s_1 s_2 s_3}]
     # projection_params is a 15 length vector,
