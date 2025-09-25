@@ -28,7 +28,7 @@ triangulation:
 
 optimization:
   general:
-    use_callback: true
+    use_callback: false
     max_num_iterations: 10
     normalize_reconstruction: false
   
