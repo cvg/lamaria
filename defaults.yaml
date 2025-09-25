@@ -46,7 +46,7 @@ optimization:
     optimize_gravity: false
     optimize_imu_from_rig: false
     optimize_bias: false
-    gyro_infl: 20.0
+    gyro_infl: 1.0
     acc_infl: 1.0
     integration_noise_density: 0.05
 
