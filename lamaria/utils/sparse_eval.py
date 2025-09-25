@@ -4,12 +4,11 @@ import numpy as np
 import pycolmap
 import pyceres
 import pycolmap.cost_functions
-from pathlib import Path
-from typing import Dict, List
+from typing import Dict
 
 from lamaria import logger
 
-def update_sim3d_scale(variables):
+def update_sim3d_scale(variables: Dict):
     if "log_scale" not in variables:
         raise ValueError("log_scale not found in variables")
 
@@ -101,9 +100,8 @@ def add_alignment_residuals(
                     variables["log_scale"],
                 ],
             )
-        
-        logger.info(f"Added Point3dAlignmentCost and ReprojErrorCost \
-                    for {len(variables['control_points'])} control points")
+
+        logger.info(f"Added Point3dAlignmentCost and ReprojErrorCost costs")
 
         problem.set_manifold(
             variables["sim3d"].rotation.quat,
