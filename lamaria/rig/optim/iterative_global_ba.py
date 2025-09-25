@@ -28,17 +28,27 @@ def apply_constraints(problem, session: SingleSeqSession):
 
 
 class VIBundleAdjuster:
-    """Visual-Inertial Bundle Adjuster that combines visual and IMU residuals"""
+    """Visual-Inertial Bundle Adjuster Class that combines visual and IMU residuals"""
     
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
-    def _init_callback(self):
-        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
-        poses = list(self.session.data.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
-        callback = RefinementCallback(poses)
-
-        return callback
+    @staticmethod
+    def run_vi_bundle_adjustment(
+        vi_options: VIOptimizerOptions,
+        ba_options: pycolmap.BundleAdjustmentOptions,
+        ba_config: pycolmap.BundleAdjustmentConfig,
+        session: SingleSeqSession 
+    ):
+        """Run visual-inertial bundle adjustment"""
+        vi_bundle_adjuster = VIBundleAdjuster(session)
+        summary, problem = vi_bundle_adjuster.solve(
+            vi_options,
+            ba_options,
+            ba_config
+        )
+        
+        return summary, problem
 
     def solve(
         self,
@@ -79,7 +89,14 @@ class VIBundleAdjuster:
         print(summary.BriefReport())
         
         return summary, problem
+    
+    def _init_callback(self):
+        """Initialize the refinement callback to check pose changes"""
+        frame_ids = sorted(self.session.data.reconstruction.frames.keys())
+        poses = list(self.session.data.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
+        callback = RefinementCallback(poses)
 
+        return callback
 
 
 class GlobalBundleAdjustment:
