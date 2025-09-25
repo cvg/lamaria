@@ -61,24 +61,23 @@ class EstimateToColmap:
         self._per_frame_data: Dict[int, PerFrameData] = {}
 
 
-    @staticmethod
+    @classmethod
     def convert(
+        cls,
         options: EstimateToColmapOptions,
         vrs: Path,
         images: Path,
         estimate: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
-        """Static method to run the full pipeline."""
-        converter = EstimateToColmap(options)
-        return converter.process(
+        """Entry point to run estimate/MPS to colmap conversion."""
+        return cls(options).process(
             vrs,
             images,
             estimate,
             mps_folder
         )
 
-    # -------- public API --------
     def process(
         self,
         vrs: Path,
@@ -86,7 +85,7 @@ class EstimateToColmap:
         estimate: Optional[Path] = None,
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
-        """Main runner."""
+
         self._init_data(vrs, images, estimate, mps_folder)
 
         if self.options.mps.use_online_calibration and self.options.mps.use_mps:
