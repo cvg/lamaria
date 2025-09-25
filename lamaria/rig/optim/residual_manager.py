@@ -65,7 +65,7 @@ class IMUResidualManager:
             )
 
         self._setup_manifolds_and_constraints(problem)
-        logger.info("Added IMU residuals to the problem")
+
         return problem
 
     def _setup_manifolds_and_constraints(self, problem):
