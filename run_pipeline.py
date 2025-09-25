@@ -1,5 +1,6 @@
 import pycolmap
 import shutil
+import argparse
 from typing import Optional
 from pathlib import Path
 
@@ -240,4 +241,51 @@ def run_pipeline(
     )
 
 if __name__ == "__main__":
-    run_pipeline()
+    parser = argparse.ArgumentParser(description="Run full pipeline.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="./defaults.yaml",
+        help="Path to the configuration YAML file.",
+    )
+    parser.add_argument(
+        "--vrs",
+        type=str,
+        required=True,
+        help="Path to the input VRS file.",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        required=True,
+        help="Path to the output directory.",
+    )
+    parser.add_argument(
+        "--estimate",
+        type=str,
+        default=None,
+        help="Path to the input estimate file (if not using MPS).",
+    )
+    parser.add_argument(
+        "--mps_folder",
+        type=str,
+        default=None,
+        help="Path to the input MPS folder (if using MPS).",
+    )
+    args = parser.parse_args()
+
+    # ensure either estimate or mps_folder is provided
+    if args.estimate is None and args.mps_folder is None:
+        parser.error("Either --estimate or --mps_folder must be provided.")
+    if args.estimate is not None and args.mps_folder is not None:
+        parser.error("Only one of --estimate or --mps_folder should be provided.")
+
+    options = PipelineOptions()
+    options.load(args.config)
+    run_pipeline(
+        options,
+        Path(args.vrs),
+        Path(args.output),
+        estimate=Path(args.estimate) if args.estimate else None,
+        mps_folder=Path(args.mps_folder) if args.mps_folder else None,
+    )
