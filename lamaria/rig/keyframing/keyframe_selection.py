@@ -201,7 +201,6 @@ class KeyframeSelector:
             for img in images_to_add:
                 self.keyframed_data.reconstruction.add_image(img)
 
-    # -------- public API --------
     def run_keyframing(self) -> LamariaReconstruction:
         """ Function to run keyframing on lamaria reconstruction."""
         self._select_keyframes()
