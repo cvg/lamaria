@@ -147,9 +147,9 @@ def run_optimization(
     
     db_path = input / "database.db"
     assert db_path.exists(), f"Database path {db_path} does not exist in input reconstruction"
+    
     if optim_model.exists():
-        optim_lamaria_recon = LamariaReconstruction.read(optim_model)
-        return optim_lamaria_recon
+        shutil.rmtree(optim_model)
     
     optim_model.mkdir(parents=True, exist_ok=True)
     db_dst = optim_model / "database.db"
