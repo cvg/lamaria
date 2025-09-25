@@ -1,6 +1,7 @@
 import numpy as np
 import pyceres
 import pycolmap
+from tqdm import tqdm
 
 from ... import logger
 from .session import SingleSeqSession
@@ -33,7 +34,10 @@ class IMUResidualManager:
         
         frame_ids = sorted(self.session.data.reconstruction.frames.keys())
         
-        for k in range(len(self.session.preintegrated_imu_measurements)):
+        for k in tqdm(
+            range(len(self.session.preintegrated_imu_measurements)),
+            desc="Adding IMU residuals"
+        ):
             i = frame_ids[k]
             j = frame_ids[k + 1]
             frame_i = self.session.data.reconstruction.frames[i]
