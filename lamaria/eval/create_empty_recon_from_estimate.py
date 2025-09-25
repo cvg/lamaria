@@ -25,26 +25,14 @@ from ..utils.transformation import (
 
 def add_images_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
-    pred_estimate_file: Path,
+    estimate_file: Path,
     cp_json_file: Path,
     device_calibration_json: Path,
     slam_input_imu: int = 1,
 ):
-    """Add images to an existing empty reconstruction from a pose estimate file.
-    The pose estimate file is assumed to be in the format:
-    timestamp(ns) tx ty tz q_x q_y q_z q_w
-
-    Args:
-        reconstruction (pycolmap.Reconstruction): The reconstruction to add images to.
-        pred_estimate_file (Path): Path to the pose estimate file.
-        cp_json_file (Path): Path to the sparse GT json file.
-        device_calibration_json (Path): Path to the Aria device calibration json file.
-        slam_input_imu (int, optional): If 1, the poses in the estimate file are IMU poses.
-                                        If 0, the poses are left camera poses (monocular-cam0).
-                                        Defaults to 1.
-    """
+    """Add images to an existing empty reconstruction from a pose estimate file."""
     pose_data = []
-    with open(pred_estimate_file, "r") as f:
+    with open(estimate_file, "r") as f:
         lines = f.readlines()
 
         if len(lines) == 0:
@@ -140,28 +128,41 @@ def add_images_to_reconstruction(
 
 
 def create_baseline_reconstruction(
-    pred_estimate_file: Path,
-    eval_folder: Path,
+    estimate_file: Path,
     cp_json_file: Path,
     device_calibration_json: Path,
-    slam_input_imu: int,
+    output_path: Path,
+    slam_input_imu: int = 1,
 ):
-    recon_path = eval_folder / "reconstruction"
+    """Create a baseline reconstruction from a pose estimate file.
+    The pose estimate file is assumed to be in the format:
+    
+    timestamp(ns) tx ty tz q_x q_y q_z q_w
+
+    Args:
+        estimate_file (Path): Path to the pose estimate file.
+        cp_json_file (Path): Path to the sparse GT json file.
+        device_calibration_json (Path): Path to the Aria device calibration json file.
+        output_path (Path): Path to the output folder where the reconstruction will be saved.
+        slam_input_imu (int, optional): If 1, the poses in the estimate file are IMU poses.
+                                        If 0, the poses are left camera poses (monocular-cam0).
+    """
+    recon_path = output_path / "reconstruction"
     recon_path.mkdir(parents=True, exist_ok=True)
     delete_files_in_folder(recon_path)
 
-    recon = pycolmap.Reconstruction()
+    reconstruction = pycolmap.Reconstruction()
     add_cameras_to_reconstruction(
-        recon,
+        reconstruction,
         device_calibration_json,
     )
 
     add_images_to_reconstruction(
-        reconstruction=recon,
-        pred_estimate_file=pred_estimate_file,
-        cp_json_file=cp_json_file,
-        device_calibration_json=device_calibration_json,
-        slam_input_imu=slam_input_imu,
+        reconstruction,
+        estimate_file,
+        cp_json_file,
+        device_calibration_json,
+        slam_input_imu,
     )
 
-    recon.write(recon_path)
+    reconstruction.write(recon_path)
