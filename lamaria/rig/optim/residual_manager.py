@@ -1,8 +1,6 @@
 import numpy as np
 import pyceres
 import pycolmap
-import pycolmap.cost_functions
-from tqdm import tqdm
 
 from ... import logger
 from .session import SingleSeqSession
@@ -12,6 +10,15 @@ class IMUResidualManager:
     """Handles IMU residual setup and constraints"""
     def __init__(self, session: SingleSeqSession):
         self.session = session
+
+    @classmethod
+    def add(
+        cls,
+        problem,
+        session: SingleSeqSession
+    ):
+        """Entry point for adding IMU residuals to the problem."""
+        return cls(session).add_residuals(problem)
     
     def add_residuals(self, problem):
         """Add IMU residuals to the optimization problem"""
