@@ -56,10 +56,9 @@ class EstimateToColmap:
         self._right_imu_sid: StreamId | None = None
         self._per_frame_data: Dict[int, PerFrameData] = {}
 
-
-    @classmethod
+    
+    @staticmethod
     def convert(
-        cls,
         options: EstimateToColmapOptions,
         vrs: Path,
         images: Path,
@@ -67,7 +66,8 @@ class EstimateToColmap:
         mps_folder: Optional[Path] = None,
     ) -> LamariaReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
-        return cls(options).process(
+        to_colmap = EstimateToColmap(options)
+        return to_colmap.process(
             vrs,
             images,
             estimate,
