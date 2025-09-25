@@ -146,15 +146,14 @@ class OptOptions:
     use_callback: bool = True
     max_num_iterations: int = 10
     normalize_reconstruction: bool = False
+    minimizer_progress_to_stdout: bool = True
+    update_state_every_iteration: bool = True
 
 @dataclass(slots=True)
 class VIOptimizerOptions:
     cam: OptCamOptions = field(default_factory=OptCamOptions)
     imu: OptIMUOptions = field(default_factory=OptIMUOptions)
     optim: OptOptions = field(default_factory=OptOptions)
-
-    colmap_pipeline: pycolmap.IncrementalPipelineOptions = \
-        pycolmap.IncrementalPipelineOptions()
 
     @classmethod
     def load(
@@ -169,7 +168,6 @@ class VIOptimizerOptions:
         imu = _structured_merge_to_obj(OptIMUOptions, cfg.imu)
         optim = _structured_merge_to_obj(OptOptions, cfg.general)
 
-        # leave colmap_pipeline as default
         return replace(
             base,
             cam=cam,
