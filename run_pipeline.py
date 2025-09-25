@@ -232,11 +232,11 @@ def run_pipeline(
     )
 
     # Visual-Inertial Optimization
-    vi_options = pipeline_options.get_vi_optimizer_options()
+    vi_options = options.vi_optimizer_options
     _ = run_optimization(
         vi_options,
-        tri_options.tri_model,
-        vi_options.optim.optim_model,
+        options.tri_model,
+        options.optim_model,
     )
 
 if __name__ == "__main__":
