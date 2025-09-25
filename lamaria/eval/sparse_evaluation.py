@@ -1,10 +1,13 @@
 import copy
 import os
+import argparse
 
 from pathlib import Path
 import numpy as np
 import pyceres
 import pycolmap
+
+from .. import logger
 
 from ..utils.control_point import (
     construct_control_points_from_json,
@@ -20,7 +23,7 @@ from ..utils.sparse_eval import (
 
 def run_baseline_evaluation(
     reconstruction_path: Path,
-    cp_json_file: str,
+    cp_json_file: Path,
     output_path: Path,
     cp_reproj_std=1.0,
 ):
@@ -121,3 +124,43 @@ def run_baseline_evaluation(
     np.save(os.path.join(output_path, "sparse_evaluation.npy"), output_data)
 
     return (True, "Sparse evaluation completed successfully")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Run baseline sparse evaluation"
+    )
+    parser.add_argument(
+        "--reconstruction_path",
+        type=str,
+        required=True,
+        help="Path to the reconstruction folder",
+    )
+    parser.add_argument(
+        "--cp_json_file",
+        type=str,
+        required=True,
+        help="Path to the sparse GT JSON file",
+    )
+    parser.add_argument(
+        "--output_path",
+        type=str,
+        required=True,
+        help="Path to the output folder",
+    )
+    parser.add_argument(
+        "--cp_reproj_std",
+        type=float,
+        default=1.0,
+        help="Control point reprojection standard deviation",
+    )
+    args = parser.parse_args()
+
+    state, msg = run_baseline_evaluation(
+        Path(args.reconstruction_path),
+        Path(args.cp_json_file),
+        Path(args.output_path),
+        args.cp_reproj_std,
+    )
+    
+    logger.info(f"Evaluation completed? {state}. Message: {msg}")
