@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -111,13 +112,13 @@ def plot_ratio_of_inliers(control_points: Dict, save_folder: str):
 
 
 def run_control_point_triangulation_from_json(
-    reconstruction_dir: str,
-    cp_json_file: str,
-    control_points: Dict,
-):
-    rec = pycolmap.Reconstruction(reconstruction_dir)
+    reconstruction_path: Path,
+    cp_json_file: Path,
+    control_points: Dict, # edits control_points in place
+) -> None:
+    rec = pycolmap.Reconstruction(reconstruction_path)
 
-    image_names_to_ids = get_image_names_to_ids(reconstruction_dir=reconstruction_dir)
+    image_names_to_ids = get_image_names_to_ids(reconstruction_path=reconstruction_path)
 
     with open(cp_json_file, "r") as file:
         data = json.load(file)
