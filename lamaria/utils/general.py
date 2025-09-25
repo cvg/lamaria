@@ -1,7 +1,7 @@
 import os
 import pycolmap
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import shutil
 from bisect import bisect_left
 from typing import List
@@ -128,8 +128,11 @@ def extract_images_from_vrs(
         logger.info("Done!")
 
 
-def get_image_names_to_ids(reconstruction_dir: str):
-    recon = pycolmap.Reconstruction(reconstruction_dir)
+def get_image_names_to_ids(
+    reconstruction_path: Path
+) -> Dict[str, int]:
+    
+    recon = pycolmap.Reconstruction(reconstruction_path)
     image_names_to_ids = {}
 
     for image_id in recon.images.keys():
