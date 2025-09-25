@@ -20,8 +20,8 @@ class IMUResidualManager:
     @staticmethod
     def add(
         imu_options: OptIMUOptions,
+        session: SingleSeqSession,
         problem,
-        session: SingleSeqSession
     ):
         """Entry point for adding IMU residuals to the problem."""
         res_manager = IMUResidualManager(imu_options, session)

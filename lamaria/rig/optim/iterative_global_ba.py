@@ -64,7 +64,6 @@ class VIBundleAdjuster:
             ba_config,
             self.session.data.reconstruction
         )
-        imu_manager = IMUResidualManager(self.session)
         
         problem = bundle_adjuster.problem
         
@@ -74,7 +73,11 @@ class VIBundleAdjuster:
         )
         pyceres_solver_options = pyceres.SolverOptions(solver_options)
         
-        # problem = imu_manager.add_residuals(problem)
+        problem = IMUResidualManager.add(
+            vi_options.imu,
+            self.session,
+            problem
+        )
         # problem = apply_constraints(problem, self.session)
         
         # Setup solver
