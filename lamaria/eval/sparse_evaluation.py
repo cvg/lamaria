@@ -24,6 +24,9 @@ def run_baseline_evaluation(
     output_path: Path,
     cp_reproj_std=1.0,
 ):
+    
+    output_path.mkdir(parents=True, exist_ok=True)
+    
     aligned_transformed_folder = output_path / "aligned_transformed"
     aligned_transformed_folder.mkdir(parents=True, exist_ok=True)
     
@@ -115,6 +118,6 @@ def run_baseline_evaluation(
         output_data["control_points"][tag_id]["geo_id"] = cp["control_point"]
         output_data["control_points"][tag_id]["topo"] = cp["topo"]
 
-    np.save(os.path.join(sequence_eval_folder, "sparse_evaluation.npy"), output_data)
+    np.save(os.path.join(output_path, "sparse_evaluation.npy"), output_data)
 
     return (True, "Sparse evaluation completed successfully")
