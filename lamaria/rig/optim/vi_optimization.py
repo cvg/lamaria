@@ -13,44 +13,46 @@ class VIOptimizer:
         self,
         vi_options: VIOptimizerOptions,
         triangulator_options: TriangulatorOptions,
-        session: SingleSeqSession
+        session: SingleSeqSession,
     ):
         self.vi_options = vi_options
         self.triangulator_options = triangulator_options
         self.session = session
 
-    @staticmethod
+    @classmethod
     def optimize(
+        cls,
         vi_options: VIOptimizerOptions,
         triangulator_options: TriangulatorOptions,
         session: SingleSeqSession,
+        database_path: Path,
+    ) -> pycolmap.Reconstruction:
+        """Entry point for running full VI optimization"""
+        return cls(vi_options, triangulator_options, session).process(database_path)
+    
+    def process(
+        self,
         database_path: Path
     ) -> pycolmap.Reconstruction:
-        """Runs the complete VI optimization pipeline"""
-
-        optimizer = VIOptimizer(
-            vi_options,
-            triangulator_options,
-            session
-        )
-
-        optimized_recon = optimizer.process(database_path)
-
-        return optimized_recon
-    
-    def process(self, database_path: Path) -> pycolmap.Reconstruction:
         """Optimize the reconstruction using VI optimization"""
+
+        if not database_path.exists():
+            raise FileNotFoundError(f"Database not found: {database_path}")
+        
+        if not self.session.data.reconstruction.reg_image_ids():
+            raise ValueError("Reconstruction has no registered images.")
+        
         mapper = self._setup_incremental_mapper(database_path)
         pipeline_options = self._get_incremental_pipeline_options()
 
-        refinement = IterativeRefinement(self.session)
-        refinement.run(
+        reconstruction = IterativeRefinement.run(
             self.vi_options,
             pipeline_options,
-            mapper
+            mapper,
+            self.session
         )
 
-        return mapper.reconstruction
+        return reconstruction
 
     def _setup_incremental_mapper(self, database_path: Path):
         """Setup the COLMAP incremental mapper"""
