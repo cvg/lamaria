@@ -7,7 +7,7 @@ from ...config.options import VIOptimizerOptions, TriangulatorOptions
 
 
 class VIOptimizer:
-    """Main Visual-Inertial Optimizer"""
+    """Main Visual-Inertial Optimizer Class"""
     
     def __init__(
         self,
@@ -43,8 +43,9 @@ class VIOptimizer:
         mapper = self._setup_incremental_mapper(database_path)
         pipeline_options = self._get_incremental_pipeline_options()
 
-        refinement_strategy = IterativeRefinement(self.session)
-        refinement_strategy.run(
+        refinement = IterativeRefinement(self.session)
+        refinement.run(
+            self.vi_options,
             pipeline_options,
             mapper
         )
