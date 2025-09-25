@@ -1,9 +1,5 @@
-from __future__ import annotations
-
-
 from typing import List, Tuple, Dict, Optional
 from pathlib import Path
-import numpy as np
 import pycolmap
 from dataclasses import dataclass
 from bisect import bisect_left
