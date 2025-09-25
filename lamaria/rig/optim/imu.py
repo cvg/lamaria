@@ -89,6 +89,8 @@ def load_imu_calibration(
     gyro_infl: float = 1.0,
     acc_infl: float = 1.0
 ) -> pycolmap.ImuCalibration:
+    """Load Aria IMU calibration parameters.
+    Here: https://facebookresearch.github.io/projectaria_tools/docs/tech_insights"""
 
     imu_calib = pycolmap.ImuCalibration()
     imu_calib.gravity_magnitude = 9.80600
