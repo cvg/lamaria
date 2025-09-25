@@ -9,13 +9,12 @@ class LamariaReconstruction:
         self.timestamps: Dict[int, int] = {}
         self.imu_measurements = pycolmap.ImuMeasurements([])
 
-    @classmethod
+    @staticmethod
     def read(
-        cls,
         input_folder: Path,
     ) -> "LamariaReconstruction":
         assert input_folder.exists(), f"Input folder {input_folder} does not exist"
-        instance = cls()
+        instance = LamariaReconstruction()
         instance.reconstruction = pycolmap.Reconstruction(input_folder)
         
         ts_path = input_folder / "timestamps.txt"
