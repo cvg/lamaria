@@ -125,7 +125,9 @@ class TriangulatorOptions:
 @dataclass(slots=True)
 class OptCamOptions:
     feature_std: float = 1.0 # in pixels
-    optimize_cam_intrinsics: bool = False
+    optimize_focal_length: bool = False
+    optimize_principal_point: bool = False
+    optimize_extra_params: bool = False
     optimize_cam_from_rig: bool = False
 
 @dataclass(slots=True)
