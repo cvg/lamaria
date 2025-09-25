@@ -241,7 +241,7 @@ class KeyframeSelector:
             for data_id in frame.data_ids:
                 image = self.init_recons.images[data_id.id]
                 
-                subdir = "left" if "1201-1" in image.name else "right"
+                subdir = "left" if image.name.startswith("1201-1") else "right"
                 src_path = images / subdir / image.name
                 dst_path = output / image.name
                 
