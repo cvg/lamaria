@@ -6,27 +6,44 @@ import numpy as np
 import pycolmap
 from tqdm import tqdm
 
-from ..utils.general import (
+from ..utils.camera import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
     add_cameras_to_reconstruction,
+)
+from ..utils.general import (
     find_closest_timestamp,
     delete_files_in_folder,
-    get_t_imu_camera_from_json,
+)
+from ..utils.estimate import (
     round_ns,
+)
+from ..utils.transformation import (
+    get_t_imu_camera_from_json,
 )
 
 
 def add_images_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
-    pred_estimate_file,
-    cp_json_file,
-    device_calibration_json,
-    slam_input_imu,
+    pred_estimate_file: Path,
+    cp_json_file: Path,
+    device_calibration_json: Path,
+    slam_input_imu: int = 1,
 ):
+    """Add images to an existing empty reconstruction from a pose estimate file.
+    The pose estimate file is assumed to be in the format:
+    timestamp(ns) tx ty tz q_x q_y q_z q_w
+
+    Args:
+        reconstruction (pycolmap.Reconstruction): The reconstruction to add images to.
+        pred_estimate_file (Path): Path to the pose estimate file.
+        cp_json_file (Path): Path to the sparse GT json file.
+        device_calibration_json (Path): Path to the Aria device calibration json file.
+        slam_input_imu (int, optional): If 1, the poses in the estimate file are IMU poses.
+                                        If 0, the poses are left camera poses (monocular-cam0).
+                                        Defaults to 1.
+    """
     pose_data = []
-    # ESTIMATE FORMAT:
-    # timestamp(ns) tx ty tz q_x q_y q_z q_w
     with open(pred_estimate_file, "r") as f:
         lines = f.readlines()
 
