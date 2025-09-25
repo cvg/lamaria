@@ -19,16 +19,16 @@ class VIOptimizer:
         self.triangulator_options = triangulator_options
         self.session = session
 
-    @classmethod
+    @staticmethod
     def optimize(
-        cls,
         vi_options: VIOptimizerOptions,
         triangulator_options: TriangulatorOptions,
         session: SingleSeqSession,
         database_path: Path,
     ) -> pycolmap.Reconstruction:
         """Entry point for running full VI optimization"""
-        return cls(vi_options, triangulator_options, session).process(database_path)
+        optimizer = VIOptimizer(vi_options, triangulator_options, session)
+        return optimizer.process(database_path)
     
     def process(
         self,
