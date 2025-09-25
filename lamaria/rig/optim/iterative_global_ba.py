@@ -11,7 +11,7 @@ from ...config.options import VIOptimizerOptions
 
 
 def apply_constraints(problem, session: SingleSeqSession):
-    """Apply rig-specific constraints to the problem"""
+    """Apply rig constraints to the problem for fixing gauge freedom."""
     # Fix the first rig pose
     frame_ids = sorted(session.data.reconstruction.frames.keys())
     first_frame_rfw = session.data.reconstruction.frames[frame_ids[0]].rig_from_world
@@ -28,26 +28,28 @@ def apply_constraints(problem, session: SingleSeqSession):
 
 
 class VIBundleAdjuster:
-    """Visual-Inertial Bundle Adjuster Class that combines visual and IMU residuals"""
+    """Visual-Inertial Bundle Adjuster class that 
+    adds visual and IMU residuals to the 
+    optimization problem."""
     
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
-    @staticmethod
-    def run_vi_bundle_adjustment(
+    @classmethod
+    def run(
+        cls,
         vi_options: VIOptimizerOptions,
         ba_options: pycolmap.BundleAdjustmentOptions,
         ba_config: pycolmap.BundleAdjustmentConfig,
         session: SingleSeqSession 
     ):
-        """Run visual-inertial bundle adjustment"""
-        vi_bundle_adjuster = VIBundleAdjuster(session)
-        summary, problem = vi_bundle_adjuster.solve(
+        """Entry point for running VI bundle adjustment."""
+        summary, problem = cls(session).solve(
             vi_options,
             ba_options,
             ba_config
         )
-        
+
         return summary, problem
 
     def solve(
@@ -56,7 +58,7 @@ class VIBundleAdjuster:
         ba_options: pycolmap.BundleAdjustmentOptions,
         ba_config: pycolmap.BundleAdjustmentConfig,
     ):
-        """Solve VI bundle adjustment problem"""
+        """Solves the VI bundle adjustment problem."""
         bundle_adjuster = pycolmap.create_default_bundle_adjuster(
             ba_options,
             ba_config,
@@ -73,6 +75,7 @@ class VIBundleAdjuster:
         pyceres_solver_options = pyceres.SolverOptions(solver_options)
         
         # problem = imu_manager.add_residuals(problem)
+        # problem = apply_constraints(problem, self.session)
         
         # Setup solver
         if vi_options.optim.use_callback:
@@ -91,7 +94,7 @@ class VIBundleAdjuster:
         return summary, problem
     
     def _init_callback(self):
-        """Initialize the refinement callback to check pose changes"""
+        """Initialize the refinement callback to check pose changes."""
         frame_ids = sorted(self.session.data.reconstruction.frames.keys())
         poses = list(self.session.data.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
         callback = RefinementCallback(poses)
@@ -100,18 +103,32 @@ class VIBundleAdjuster:
 
 
 class GlobalBundleAdjustment:
-    """Global bundle adjustment with visual-inertial constraints"""
+    """Global bundle adjustment with visual-inertial constraints."""
     
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
+    @classmethod
+    def run(
+        cls,
+        vi_options: VIOptimizerOptions,
+        pipeline_options: pycolmap.IncrementalPipelineOptions,
+        mapper: pycolmap.IncrementalMapper,
+        session: SingleSeqSession,
+    ):
+        """Entry point for running global bundle adjustment."""
+        return cls(session).adjust(
+            vi_options,
+            pipeline_options,
+            mapper,
+        )
+    
     def adjust(
         self,
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
     ):
-        """Perform global bundle adjustment"""
         reconstruction = mapper.reconstruction
         assert reconstruction is not None
         
@@ -137,12 +154,14 @@ class GlobalBundleAdjustment:
                 ba_config.add_image(data_id.id)
         
         # Run bundle adjustment
-        vi_bundle_adjuster = VIBundleAdjuster(self.session)
-        _, _ = vi_bundle_adjuster.solve(
+        _, _ = VIBundleAdjuster.run(
             vi_options,
             ba_options,
-            ba_config
+            ba_config,
+            self.session
         )
+
+        return reconstruction
     
     def _configure_ba_options(self, pipeline_options, num_reg_images):
         """Configure bundle adjustment options based on number of registered images"""
@@ -162,18 +181,33 @@ class GlobalBundleAdjustment:
 
 
 class IterativeRefinement:
-    """Strategy for iterative global refinement"""
+    """Iterative global refinement
+    through repeated global bundle adjustments."""
     
     def __init__(self, session: SingleSeqSession):
         self.session = session
-
+    
+    @classmethod
     def run(
+        cls,
+        vi_options: VIOptimizerOptions,
+        pipeline_options: pycolmap.IncrementalPipelineOptions,
+        mapper: pycolmap.IncrementalMapper,
+        session: SingleSeqSession,
+    ):
+        """Entry point for running iterative refinement"""
+        return cls(session).refine(
+            vi_options,
+            pipeline_options,
+            mapper,
+        )
+
+    def refine(
         self,
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
     ):
-        """Run iterative global refinement of the reconstruction"""
         reconstruction = mapper.reconstruction
 
         # Configure triangulation options
@@ -186,18 +220,18 @@ class IterativeRefinement:
 
         # Configure mapper options
         mapper_options = pipeline_options.get_mapper()
-        global_ba_strategy = GlobalBundleAdjustment(self.session)
         
         # Iterative refinement
         for i in range(pipeline_options.ba_global_max_refinements):
             num_observations = reconstruction.compute_num_observations()
 
-            global_ba_strategy.adjust(
+            reconstruction = GlobalBundleAdjustment.run(
                 vi_options,
                 pipeline_options,
                 mapper,
+                self.session
             )
-            
+
             if vi_options.optim.normalize_reconstruction:
                 reconstruction.normalize()
             
@@ -209,3 +243,5 @@ class IterativeRefinement:
             logging.verbose(1, f"=> Changed observations: {changed:.6f}")
             if changed < pipeline_options.ba_global_max_refinement_change:
                 break
+
+        return reconstruction
