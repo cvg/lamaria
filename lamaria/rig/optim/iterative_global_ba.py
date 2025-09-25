@@ -35,16 +35,16 @@ class VIBundleAdjuster:
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
-    @classmethod
+    @staticmethod
     def run(
-        cls,
         vi_options: VIOptimizerOptions,
         ba_options: pycolmap.BundleAdjustmentOptions,
         ba_config: pycolmap.BundleAdjustmentConfig,
         session: SingleSeqSession 
     ):
         """Entry point for running VI bundle adjustment."""
-        summary, problem = cls(session).solve(
+        vi_ba = VIBundleAdjuster(session)
+        summary, problem = vi_ba.solve(
             vi_options,
             ba_options,
             ba_config
@@ -111,16 +111,16 @@ class GlobalBundleAdjustment:
     def __init__(self, session: SingleSeqSession):
         self.session = session
 
-    @classmethod
+    @staticmethod
     def run(
-        cls,
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
         session: SingleSeqSession,
     ):
         """Entry point for running global bundle adjustment."""
-        return cls(session).adjust(
+        gba = GlobalBundleAdjustment(session)
+        return gba.adjust(
             vi_options,
             pipeline_options,
             mapper,
@@ -190,16 +190,16 @@ class IterativeRefinement:
     def __init__(self, session: SingleSeqSession):
         self.session = session
     
-    @classmethod
+    @staticmethod
     def run(
-        cls,
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
         session: SingleSeqSession,
     ):
         """Entry point for running iterative refinement"""
-        return cls(session).refine(
+        iter_refiner = IterativeRefinement(session)
+        return iter_refiner.refine(
             vi_options,
             pipeline_options,
             mapper,
