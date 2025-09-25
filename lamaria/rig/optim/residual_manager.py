@@ -75,7 +75,7 @@ class IMUResidualManager:
                 )
 
 
-class BundleAdjuster:
+class DefaultBundleAdjuster:
     """Handles image residual setup and constraints"""
     def __init__(
         self,
@@ -125,29 +125,34 @@ class BundleAdjuster:
         frame = session.data.reconstruction.frames[image.frame_id]
         rig = session.data.reconstruction.rigs[frame.rig_id]
         camera = session.data.reconstruction.cameras[image.camera_id]
-        rig_from_world = frame.rig_from_world
         
         cam_from_rig = None
         for sensor, sensor_from_rig in rig.non_ref_sensors.items():
             if image.camera_id == sensor.id:
                 cam_from_rig = sensor_from_rig
+                break
+        
+        assert cam_from_rig is not None, "Camera must be part of the rig"
 
         optimize_cam_from_rig = session.cam_options.optimize_cam_from_rig
-        optimize_cam_intrinsics = session.cam_options.optimize_cam_intrinsics
         feature_std = session.cam_options.feature_std
         
         num_observations = 0
         for point2D in image.points2D:
             if not point2D.has_point3D():
                 continue
+            
             num_observations += 1
             if point2D.point3D_id not in self.point3D_num_observations:
                 self.point3D_num_observations[point2D.point3D_id] = 0
-            self.point3D_num_observations[point2D.point3D_id] += 1
             
+            self.point3D_num_observations[point2D.point3D_id] += 1
             point3D = session.data.reconstruction.points3D[point2D.point3D_id]
             assert point3D.track.length() > 1
-            if not optimize_cam_from_rig:
+            
+            # we always set refine_rig_from_world to True
+            # so that rig poses are optimized
+            if not optimize_cam_from_rig: # constant sensor_from_rig
                 cost = pycolmap.cost_functions.RigReprojErrorCost(
                     camera.model,
                     np.eye(2) * pow(feature_std, 2),
@@ -158,15 +163,12 @@ class BundleAdjuster:
                     cost,
                     loss,
                     [
-                        rig_from_world.rotation.quat,
-                        rig_from_world.translation,
+                        frame.rig_from_world.rotation.quat,
+                        frame.rig_from_world.translation,
                         point3D.xyz,
                         camera.params,
                     ],
                 )
-                if not optimize_cam_intrinsics:
-                    # do not optimise camera parameters
-                    self.problem.set_parameter_block_constant(camera.params)
             else:
                 cost = pycolmap.cost_functions.RigReprojErrorCost(
                     camera.model,
@@ -179,21 +181,18 @@ class BundleAdjuster:
                     [
                         cam_from_rig.rotation.quat,
                         cam_from_rig.translation,
-                        rig_from_world.rotation.quat,
-                        rig_from_world.translation,
+                        frame.rig_from_world.rotation.quat,
+                        frame.rig_from_world.translation,
                         point3D.xyz,
                         camera.params,
                     ],
                 )
-                if not optimize_cam_intrinsics:
-                    # do not optimise camera parameters
-                    self.problem.set_parameter_block_constant(camera.params)
 
         if num_observations > 0:
-            self.camera_ids.add(image.camera_id)
+            self.camera_ids.add(image.camera_id) # to parameterize later
             # Set pose parameterization
             self.problem.set_manifold(
-                rig_from_world.rotation.quat,
+                frame.rig_from_world.rotation.quat,
                 pyceres.EigenQuaternionManifold(),
             )
 
@@ -203,25 +202,27 @@ class BundleAdjuster:
                     pyceres.EigenQuaternionManifold(),
                 )
 
-    def parameterize_cameras(self, reconstruction: pycolmap.Reconstruction):
-        constant_camera = (
-            (not self.options.refine_focal_length)
-            and (not self.options.refine_principal_point)
-            and (not self.options.refine_extra_params)
+    def parameterize_cameras(self, session: SingleSeqSession):
+        constant_camera = all(
+            not session.cam_options.optimize_focal_length,
+            not session.cam_options.optimize_principal_point,
+            not session.cam_options.optimize_extra_params,
         )
+        
         for camera_id in self.camera_ids:
-            camera = reconstruction.cameras[camera_id]
+            camera = session.data.reconstruction.cameras[camera_id]
             if constant_camera or self.config.has_constant_cam_intrinsics(
                 camera_id
             ):
                 self.problem.set_parameter_block_constant(camera.params)
                 continue
+            
             const_camera_params = []
-            if not self.options.refine_focal_length:
+            if not session.cam_options.optimize_focal_length:
                 const_camera_params.extend(camera.focal_length_idxs())
-            if not self.options.refine_principal_point:
+            if not session.cam_options.optimize_principal_point:
                 const_camera_params.extend(camera.principal_point_idxs())
-            if not self.options.refine_extra_params:
+            if not session.cam_options.optimize_extra_params:
                 const_camera_params.extend(camera.extra_point_idxs())
             if len(const_camera_params) > 0:
                 self.problem.set_manifold(
@@ -231,14 +232,14 @@ class BundleAdjuster:
                     ),
                 )
 
-    def parameterize_points(self, reconstruction: pycolmap.Reconstruction):
+    def parameterize_points(self, session: SingleSeqSession):
         for (
             point3D_id,
             num_observations,
         ) in self.point3D_num_observations.items():
-            point3D = reconstruction.points3D[point3D_id]
+            point3D = session.data.reconstruction.points3D[point3D_id]
             if point3D.track.length() > num_observations:
                 self.problem.set_parameter_block_constant(point3D.xyz)
         for point3D_id in self.config.constant_points:
-            point3D = reconstruction.points3D[point3D_id]
+            point3D = session.data.reconstruction.points3D[point3D_id]
             self.problem.set_parameter_block_constant(point3D.xyz)
