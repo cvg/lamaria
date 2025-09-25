@@ -19,22 +19,21 @@ from ..utils.sparse_eval import (
 
 
 def run_baseline_evaluation(
+    reconstruction_path: Path,
     cp_json_file: str,
-    sequence_eval_folder: Path,
+    output_path: Path,
     cp_reproj_std=1.0,
 ):
-
-    reconstruction_dir = sequence_eval_folder / "reconstruction"
-    aligned_transformed_folder = sequence_eval_folder / "aligned_transformed"
+    aligned_transformed_folder = output_path / "aligned_transformed"
     aligned_transformed_folder.mkdir(parents=True, exist_ok=True)
     
     control_points = construct_control_points_from_json(cp_json_file)
     assert control_points is not None, "Control points could not be constructed from JSON"
 
     run_control_point_triangulation_from_json(
-        reconstruction_dir=reconstruction_dir,
-        cp_json_file=cp_json_file,
-        control_points=control_points,
+        reconstruction_path,
+        cp_json_file,
+        control_points,
     )
 
     triangulated_cp_alignment, topo_cp_alignment = (
@@ -63,7 +62,7 @@ def run_baseline_evaluation(
         cp_reproj_std,
     )
     
-    reconstruction = pycolmap.Reconstruction(reconstruction_dir)
+    reconstruction = pycolmap.Reconstruction(reconstruction_path)
     problem, solver_options, summary = get_problem_for_sparse_alignment(
         reconstruction,
         variables
@@ -105,7 +104,7 @@ def run_baseline_evaluation(
 
         output_data["full_alignment"]["error_3d"][tag_id] = error3d
 
-    recon = pycolmap.Reconstruction(reconstruction_dir)
+    recon = pycolmap.Reconstruction(reconstruction)
     recon.transform(output_data["full_alignment"]["sim3"])
     recon.write(aligned_transformed_folder)
 
