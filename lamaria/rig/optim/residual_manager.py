@@ -17,14 +17,15 @@ class IMUResidualManager:
         self.imu_options = imu_options
         self.session = session
 
-    @classmethod
+    @staticmethod
     def add(
-        cls,
+        imu_options: OptIMUOptions,
         problem,
         session: SingleSeqSession
     ):
         """Entry point for adding IMU residuals to the problem."""
-        return cls(session).add_residuals(problem)
+        res_manager = IMUResidualManager(imu_options, session)
+        return res_manager.add_residuals(problem)
     
     def add_residuals(self, problem):
         """Add IMU residuals to the optimization problem"""
