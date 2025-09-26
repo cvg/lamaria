@@ -42,7 +42,6 @@ class VIBundleAdjuster:
         ba_config: pycolmap.BundleAdjustmentConfig,
         mapper: pycolmap.IncrementalMapper,
         session: SingleSeqSession,
-        callback: RefinementCallback = None,
     ):
         """Entry point for running VI bundle adjustment."""
         vi_ba = VIBundleAdjuster(session)
@@ -51,7 +50,6 @@ class VIBundleAdjuster:
             ba_options,
             ba_config,
             mapper,
-            callback,
         )
 
     def solve(
@@ -60,7 +58,6 @@ class VIBundleAdjuster:
         ba_options: pycolmap.BundleAdjustmentOptions,
         ba_config: pycolmap.BundleAdjustmentConfig,
         mapper: pycolmap.IncrementalMapper,
-        callback: RefinementCallback = None,
     ):
         """Solves the VI bundle adjustment problem."""
         bundle_adjuster = pycolmap.create_default_bundle_adjuster(
@@ -86,6 +83,7 @@ class VIBundleAdjuster:
         
         # Setup callback if needed
         if vi_options.optim.use_callback:
+            callback = self._init_callback(mapper)
             pyceres_solver_options.callbacks = [callback]
 
         pyceres_solver_options.minimizer_progress_to_stdout = vi_options.optim.minimizer_progress_to_stdout
@@ -96,6 +94,14 @@ class VIBundleAdjuster:
         summary = pyceres.SolverSummary()
         pyceres.solve(pyceres_solver_options, bundle_adjuster.problem, summary)
         print(summary.BriefReport())
+    
+    def _init_callback(self, mapper: pycolmap.IncrementalMapper):
+        """Initialize the refinement callback to check pose changes."""
+        frame_ids = sorted(mapper.reconstruction.frames.keys())
+        poses = list(mapper.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
+
+        callback = RefinementCallback(poses)
+        return callback
 
 
 class GlobalBundleAdjustment:
@@ -110,7 +116,6 @@ class GlobalBundleAdjustment:
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
         session: SingleSeqSession,
-        callback: RefinementCallback = None,
     ):
         """Entry point for running global bundle adjustment."""
         gba = GlobalBundleAdjustment(session)
@@ -118,7 +123,6 @@ class GlobalBundleAdjustment:
             vi_options,
             pipeline_options,
             mapper,
-            callback,
         )
     
     def adjust(
@@ -126,7 +130,6 @@ class GlobalBundleAdjustment:
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
-        callback: RefinementCallback = None,
     ):
         assert mapper.reconstruction is not None
         
@@ -158,7 +161,6 @@ class GlobalBundleAdjustment:
             ba_config,
             mapper,
             self.session,
-            callback
         )
     
     def _configure_ba_options(self, pipeline_options, num_reg_images):
@@ -205,7 +207,6 @@ class IterativeRefinement:
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
-        callback: RefinementCallback = None,
     ):
         # Configure triangulation options
         tri_options = pipeline_options.get_triangulation()
@@ -218,9 +219,6 @@ class IterativeRefinement:
         # Configure mapper options
         mapper_options = pipeline_options.get_mapper()
         
-        if vi_options.optim.use_callback:
-            callback = self._init_callback(mapper)
-        
         # Iterative refinement
         for i in range(pipeline_options.ba_global_max_refinements):
             num_observations = mapper.reconstruction.compute_num_observations()
@@ -230,7 +228,6 @@ class IterativeRefinement:
                 pipeline_options,
                 mapper,
                 self.session,
-                callback,
             )
 
             if vi_options.optim.normalize_reconstruction:
@@ -244,11 +241,3 @@ class IterativeRefinement:
             logging.verbose(1, f"=> Changed observations: {changed:.6f}")
             if changed < pipeline_options.ba_global_max_refinement_change:
                 break
-
-    def _init_callback(self, mapper: pycolmap.IncrementalMapper):
-        """Initialize the refinement callback to check pose changes."""
-        frame_ids = sorted(mapper.reconstruction.frames.keys())
-        poses = list(mapper.reconstruction.frames[frame_id].rig_from_world for frame_id in frame_ids)
-        callback = RefinementCallback(poses)
-
-        return callback
