@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from typing import Optional
-from pathlib import Path
-import pycolmap
 from omegaconf import OmegaConf, open_dict
 
 def _structured_merge_to_obj(cls, section) -> object:
