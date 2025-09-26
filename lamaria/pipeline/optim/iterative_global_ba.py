@@ -110,7 +110,7 @@ class GlobalBundleAdjustment:
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
         session: SingleSeqSession,
-        callback = None,
+        callback: RefinementCallback = None,
     ):
         """Entry point for running global bundle adjustment."""
         gba = GlobalBundleAdjustment(session)
@@ -205,6 +205,7 @@ class IterativeRefinement:
         vi_options: VIOptimizerOptions,
         pipeline_options: pycolmap.IncrementalPipelineOptions,
         mapper: pycolmap.IncrementalMapper,
+        callback: RefinementCallback = None,
     ):
         # Configure triangulation options
         tri_options = pipeline_options.get_triangulation()
