@@ -1,0 +1,5 @@
+projectaria_tools
+omegaconf
+scipy
+
+-e git+https://github.com/cvg/Hierarchical-Localization.git@1252817#egg=hloc
