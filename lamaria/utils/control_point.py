@@ -96,26 +96,6 @@ def transform_triangulated_control_points(control_points: Dict, r, t, scale):
     return control_points
 
 
-def plot_ratio_of_inliers(control_points: Dict, save_folder: str):
-    tag_id_to_inlier_ratio = {}
-    for tag_id, cp in control_points.items():
-        ratio = cp["inlier_ratio"]
-        tag_id_to_inlier_ratio[tag_id] = ratio
-
-    sorted_tag_ids = sorted(tag_id_to_inlier_ratio.keys())
-    sorted_ratios = [
-        tag_id_to_inlier_ratio[tag_id] for tag_id in sorted_tag_ids
-    ]
-
-    plt.bar(sorted_tag_ids, sorted_ratios, align="center")
-    plt.xticks(sorted_tag_ids, sorted_tag_ids, rotation=45)
-    plt.xlabel("Tag ID")
-    plt.ylabel("Inlier ratio")
-    plt.title("Inlier ratio for each tag after triangulation")
-    plt.savefig(os.path.join(save_folder, "inlier_ratio.png"))
-    plt.close()
-
-
 def run_control_point_triangulation_from_json(
     reconstruction_path: Path,
     cp_json_file: Path,
