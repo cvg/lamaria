@@ -100,6 +100,7 @@ def add_alignment_residuals(
             cost = pycolmap.cost_functions.Point3DAlignmentCost(
                 cp["covariance"],
                 cp["topo"],
+                use_log_scale=True,
             )
             problem.add_residual_block(
                 cost,
