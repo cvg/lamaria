@@ -14,6 +14,7 @@ from ..utils.control_point import (
     get_cps_for_initial_alignment,
     run_control_point_triangulation_from_json,
 )
+# move these into this script here.
 from ..utils.sparse_eval import (
     create_variables_for_sparse_evaluation,
     get_problem_for_sparse_alignment,

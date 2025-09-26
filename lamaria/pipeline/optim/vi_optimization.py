@@ -45,14 +45,14 @@ class VIOptimizer:
         mapper = self._setup_incremental_mapper(database_path)
         pipeline_options = self._get_incremental_pipeline_options()
 
-        reconstruction = IterativeRefinement.run(
+        IterativeRefinement.run(
             self.vi_options,
             pipeline_options,
             mapper,
             self.session
         )
 
-        return reconstruction
+        return mapper.reconstruction
 
     def _setup_incremental_mapper(self, database_path: Path):
         """Setup the COLMAP incremental mapper"""

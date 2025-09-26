@@ -4,12 +4,12 @@ import argparse
 from typing import Optional
 from pathlib import Path
 
-from lamaria.rig.lamaria_reconstruction import LamariaReconstruction
-from lamaria.rig.keyframing.to_colmap import EstimateToColmap
-from lamaria.rig.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.rig.optim.triangulation import run as triangulate
-from lamaria.rig.optim.session import SingleSeqSession
-from lamaria.rig.optim.vi_optimization import VIOptimizer
+from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
+from lamaria.pipeline.keyframing.to_colmap import EstimateToColmap
+from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
+from lamaria.pipeline.optim.triangulation import run as triangulate
+from lamaria.pipeline.optim.session import SingleSeqSession
+from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.config.options import (
     EstimateToColmapOptions,

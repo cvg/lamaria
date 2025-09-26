@@ -6,7 +6,15 @@ from pathlib import Path
 import pycolmap
 from omegaconf import OmegaConf, open_dict
 
-from .helpers import _structured_merge_to_obj
+def _structured_merge_to_obj(cls, section) -> object:
+    """
+    Merge a YAML section onto a structured
+    config made from the dataclass `cls`,
+    then return a dataclass instance.
+    """
+    base = OmegaConf.structured(cls)
+    merged = OmegaConf.merge(base, section or {})
+    return OmegaConf.to_object(merged)
 
 
 # General options
