@@ -50,7 +50,13 @@ class Estimate:
         self._ensure_loaded()
         return self._poses
 
+    def as_tuples(self) -> list[tuple[int, pycolmap.Rigid3d]]:
+        """Return a list of (timestamp, pose) tuples."""
+        self._ensure_loaded()
+        return list(zip(self._timestamps, self._poses, strict=True))
+    
     def as_dict(self) -> dict[int, pycolmap.Rigid3d]:
+        """Return a dict mapping timestamp to pose."""
         self._ensure_loaded()
         return dict(zip(self._timestamps, self._poses, strict=True))
 
