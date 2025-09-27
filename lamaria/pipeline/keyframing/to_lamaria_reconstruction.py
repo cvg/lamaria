@@ -383,8 +383,7 @@ class EstimateToLamaria:
                 imu_calib,
                 camera_calib,
             )
-            t_camera_imu = t_imu_camera.inverse()
-            sensor_from_rig = rigid3d_from_transform(t_camera_imu)
+            sensor_from_rig = t_imu_camera.inverse()
 
             self.data.reconstruction.add_camera(cam)
             rig.add_sensor(cam.sensor_id, sensor_from_rig)
@@ -444,8 +443,7 @@ class EstimateToLamaria:
                     imu_calib,
                     camera_calib,
                 )
-                t_camera_imu = t_imu_camera.inverse()
-                sensor_from_rig = rigid3d_from_transform(t_camera_imu)
+                sensor_from_rig = t_imu_camera.inverse()
 
                 self.data.reconstruction.add_camera(cam)
                 rig.add_sensor(cam.sensor_id, sensor_from_rig)
