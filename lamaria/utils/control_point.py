@@ -18,8 +18,9 @@ def construct_control_points_from_json(
     Args:
         cp_json_file (Path): Path to the sparse GT JSON file
     """
+    with open(cp_json_file) as file:
+        cp_data = json.load(file)
 
-    cp_data = json.load(open(cp_json_file))
     control_points = {}
     for geo_id, data in cp_data["control_points"].items():
         tag_ids = data["tag_id"]

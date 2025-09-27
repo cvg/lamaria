@@ -148,7 +148,8 @@ class GlobalBundleAdjustment:
         reg_image_ids = mapper.reconstruction.reg_image_ids()
         if len(reg_image_ids) < 2:
             logger.warning(
-                "At least two images must be registered for global bundle-adjustment"
+                "At least two images must be "
+                "registered for global bundle-adjustment"
             )
 
         ba_options = self._configure_ba_options(
@@ -177,7 +178,9 @@ class GlobalBundleAdjustment:
         )
 
     def _configure_ba_options(self, pipeline_options, num_reg_images):
-        """Configure bundle adjustment options based on number of registered images"""
+        """Configure bundle adjustment options based on
+        number of registered images and pipeline options.
+        """
         ba_options = pipeline_options.get_global_bundle_adjustment()
         ba_options.print_summary = True
         ba_options.refine_rig_from_world = True  # Refine rig poses
@@ -224,17 +227,17 @@ class IterativeRefinement:
         # Configure triangulation options
         tri_options = pipeline_options.get_triangulation()
         mapper.complete_and_merge_tracks(tri_options)
-        num_retriangulated_observations = mapper.retriangulate(tri_options)
+        num_retri_obs = mapper.retriangulate(tri_options)
         logging.verbose(
             1,
-            f"=> Retriangulated observations: {num_retriangulated_observations}",
+            f"=> Retriangulated observations: {num_retri_obs}",
         )
 
         # Configure mapper options
         mapper_options = pipeline_options.get_mapper()
 
         # Iterative refinement
-        for i in range(pipeline_options.ba_global_max_refinements):
+        for _i in range(pipeline_options.ba_global_max_refinements):
             num_observations = mapper.reconstruction.compute_num_observations()
 
             GlobalBundleAdjustment.run(

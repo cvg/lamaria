@@ -19,12 +19,15 @@ def add_cameras_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
     calibration_file: Path,
 ) -> None:
-    """Add Aria cameras to COLMAP reconstruction from calibration json file found on website:
-    https://lamaria.ethz.ch/slam_datasets
+    """Add Aria cameras to COLMAP reconstruction from calibration
+    json file found on website: https://lamaria.ethz.ch/slam_datasets
 
     Args:
-        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction to which cameras will be added
-        calibration_file (Path): Path to the Aria calibration json file
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction
+        to which cameras will be added
+
+        calibration_file (Path):
+        Path to the Aria calibration json file
     """
 
     for i, (key, _) in enumerate(ARIA_CAMERAS):
@@ -61,7 +64,8 @@ def get_camera_params_for_colmap(
     Convert Aria CameraCalibration to COLMAP camera parameters.
     Supported models: OPENCV_FISHEYE, FULL_OPENCV, RAD_TAN_THIN_PRISM_FISHEYE
     Args:
-        camera_calibration (CameraCalibration): The projectaria_tools CameraCalibration object
+        camera_calibration (CameraCalibration):
+        The projectaria_tools CameraCalibration object
         camera_model (str): The COLMAP camera model to use
     Returns:
         list[float]: The camera parameters in COLMAP format

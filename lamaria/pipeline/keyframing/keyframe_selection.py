@@ -35,7 +35,9 @@ class KeyframeSelector:
         original_image_dir: Path,
         keyframes_dir: Path,
     ) -> LamariaReconstruction:
-        """Entry point to run keyframing and copy keyframes into keyframe directory."""
+        """Entry point to run keyframing and
+        copy keyframes into keyframe directory.
+        """
 
         selector = KeyframeSelector(options, data)
         kf_recon = selector.run_keyframing()
@@ -236,9 +238,12 @@ class KeyframeSelector:
         images: Path,
         output: Path,
     ) -> Path:
-        """Copy images corresponding to keyframes to a separate directory.
-        Images are expected to be in `images/left` and `images/right` subdirectories.
-        Check: `extract_images_from_vrs` in `lamaria/utils/general.py` for more details.
+        """Copy images corresponding to
+        keyframes to a separate directory.
+        Images are expected to be in `images/left`
+        and `images/right` subdirectories.
+        Check: `extract_images_from_vrs` in
+        `lamaria/utils/general.py` for more details.
         """
         if self.keyframe_frame_ids is None:
             raise ValueError(

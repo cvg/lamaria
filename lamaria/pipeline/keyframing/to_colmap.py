@@ -100,7 +100,8 @@ class EstimateToColmap:
         estimate: Path | None = None,
         mps_folder: Path | None = None,
     ) -> None:
-        """Initializes data providers and extracts images, timestamps and builds per-frame data object.
+        """Initializes data providers and extracts images, timestamps
+        and builds per-frame data object.
         Per-frame data is used to create the initial Lamaria reconstruction.
         """
 
@@ -136,7 +137,7 @@ class EstimateToColmap:
         if self.options.mps.use_mps:
             timestamps = self._get_mps_timestamps()
             closed_loop_data = get_closed_loop_data_from_mps(mps_folder)
-            pose_timestamps = [l for l, _ in timestamps]
+            pose_timestamps = [left for left, _ in timestamps]
             mps_poses = get_mps_poses_for_timestamps(
                 closed_loop_data, pose_timestamps
             )
@@ -270,9 +271,10 @@ class EstimateToColmap:
                 "Unequal number of left and right timestamps"
             )
             matched = list(zip(L, R))
-            if not all(abs(l - r) < max_diff for l, r in matched):
+            if not all(abs(left - right) < max_diff for left, right in matched):
                 logger.warning(
-                    f"Left and right timestamps differ by more than {max_diff} ns"
+                    f"Left and right timestamps differ "
+                    f"by more than {max_diff} ns"
                 )
         else:
             matched = get_matched_timestamps(L, R, max_diff)
@@ -451,7 +453,9 @@ class EstimateToColmap:
             self.data.reconstruction.add_rig(rig)
 
     def _add_device_frames(self) -> None:
-        """Adds frame data for each rig, all rigs share same device calibrated sensors"""
+        """Adds frame data for each rig,
+        all rigs share same device calibrated sensors
+        """
         image_id = 1
 
         rig = self.data.reconstruction.rigs[1]
@@ -479,7 +483,8 @@ class EstimateToColmap:
                 self.data.reconstruction.add_image(im)
 
     def _add_online_frames(self) -> None:
-        """Adds frame data for each rig, each rig has its own online calibrated sensors
+        """Adds frame data for each rig, each rig has
+        its own online calibrated sensors
 
         Frame ID layout:
         fid=1 -> (imu=1, left=2, right=3), (image IDs: 1, 2);
@@ -497,7 +502,8 @@ class EstimateToColmap:
 
             images_to_add = []
             # Camera ID layout from _add_online_sensors():
-            # fid=1 -> (imu=1, left=2, right=3); fid=2 -> (imu=4, left=5, right=6); ...
+            # fid=1 -> (imu=1, left=2, right=3);
+            # fid=2 -> (imu=4, left=5, right=6); ...
             left_cam_id = 3 * fid - 1
             right_cam_id = 3 * fid
 

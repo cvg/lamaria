@@ -76,7 +76,7 @@ def setup_manifolds_and_constraints(
         problem.set_parameter_block_constant(session.imu_from_rig.translation)
     if not imu_options.optimize_bias:
         constant_idxs = np.arange(3, 9)
-        for frame_id in session.imu_states.keys():
+        for frame_id in session.imu_states:
             problem.set_manifold(
                 session.imu_states[frame_id].data,
                 pyceres.SubsetManifold(9, constant_idxs),

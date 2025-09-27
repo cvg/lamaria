@@ -29,7 +29,8 @@ def add_images_to_reconstruction(
     device_calibration_json: Path,
     slam_input_imu: int = 1,
 ):
-    """Add images to an existing empty reconstruction from a pose estimate file."""
+    """Add images to an existing empty
+    reconstruction from a pose estimate file."""
     pose_data = []
     with open(estimate_file) as f:
         lines = f.readlines()
@@ -141,11 +142,18 @@ def create_baseline_reconstruction(
 
     Args:
         estimate_file (Path): Path to the pose estimate file.
+
         cp_json_file (Path): Path to the sparse GT json file.
-        device_calibration_json (Path): Path to the Aria device calibration json file.
-        output_path (Path): Path to the output folder where the reconstruction will be saved.
-        slam_input_imu (int, optional): If 1, the poses in the estimate file are IMU poses.
-                                        If 0, the poses are left camera poses (monocular-cam0).
+
+        device_calibration_json (Path):
+        Path to the Aria device calibration json file.
+
+        output_path (Path): Path to the output folder
+        where the reconstruction will be saved.
+
+        slam_input_imu (int, optional):
+        If 1, the poses in the estimate file are IMU poses.
+        If 0, the poses are left camera poses (monocular-cam0).
     """
     recon_path = output_path / "reconstruction"
     recon_path.mkdir(parents=True, exist_ok=True)
