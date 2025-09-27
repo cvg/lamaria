@@ -8,8 +8,6 @@ import pycolmap
 
 from lamaria import logger
 
-CUSTOM_ORIGIN_COORDINATES = (2683594.4120000005, 1247727.7470000014, 417.307)
-
 
 def find_closest_timestamp(
     timestamps: list,
