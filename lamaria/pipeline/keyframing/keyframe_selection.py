@@ -21,11 +21,11 @@ class KeyframeSelector:
         data: LamariaReconstruction,
     ):
         self.options = options
-        self.init_data: LamariaReconstruction = data
+        self.init_data = data
         self.init_recons = data.reconstruction  # pycolmap.Reconstruction
         self.timestamps = data.timestamps  # frame id to timestamp mapping
 
-        self.keyframed_data: LamariaReconstruction = LamariaReconstruction()
+        self.keyframed_data = LamariaReconstruction()
         self.keyframe_frame_ids: dict[int, int] = {}
 
     @staticmethod
