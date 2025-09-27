@@ -6,8 +6,10 @@ import pycolmap
 from tqdm import tqdm
 
 from .general import (
-    CUSTOM_ORIGIN_COORDINATES,
     get_image_names_to_ids,
+)
+from .constants import (
+    CUSTOM_ORIGIN_COORDINATES,
 )
 
 
