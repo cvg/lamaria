@@ -261,8 +261,18 @@ def form_aria_asl_folder(
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
 
-    args.add_argument("--vrs_file", type=Path, required=True)
-    args.add_argument("--output_asl_folder", type=Path, required=True)
+    args.add_argument(
+        "--vrs_file", 
+        type=Path, 
+        required=True,
+        help="Path to input VRS file",
+    )
+    args.add_argument(
+        "--output_asl_folder",
+        type=Path,
+        required=True,
+        help="Path to output ASL folder",
+    )
     args.add_argument(
         "--has_slam_drops",
         action="store_true",
