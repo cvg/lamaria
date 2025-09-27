@@ -5,15 +5,15 @@ import numpy as np
 import pycolmap
 from tqdm import tqdm
 
+from ..structs.estimate import (
+    Estimate,
+)
 from ..utils.camera import (
     add_cameras_to_reconstruction,
 )
 from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
-)
-from ..utils.estimate import (
-    round_ns,
 )
 from ..utils.general import (
     delete_files_in_folder,
@@ -33,35 +33,9 @@ def _add_images_to_reconstruction(
 ):
     """Add images to an existing empty
     reconstruction from a pose estimate file."""
-    pose_data = []
-    with open(estimate_file) as f:
-        lines = f.readlines()
-
-        if len(lines) == 0:
-            return reconstruction
-
-        if "#" in lines[0]:
-            lines = lines[1:]
-
-        for line in lines:
-            parts = line.split()
-            if len(parts) < 8:
-                continue
-
-            timestamp = round_ns(parts[0])
-
-            tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
-            q_xyzw = np.array(
-                [
-                    float(parts[4]),
-                    float(parts[5]),
-                    float(parts[6]),
-                    float(parts[7]),
-                ]
-            )
-            T_world_device = pycolmap.Rigid3d(pycolmap.Rotation3d(q_xyzw), tvec)
-
-            pose_data.append((timestamp, T_world_device))
+    est = Estimate(invert_poses=False)
+    est.load_from_file(estimate_file)
+    pose_data = est.as_tuples()
 
     with open(cp_json_file) as f:
         cp_data = json.load(f)
