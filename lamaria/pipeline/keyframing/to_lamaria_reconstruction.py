@@ -60,22 +60,22 @@ class EstimateToLamaria:
     def convert(
         options: EstimateToLamariaOptions,
         vrs: Path,
-        images: Path,
+        images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
     ) -> LamariaReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
         to_colmap = EstimateToLamaria(options)
-        return to_colmap.process(vrs, images, estimate, mps_folder)
+        return to_colmap.process(vrs, images_path, estimate, mps_folder)
 
     def process(
         self,
         vrs: Path,
-        images: Path,
+        images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
     ) -> LamariaReconstruction:
-        self._init_data(vrs, images, estimate, mps_folder)
+        self._init_data(vrs, images_path, estimate, mps_folder)
 
         if self.options.mps.use_online_calibration and self.options.mps.use_mps:
             self._add_online_sensors()
@@ -254,9 +254,9 @@ class EstimateToLamaria:
             self._vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME)
         )
 
-    def _get_images(self, images: Path) -> list[tuple[Path, Path]]:
-        left_img_dir = images / "left"
-        right_img_dir = images / "right"
+    def _get_images(self, images_path: Path) -> list[tuple[Path, Path]]:
+        left_img_dir = images_path / "left"
+        right_img_dir = images_path / "right"
 
         left_images = self._images_from_vrs(left_img_dir, left_img_dir)
         right_images = self._images_from_vrs(right_img_dir, right_img_dir)

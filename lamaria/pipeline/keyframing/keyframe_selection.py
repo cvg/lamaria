@@ -235,7 +235,7 @@ class KeyframeSelector:
 
     def copy_images_to_keyframes_dir(
         self,
-        images: Path,
+        images_path: Path,
         output: Path,
     ) -> Path:
         """Copy images corresponding to
@@ -261,7 +261,7 @@ class KeyframeSelector:
                 image = self.init_recons.images[data_id.id]
 
                 subdir = "left" if image.name.startswith("1201-1") else "right"
-                src_path = images / subdir / image.name
+                src_path = images_path / subdir / image.name
                 dst_path = output / image.name
 
                 shutil.copy2(src_path, dst_path)

@@ -67,7 +67,7 @@ class PipelineOptions:
         return self._estimate_to_colmap_options
 
     @property
-    def images(self) -> Path:
+    def images_path(self) -> Path:
         return self._output_path / "images"
 
     @property
@@ -84,7 +84,7 @@ class PipelineOptions:
         return self._output_path / "keyframes"
 
     @property
-    def kf_model(self) -> Path:
+    def kf_model_path(self) -> Path:
         return self._output_path / "keyframed_recon"
 
     # Properties for triangulation

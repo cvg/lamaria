@@ -24,7 +24,7 @@ from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 def run_estimate_to_lamaria(
     options: EstimateToLamariaOptions,
     vrs: Path,
-    images: Path,
+    images_path: Path,
     estimate: Path,
     colmap_model_path: Path,
 ) -> LamariaReconstruction:
@@ -40,7 +40,7 @@ def run_estimate_to_lamaria(
     lamaria_recon = EstimateToLamaria.convert(
         options,
         vrs,
-        images,
+        images_path,
         estimate,
     )
     lamaria_recon.write(colmap_model_path)
@@ -51,7 +51,7 @@ def run_estimate_to_lamaria(
 def run_mps_to_lamaria(
     options: EstimateToLamariaOptions,
     vrs: Path,
-    images: Path,
+    images_path: Path,
     mps_folder: Path,
     colmap_model_path: Path,
 ) -> LamariaReconstruction:
@@ -65,7 +65,7 @@ def run_mps_to_lamaria(
     lamaria_recon = EstimateToLamaria.convert(
         options,
         vrs,
-        images,
+        images_path,
         mps_folder,
     )
     lamaria_recon.write(colmap_model_path)
@@ -76,29 +76,29 @@ def run_mps_to_lamaria(
 def run_keyframe_selection(
     options: KeyframeSelectorOptions,
     input: Path | LamariaReconstruction,
-    images: Path,
+    images_path: Path,
     keyframes_path: Path,
-    kf_model: Path,
+    kf_model_path: Path,
 ) -> LamariaReconstruction:
     if isinstance(input, Path):
         input_recon = LamariaReconstruction.read(input)
     else:
         input_recon = input
 
-    if kf_model.exists():
-        kf_lamaria_recon = LamariaReconstruction.read(kf_model)
+    if kf_model_path.exists():
+        kf_lamaria_recon = LamariaReconstruction.read(kf_model_path)
         return kf_lamaria_recon
 
-    kf_model.mkdir(parents=True, exist_ok=True)
+    kf_model_path.mkdir(parents=True, exist_ok=True)
 
     kf_lamaria_recon = KeyframeSelector.run(
         options,
         input_recon,
-        images,
+        images_path,
         keyframes_path,
     )
 
-    kf_lamaria_recon.write(kf_model)
+    kf_lamaria_recon.write(kf_model_path)
 
     return kf_lamaria_recon
 
@@ -201,7 +201,7 @@ def run_pipeline(
         _ = run_estimate_to_lamaria(
             est_options,
             vrs,
-            options.images,
+            options.images_path,
             estimate,
             options.colmap_model_path,
         )
@@ -213,7 +213,7 @@ def run_pipeline(
         _ = run_mps_to_lamaria(
             est_options,
             vrs,
-            options.images,
+            options.images_path,
             mps_folder,
             options.colmap_model_path,
         )
@@ -223,16 +223,16 @@ def run_pipeline(
     _ = run_keyframe_selection(
         kf_options,
         options.colmap_model_path,
-        options.images,
+        options.images_path,
         options.keyframes_path,
-        options.kf_model,
+        options.kf_model_path,
     )
 
     # Triangulation
     tri_options = options.triangulator_options
     _ = run_triangulation(
         tri_options,
-        options.kf_model,
+        options.kf_model_path,
         options.keyframes_path,
         options.hloc_path,
         options.pairs_file,
