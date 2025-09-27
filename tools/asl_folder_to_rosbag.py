@@ -128,7 +128,7 @@ def asl_to_rosbag(
     for ts_ns, kind, sample in tqdm(
         bag_timeline, desc="Writing bag", unit="msg"
     ):
-        stamp = rospy.Time.from_sec(ts_ns * NS_TO_S)
+        stamp = rospy.Time.from_sec(ts_ns * 1e-9)
 
         if kind == "cam":
             cv_image = cv2.imread(str(sample.path), cv2.IMREAD_GRAYSCALE)
