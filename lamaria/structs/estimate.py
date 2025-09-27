@@ -19,7 +19,7 @@ class Estimate:
       ts t_x t_y t_z q_x q_y q_z q_w
     Blank lines and lines starting with '#' are ignored.
 
-    By default, poses are returned as rig_from_world 
+    By default, poses are returned as rig_from_world
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
