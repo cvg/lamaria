@@ -34,12 +34,12 @@ class Estimate:
         self.clear()
         self.path = Path(path)
 
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             lines = f.readlines()
 
         self._parse(lines)  # raises error if format is invalid
         return self
-    
+
     @property
     def timestamps(self) -> list[int]:
         self._ensure_loaded()
@@ -49,14 +49,14 @@ class Estimate:
     def poses(self) -> list[pycolmap.Rigid3d]:
         self._ensure_loaded()
         return self._poses
-    
+
     def as_dict(self) -> dict[int, pycolmap.Rigid3d]:
         self._ensure_loaded()
         return dict(zip(self._timestamps, self._poses, strict=True))
-    
+
     def __len__(self) -> int:
         return len(self._timestamps)
-    
+
     def is_loaded(self) -> bool:
         return len(self._timestamps) > 0
 
@@ -66,8 +66,10 @@ class Estimate:
 
     def _ensure_loaded(self) -> None:
         if not self._timestamps or not self._poses:
-            raise RuntimeError("Estimate not loaded. Call load_from_file() first.")
-        
+            raise RuntimeError(
+                "Estimate not loaded. Call load_from_file() first."
+            )
+
     def _parse(self, lines: list[str]) -> None:
         ts_list: list[int] = []
         pose_list: list[pycolmap.Rigid3d] = []
@@ -76,29 +78,45 @@ class Estimate:
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            
+
             exists_lines = True
             parts = line.split()
             if len(parts) != 8:
-                raise ValueError(f"{lineno}: expected 8 values, got {len(parts)}")
-            
+                raise ValueError(
+                    f"{lineno}: expected 8 values, got {len(parts)}"
+                )
+
             try:
                 ts = _round_ns(parts[0])
-                tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
-                qvec = np.array([float(parts[4]), float(parts[5]),
-                                 float(parts[6]), float(parts[7])])
-                
+                tvec = np.array(
+                    [float(parts[1]), float(parts[2]), float(parts[3])]
+                )
+                qvec = np.array(
+                    [
+                        float(parts[4]),
+                        float(parts[5]),
+                        float(parts[6]),
+                        float(parts[7]),
+                    ]
+                )
+
             except ValueError as e:
-                raise ValueError(f"{lineno}: non-numeric value in {parts!r}") from e
-            
+                raise ValueError(
+                    f"{lineno}: non-numeric value in {parts!r}"
+                ) from e
+
             world_from_rig = pycolmap.Rigid3d(pycolmap.Rotation3d(qvec), tvec)
-            pose = world_from_rig.inverse() if self.invert_poses else world_from_rig
+            pose = (
+                world_from_rig.inverse()
+                if self.invert_poses
+                else world_from_rig
+            )
 
             ts_list.append(ts)
             pose_list.append(pose)
 
         if not exists_lines:
             raise ValueError("No valid lines found in estimate file.")
-        
+
         self._timestamps = ts_list
         self._poses = pose_list
