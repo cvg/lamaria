@@ -18,15 +18,13 @@ from ...utils.general import (
     extract_images_from_vrs,
     get_matched_timestamps,
 )
-from ...utils.imu import (
-    get_imu_data_from_vrs,
-)
 from ...utils.aria import (
     get_closed_loop_data_from_mps,
     get_mps_poses_for_timestamps,
     get_t_imu_camera,
     rigid3d_from_transform,
-    camera_colmap_from_calib
+    camera_colmap_from_calib,
+    get_imu_data_from_vrs
 )
 
 
