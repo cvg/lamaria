@@ -1,7 +1,5 @@
 # Default configuration for run_pipeline.py
 
-output_path: /output
-
 sensor:
   camera_model: RAD_TAN_THIN_PRISM_FISHEYE
 
