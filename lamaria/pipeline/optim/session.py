@@ -4,7 +4,7 @@ import numpy as np
 import pycolmap
 
 from ...config.options import OptIMUOptions
-from ..lamaria_reconstruction import LamariaReconstruction
+from ...structs.lamaria_reconstruction import LamariaReconstruction
 from .imu import (
     load_imu_states,
     preintegrate_imu_measurements,

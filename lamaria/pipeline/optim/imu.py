@@ -4,7 +4,7 @@ import pycolmap
 from tqdm import tqdm
 
 from ...config.options import OptIMUOptions
-from ..lamaria_reconstruction import LamariaReconstruction
+from ...structs.lamaria_reconstruction import LamariaReconstruction
 from .session import SingleSeqSession
 
 

@@ -31,7 +31,7 @@ from ...utils.transformation import (
     get_t_imu_camera,
     rigid3d_from_transform,
 )
-from ..lamaria_reconstruction import LamariaReconstruction
+from ...structs.lamaria_reconstruction import LamariaReconstruction
 
 
 @dataclass

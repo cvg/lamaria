@@ -15,7 +15,7 @@ from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
 from lamaria.pipeline.keyframing.to_lamaria_reconstruction import (
     EstimateToLamaria,
 )
-from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
+from lamaria.structs.lamaria_reconstruction import LamariaReconstruction
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
