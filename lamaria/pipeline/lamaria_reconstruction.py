@@ -25,7 +25,7 @@ class LamariaReconstruction:
     def __init__(self) -> None:
         self.reconstruction = pycolmap.Reconstruction()
         self.timestamps: dict[int, int] = {}
-        self.imu_measurements = pycolmap.ImuMeasurements([])
+        self.imu_measurements = None
 
     @staticmethod
     def read(
