@@ -169,7 +169,7 @@ def asl_to_rosbag(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input_asl_folder", type=Path, required=True, help="Input folder"
+        "--input_asl_folder", type=Path, required=True, help="Input ASL folder"
     )
     parser.add_argument(
         "--output_rosbag", type=Path, required=True, help="Output rosbag file"

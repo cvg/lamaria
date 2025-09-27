@@ -153,9 +153,24 @@ def undistort_asl(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--calibration_file", type=Path, required=True)
-    parser.add_argument("--asl_path", type=Path, required=True)
-    parser.add_argument("--output_asl_path", type=Path, required=True)
+    parser.add_argument(
+        "--calibration_file",
+        type=Path,
+        required=True,
+        help="Path to Aria calibration json file",
+    )
+    parser.add_argument(
+        "--asl_path",
+        type=Path,
+        required=True,
+        help="Path to input Aria distorted ASL folder",
+    )
+    parser.add_argument(
+        "--output_asl_path",
+        type=Path,
+        required=True,
+        help="Path to output undistorted ASL folder",
+    )
     parser.add_argument("--ratio_blank_pixels", type=float, default=0.2)
     args = parser.parse_args()
 
