@@ -26,7 +26,7 @@ def remove_images_when_slam_drops(
     image_folder: Path,
     left_timestamps: list[int],
     right_timestamps: list[int],
-    matched_timestamps: list[Tuple[int, int]],
+    matched_timestamps: list[tuple[int, int]],
     left_subfolder_name="cam0/data",
     right_subfolder_name="cam1/data",
 ):

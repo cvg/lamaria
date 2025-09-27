@@ -40,7 +40,7 @@ def get_matched_timestamps(
     left_timestamps: list[int],
     right_timestamps: list[int],
     max_diff: float,
-) -> list[Tuple[int, int]]:
+) -> list[tuple[int, int]]:
     matched_timestamps = []
 
     assert all(isinstance(ts, int) for ts in left_timestamps), (

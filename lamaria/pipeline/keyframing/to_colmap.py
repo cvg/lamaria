@@ -254,7 +254,7 @@ class EstimateToColmap:
             self._vrs_provider.get_timestamps_ns(sid, TimeDomain.DEVICE_TIME)
         )
 
-    def _get_images(self, images: Path) -> list[Tuple[Path, Path]]:
+    def _get_images(self, images: Path) -> list[tuple[Path, Path]]:
         left_img_dir = images / "left"
         right_img_dir = images / "right"
 
@@ -263,7 +263,7 @@ class EstimateToColmap:
 
         return list(zip(left_images, right_images))
 
-    def _get_mps_timestamps(self, max_diff=1e6) -> list[Tuple[int, int]]:
+    def _get_mps_timestamps(self, max_diff=1e6) -> list[tuple[int, int]]:
         L = self._ts_from_vrs(self._left_cam_sid)
         R = self._ts_from_vrs(self._right_cam_sid)
         if not self.options.mps.has_slam_drops:
@@ -282,10 +282,10 @@ class EstimateToColmap:
 
     def _match_estimate_ts_to_images(
         self,
-        images: list[Tuple[Path, Path]],
+        images: list[tuple[Path, Path]],
         est_timestamps: list[int],
         max_diff: int = 1000000,  # 1 ms
-    ) -> Tuple[list[Tuple[Path, Path]], list[int]]:
+    ) -> tuple[list[tuple[Path, Path]], list[int]]:
         left_ts = self._ts_from_vrs(self._left_cam_sid)
         assert len(images) == len(left_ts), (
             "Number of images and left timestamps must be equal"
@@ -295,7 +295,7 @@ class EstimateToColmap:
         left_ts = [left_ts[i] for i in order]
         images = [images[i] for i in order]
 
-        matched_images: list[Tuple[Path, Path]] = []
+        matched_images: list[tuple[Path, Path]] = []
         matched_timestamps: list[int] = []
 
         # estimate timestamps will be in nanoseconds like vrs timestamps
@@ -320,7 +320,7 @@ class EstimateToColmap:
 
         return matched_images, matched_timestamps
 
-    def _get_dummy_imu_params(self) -> Tuple[int, int, list[float]]:
+    def _get_dummy_imu_params(self) -> tuple[int, int, list[float]]:
         """Generates dummy IMU camera parameters for COLMAP."""
         width = 640
         height = 480

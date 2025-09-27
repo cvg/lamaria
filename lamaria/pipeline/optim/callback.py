@@ -12,7 +12,7 @@ class RefinementCallback(pyceres.IterationCallback):
     def __init__(
         self,
         poses: list[pycolmap.Rigid3d],
-        min_pose_change: Tuple[float, float] = (0.001, 0.000001),
+        min_pose_change: tuple[float, float] = (0.001, 0.000001),
         min_iterations: int = 2,
     ):
         pyceres.IterationCallback.__init__(self)

@@ -54,7 +54,7 @@ def fetch_index(full_url: str) -> list[str]:
     return hrefs
 
 
-def build_catalog(base_url: str) -> Dict[str, list[Tuple[str, str]]]:
+def build_catalog(base_url: str) -> Dict[str, list[tuple[str, str]]]:
     catalog = {}
     for folder in FOLDERS:
         entries = []
@@ -87,8 +87,8 @@ def names_from_listing(files: Iterable[str]) -> list[str]:
 
 
 def derive_splits(
-    catalog: Dict[str, list[Tuple[str, str]]],
-) -> Tuple[list[str], list[str]]:
+    catalog: Dict[str, list[tuple[str, str]]],
+) -> tuple[list[str], list[str]]:
     raw_entries = catalog.get("raw_data", [])
     train_files = [fname for (sub, fname) in raw_entries if sub == "training/"]
     test_files = [fname for (sub, fname) in raw_entries if sub == "test/"]
@@ -97,7 +97,7 @@ def derive_splits(
     return train, test
 
 
-def raw_split_map(catalog: Dict[str, list[Tuple[str, str]]]) -> Dict[str, str]:
+def raw_split_map(catalog: Dict[str, list[tuple[str, str]]]) -> Dict[str, str]:
     mapping: Dict[str, str] = {}
     for sub, fname in catalog.get("raw_data", []):
         if sub not in ("training/", "test/"):
@@ -112,12 +112,12 @@ def raw_split_map(catalog: Dict[str, list[Tuple[str, str]]]) -> Dict[str, str]:
 
 
 def pick_files_for_sequence(
-    catalog: Dict[str, list[Tuple[str, str]]],
+    catalog: Dict[str, list[tuple[str, str]]],
     sequence: str,
     folders: list[str],
     split: str | None,
-) -> list[Tuple[str, str, str]]:
-    matches: list[Tuple[str, str, str]] = []
+) -> list[tuple[str, str, str]]:
+    matches: list[tuple[str, str, str]] = []
     for folder in folders:
         for sub, fname in catalog.get(folder, []):
             if folder != "ground_truth" and split is not None and sub != split:

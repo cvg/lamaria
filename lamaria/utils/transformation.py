@@ -97,7 +97,7 @@ def get_t_imu_camera(
 
 def get_qvec_and_tvec_from_transform(
     transform,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Converts projectaria_tools Rigid3d to qvec and tvec.
     Returns qvec in format x,y,z,w and tvec in format x,y,z"""
     # to_quat() returns in wxyz format
@@ -120,7 +120,7 @@ def rigid3d_from_transform(transform) -> pycolmap.Rigid3d:
 
 def get_magnitude_from_transform(
     transform: pycolmap.Rigid3d,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Returns rotation (in degrees) and translation (in meters) magnitudes from a Rigid3d transform"""
     translation = transform.translation
     quat_xyzw = transform.rotation.quat

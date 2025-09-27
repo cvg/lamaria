@@ -27,8 +27,8 @@ class CamSample:
 @dataclass(frozen=True)
 class ImuSample:
     ts_ns: int
-    gyro: Tuple[float, float, float]
-    accel: Tuple[float, float, float]
+    gyro: tuple[float, float, float]
+    accel: tuple[float, float, float]
     topic: str
     frame_id: str
 
