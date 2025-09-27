@@ -9,7 +9,7 @@ from pathlib import Path
 import pycolmap
 from tqdm import tqdm
 
-from lamaria.utils.camera import (
+from lamaria.utils.aria import (
     add_cameras_to_reconstruction,
 )
 from lamaria.utils.constants import (
