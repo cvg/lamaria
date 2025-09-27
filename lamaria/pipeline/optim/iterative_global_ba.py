@@ -237,7 +237,7 @@ class IterativeRefinement:
         mapper_options = pipeline_options.get_mapper()
 
         # Iterative refinement
-        for _i in range(pipeline_options.ba_global_max_refinements):
+        for _ in range(pipeline_options.ba_global_max_refinements):
             num_observations = mapper.reconstruction.compute_num_observations()
 
             GlobalBundleAdjustment.run(

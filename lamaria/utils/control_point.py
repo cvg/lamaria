@@ -91,7 +91,7 @@ def transform_points(points, r, t, scale):
 
 
 def transform_triangulated_control_points(control_points: dict, r, t, scale):
-    for _tag_id, cp in control_points.items():
+    for _, cp in control_points.items():
         triangulated_point = cp["triangulated"]
         triangulated_point = scale * r.apply(triangulated_point) + t
         cp["triangulated"] = triangulated_point

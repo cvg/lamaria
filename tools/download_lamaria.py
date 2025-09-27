@@ -305,7 +305,7 @@ def main():
 
     print("\n[download] Starting downloads.")
     with requests.Session() as sess:
-        for _area, _sub, _fname, url, dest in plan:
+        for _, _, _, url, dest in plan:
             print(f"[get] {url}")
             try:
                 download_file(url, dest, sess)
