@@ -72,13 +72,9 @@ def get_t_rig_world_for_device_time_ns(
 def get_t_imu_camera(
     imu_calib: ImuCalibration,
     camera_calib: CameraCalibration,
-    return_qt=False,
-    return_matrix=False,
-):
+) -> pycolmap.Rigid3d:
     """Get T_imu_camera from Aria calibrations.
-    Either return as qvec,tvec or 4x4 matrix.
-    If neither return_qt or return_matrix is True,
-    returns as projectaria_tools Rigid3d object.
+    Returns pycolmap.Rigid3d transform.
     """
 
     t_device_cam = camera_calib.get_transform_device_camera()
@@ -87,19 +83,11 @@ def get_t_imu_camera(
 
     t_imu_cam = t_imu_device @ t_device_cam
 
-    assert not (return_qt and return_matrix), (
-        "Only one of return_qt or return_matrix can be True"
+    colmap_t_imu_cam = rigid3d_from_transform(
+        t_imu_cam
     )
 
-    if return_qt:
-        qvec, tvec = get_qvec_and_tvec_from_transform(t_imu_cam)
-        return qvec, tvec
-
-    if return_matrix:
-        t_imu_cam_matrix = t_imu_cam.to_matrix()
-        return t_imu_cam_matrix
-
-    return t_imu_cam
+    return colmap_t_imu_cam
 
 
 def get_qvec_and_tvec_from_transform(
