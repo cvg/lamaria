@@ -157,6 +157,20 @@ def run(
     output_path: Path,
     cp_reproj_std=1.0,
 ):
+    """Run sparse evaluation for sequences that observe control points.
+
+    Args:
+      reconstruction_path (Path): Path to the COLMAP reconstruction that
+        contains the poses to be evaluated.
+      cp_json_file (Path): Path to the sparse GT JSON file containing control
+        point data.
+      output_path (Path): Path to the output folder where the evaluation results
+        will be saved.
+      cp_reproj_std (float): Control point reprojection standard deviation.
+
+    Returns:
+      bool: True if the evaluation was successful, False otherwise.
+    """
     output_path.mkdir(parents=True, exist_ok=True)
 
     aligned_transformed_folder = output_path / "aligned_transformed"
