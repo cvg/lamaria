@@ -75,7 +75,7 @@ class EstimateToLamaria:
     ) -> LamariaReconstruction:
         self._init_data(vrs, images_path, estimate, mps_folder)
 
-        if self.options.mps.use_online_calibration and self.options.mps.use_mps:
+        if self.options.mps.use_online_calibration:
             self._add_online_sensors()
             self._add_online_frames()
         else:
@@ -114,10 +114,7 @@ class EstimateToLamaria:
         self._right_imu_sid = StreamId(self.options.sensor.right_imu_stream_id)
 
         # Initialize MPS data provider if needed
-        if self.options.mps.use_mps:
-            assert mps_folder is not None, (
-                "MPS folder path must be provided if using MPS"
-            )
+        if mps_folder is not None:
             data_paths = mps.MpsDataPathsProvider(
                 mps_folder.as_posix()
             ).get_data_paths()
@@ -132,7 +129,7 @@ class EstimateToLamaria:
         images = self._get_images(image_folder)
 
         # Get timestamps and build per-frame data
-        if self.options.mps.use_mps:
+        if estimate is None:
             timestamps = self._get_mps_timestamps()
             closed_loop_data = get_closed_loop_data_from_mps(mps_folder)
             pose_timestamps = [left for left, _ in timestamps]
@@ -143,10 +140,6 @@ class EstimateToLamaria:
                 images, timestamps, mps_poses
             )
         else:
-            assert estimate is not None, (
-                "Estimate path must be provided if not using MPS"
-            )
-
             # Raises error if estimate file is invalid
             est = Estimate(invert_poses=True)
             est.load_from_file(estimate)
@@ -263,7 +256,7 @@ class EstimateToLamaria:
     def _get_mps_timestamps(self, max_diff=1e6) -> list[tuple[int, int]]:
         L = self._ts_from_vrs(self._left_cam_sid)
         R = self._ts_from_vrs(self._right_cam_sid)
-        if not self.options.mps.has_slam_drops:
+        if not self.options.sensor.has_slam_drops:
             assert len(L) == len(R), (
                 "Unequal number of left and right timestamps"
             )
@@ -526,7 +519,7 @@ class EstimateToLamaria:
         mps_folder: Path | None = None,
     ) -> pycolmap.ImuMeasurements:
         """Generates rectified IMU data from VRS file"""
-        if self.options.mps.use_online_calibration and self.options.mps.use_mps:
+        if self.options.mps.use_online_calibration:
             assert mps_folder is not None, (
                 "MPS folder path must be provided if using MPS"
             )
