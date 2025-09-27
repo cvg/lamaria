@@ -32,8 +32,8 @@ class KeyframeSelector:
     def run(
         options: KeyframeSelectorOptions,
         data: LamariaReconstruction,
-        original_image_dir: Path,
-        keyframes_dir: Path,
+        images_path: Path,
+        keyframes_path: Path,
     ) -> LamariaReconstruction:
         """Entry point to run keyframing and
         copy keyframes into keyframe directory.
@@ -41,7 +41,7 @@ class KeyframeSelector:
 
         selector = KeyframeSelector(options, data)
         kf_recon = selector.run_keyframing()
-        selector.copy_images_to_keyframes_dir(original_image_dir, keyframes_dir)
+        selector.copy_images_to_keyframes_dir(images_path, keyframes_path)
 
         return kf_recon
 
