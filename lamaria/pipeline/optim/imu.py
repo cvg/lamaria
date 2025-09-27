@@ -6,7 +6,7 @@ from ...config.options import OptIMUOptions
 from ..lamaria_reconstruction import LamariaReconstruction
 
 
-def load_preintegrated_imu_measurements(
+def preintegrate_imu_measurements(
     options: OptIMUOptions,
     data: LamariaReconstruction,
 ) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
