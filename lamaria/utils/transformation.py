@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 import pycolmap

@@ -2,7 +2,6 @@ import argparse
 import csv
 import os
 from pathlib import Path
-from typing import Tuple
 
 from projectaria_tools.core import data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions

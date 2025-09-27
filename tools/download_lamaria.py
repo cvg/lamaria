@@ -5,7 +5,7 @@ import re
 import sys
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 import requests
 from bs4 import BeautifulSoup
