@@ -262,8 +262,8 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
 
     args.add_argument(
-        "--vrs_file", 
-        type=Path, 
+        "--vrs_file",
+        type=Path,
         required=True,
         help="Path to input VRS file",
     )
