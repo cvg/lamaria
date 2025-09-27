@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
-from typing import Optional
 
 from omegaconf import OmegaConf, open_dict
 
@@ -29,7 +28,7 @@ class MPSOptions:
     )
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> MPSOptions:
+    def load(cls, cfg: OmegaConf | None = None) -> MPSOptions:
         if cfg is None:
             return cls()
 
@@ -44,7 +43,7 @@ class SensorOptions:
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> SensorOptions:
+    def load(cls, cfg: OmegaConf | None = None) -> SensorOptions:
         if cfg is None:
             return cls()
 
@@ -61,8 +60,8 @@ class EstimateToColmapOptions:
     @classmethod
     def load(
         cls,
-        cfg_mps: Optional[OmegaConf] = None,
-        cfg_sensor: Optional[OmegaConf] = None,
+        cfg_mps: OmegaConf | None = None,
+        cfg_sensor: OmegaConf | None = None,
     ) -> EstimateToColmapOptions:
         if cfg_mps is None or cfg_sensor is None:
             return cls()
@@ -83,7 +82,7 @@ class KeyframeSelectorOptions:
     max_elapsed: int = int(1e9)  # 1 second in ns
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> KeyframeSelectorOptions:
+    def load(cls, cfg: OmegaConf | None = None) -> KeyframeSelectorOptions:
         if cfg is None:
             return cls()
 
@@ -113,7 +112,7 @@ class TriangulatorOptions:
     filter_min_tri_angle: float = 1.5
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> TriangulatorOptions:
+    def load(cls, cfg: OmegaConf | None = None) -> TriangulatorOptions:
         if cfg is None:
             return cls()
 
@@ -158,7 +157,7 @@ class VIOptimizerOptions:
     optim: OptOptions = field(default_factory=OptOptions)
 
     @classmethod
-    def load(cls, cfg: Optional[OmegaConf] = None) -> VIOptimizerOptions:
+    def load(cls, cfg: OmegaConf | None = None) -> VIOptimizerOptions:
         if cfg is None:
             return cls()
 
