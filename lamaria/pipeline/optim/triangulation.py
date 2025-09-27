@@ -89,14 +89,14 @@ def run(
     options: TriangulatorOptions,
     reference_model: Path,  # reconstruction path
     keyframes_path: Path,
-    hloc_dir: Path,
+    hloc_path: Path,
     pairs_path: Path,
     triangulated_model_path: Path,
 ) -> Path:
     if not keyframes_path.exists():
         raise FileNotFoundError(f"keyframes not found at {keyframes_path}")
 
-    hloc_dir.mkdir(parents=True, exist_ok=True)
+    hloc_path.mkdir(parents=True, exist_ok=True)
 
     if not reference_model.exists():
         raise FileNotFoundError(
@@ -115,10 +115,10 @@ def run(
     )
 
     retrieval_path = extract_features.main(
-        retrieval_conf, image_dir=keyframes_path, export_dir=hloc_dir
+        retrieval_conf, image_dir=keyframes_path, export_dir=hloc_path
     )
     features_path = extract_features.main(
-        feature_conf, image_dir=keyframes_path, export_dir=hloc_dir
+        feature_conf, image_dir=keyframes_path, export_dir=hloc_path
     )
 
     pairs_from_retrieval.main(
@@ -130,7 +130,7 @@ def run(
         conf=matcher_conf,
         pairs=pairs_path,
         features=feature_conf["output"],
-        export_dir=hloc_dir,
+        export_dir=hloc_path,
     )
 
     colmap_opts = set_colmap_triangulation_options(options)
