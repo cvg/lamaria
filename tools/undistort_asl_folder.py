@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict
 
 import pycolmap
 from tqdm import tqdm

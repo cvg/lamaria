@@ -2,7 +2,6 @@ import argparse
 import copy
 import os
 from pathlib import Path
-from typing import Dict
 
 import numpy as np
 import pyceres

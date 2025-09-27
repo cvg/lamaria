@@ -3,7 +3,6 @@ import shutil
 import subprocess
 from bisect import bisect_left
 from pathlib import Path
-from typing import Dict
 
 import pycolmap
 
