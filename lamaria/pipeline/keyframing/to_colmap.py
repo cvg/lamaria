@@ -1,7 +1,6 @@
 from bisect import bisect_left
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import projectaria_tools.core.mps as mps
 import pycolmap

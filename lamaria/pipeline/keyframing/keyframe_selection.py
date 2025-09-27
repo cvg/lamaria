@@ -3,7 +3,6 @@ from __future__ import annotations
 import shutil
 from copy import deepcopy
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import pycolmap

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 import pycolmap
 from projectaria_tools.core import data_provider, mps

@@ -1,7 +1,6 @@
 import argparse
 import shutil
 from pathlib import Path
-from typing import Optional
 
 import pycolmap
 

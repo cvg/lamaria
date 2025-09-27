@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional
 
 from omegaconf import DictConfig, OmegaConf
 
