@@ -2,6 +2,7 @@
 
 sensor:
   camera_model: RAD_TAN_THIN_PRISM_FISHEYE
+  has_slam_drops: false
 
 keyframing:
   max_rotation: 20.0
@@ -49,6 +50,4 @@ optimization:
     integration_noise_density: 0.05
 
 mps:
-  use_mps: false
-  use_online_calibration: false # relevant only when use_mps is true (for online calib file)
-  has_slam_drops: false
+  use_online_calibration: false # relevant only when mps folder is used
