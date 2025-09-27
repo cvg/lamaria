@@ -12,7 +12,11 @@ from lamaria.utils.general import (
     extract_images_from_vrs,
     get_matched_timestamps,
 )
-import lamaria.utils.constants as constant
+from lamaria.utils.constants import (
+    LEFT_CAMERA_STREAM_ID,
+    RIGHT_CAMERA_STREAM_ID,
+    RIGHT_IMU_STREAM_ID,
+)
 
 
 def remove_images_when_slam_drops(
@@ -131,7 +135,7 @@ def write_image_csv(image_timestamps, cam_folder):
 
 def write_imu_data_to_csv(vrs_provider, csv_file):
     imu_timestamps = vrs_provider.get_timestamps_ns(
-        constant.RIGHT_IMU_STREAM_ID,
+        RIGHT_IMU_STREAM_ID,
         TimeDomain.DEVICE_TIME
     )
 
@@ -155,7 +159,7 @@ def write_imu_data_to_csv(vrs_provider, csv_file):
         writer = csv.writer(f)
         for timestamp in tqdm(imu_timestamps, desc="Appending IMU data to CSV"):
             imu_data = vrs_provider.get_imu_data_by_time_ns(
-                constant.RIGHT_IMU_STREAM_ID,
+                RIGHT_IMU_STREAM_ID,
                 timestamp,
                 TimeDomain.DEVICE_TIME,
                 TimeQueryOptions.CLOSEST,
@@ -190,7 +194,7 @@ def form_aria_asl_folder(
 
     # Get all image timestamps (in ns)
     image_timestamps = vrs_provider.get_timestamps_ns(
-        constant.LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+        LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
     )
     assert len(image_timestamps) > 0, "No timestamps found"
 
@@ -198,7 +202,7 @@ def form_aria_asl_folder(
     matched_timestamps = None
     if has_slam_drops:
         right_image_timestamps = vrs_provider.get_timestamps_ns(
-            constant.RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+            RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
         )
         assert len(right_image_timestamps) > 0, (
             "No right camera image timestamps found"
