@@ -15,10 +15,16 @@ from .general import (
 
 def construct_control_points_from_json(
     cp_json_file: Path,
-) -> dict:
-    """Construct control points dict from JSON file
+) -> dict[int, dict[str, object]]:
+    """
+    Construct control points dict from a JSON file.
+
     Args:
-        cp_json_file (Path): Path to the sparse GT JSON file
+        cp_json_file (Path): Path to the sparse GT JSON file.
+
+    Returns:
+        Mapping
+        ``{ tag_id: {"control_point": str, "topo": ndarray(3,), "covariance": ndarray(3,3)} }``.
     """
     with open(cp_json_file) as file:
         cp_data = json.load(file)
@@ -106,6 +112,19 @@ def run_control_point_triangulation_from_json(
     cp_json_file: Path,
     control_points: dict,  # edits control_points in place
 ) -> None:
+    """
+    Triangulate control points from JSON file and add to control_points dict.
+    Updates `control_points` in place to add:
+    
+    - ``triangulated``: np.ndarray(3,) or None if triangulation fails
+    - ``inlier_ratio``: float
+    - ``image_id_and_point2d``: list of (image_id, [x, y]) tuples
+    of observations used for triangulation
+    Args:
+        reconstruction_path (Path): Path to the reconstruction folder
+        cp_json_file (Path): Path to the sparse GT JSON file
+        control_points (dict): Control points dictionary to be updated
+    """
     rec = pycolmap.Reconstruction(reconstruction_path)
 
     image_names_to_ids = get_image_names_to_ids(
@@ -179,6 +198,7 @@ def run_control_point_triangulation_from_json(
 
 
 def get_cps_for_initial_alignment(control_points: dict):
+    """Get control points with z != 0 for initial alignment"""
     triangulated_cp_alignment = []
     topo_cp_alignment = []
     for tag_id, cp in control_points.items():
