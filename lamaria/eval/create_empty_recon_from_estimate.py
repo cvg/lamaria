@@ -22,7 +22,7 @@ from ..utils.transformation import (
 )
 
 
-def add_images_to_reconstruction(
+def _add_images_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
     estimate_file: Path,
     cp_json_file: Path,
@@ -165,7 +165,7 @@ def create_baseline_reconstruction(
         device_calibration_json,
     )
 
-    add_images_to_reconstruction(
+    _add_images_to_reconstruction(
         reconstruction,
         estimate_file,
         cp_json_file,
