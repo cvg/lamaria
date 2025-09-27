@@ -8,9 +8,6 @@ from tqdm import tqdm
 from ..structs.estimate import (
     Estimate,
 )
-from ..utils.camera import (
-    add_cameras_to_reconstruction,
-)
 from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
@@ -19,8 +16,9 @@ from ..utils.general import (
     delete_files_in_folder,
     find_closest_timestamp,
 )
-from ..utils.transformation import (
+from ..utils.aria import (
     get_t_imu_camera_from_json,
+    add_cameras_to_reconstruction,
 )
 
 
