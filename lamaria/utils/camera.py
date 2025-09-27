@@ -4,15 +4,8 @@ from pathlib import Path
 import numpy as np
 import pycolmap
 from projectaria_tools.core.calibration import CameraCalibration
-from projectaria_tools.core.stream_id import StreamId
 
 from .transformation import get_t_cam_a_cam_b_from_json
-
-ARIA_CAMERAS = [("cam0", "camera-slam-left"), ("cam1", "camera-slam-right")]
-LEFT_CAMERA_STREAM_ID = StreamId("1201-1")
-RIGHT_CAMERA_STREAM_ID = StreamId("1201-2")
-LEFT_CAMERA_STREAM_LABEL = "camera-slam-left"
-RIGHT_CAMERA_STREAM_LABEL = "camera-slam-right"
 
 
 def add_cameras_to_reconstruction(

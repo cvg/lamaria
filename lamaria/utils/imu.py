@@ -3,15 +3,11 @@ from pathlib import Path
 import pycolmap
 from projectaria_tools.core import data_provider, mps
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
-from projectaria_tools.core.stream_id import StreamId
 from tqdm import tqdm
 
 from lamaria.utils.general import (
     find_closest_timestamp,
 )
-
-RIGHT_IMU_STREAM_ID = StreamId("1202-1")
-RIGHT_IMU_STREAM_LABEL = "imu-right"
 
 
 def get_online_params_for_imu_from_mps(
