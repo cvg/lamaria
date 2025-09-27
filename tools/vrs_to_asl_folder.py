@@ -8,17 +8,11 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
 from lamaria import logger
-from lamaria.utils.camera import (
-    LEFT_CAMERA_STREAM_ID,
-    RIGHT_CAMERA_STREAM_ID,
-)
 from lamaria.utils.general import (
     extract_images_from_vrs,
     get_matched_timestamps,
 )
-from lamaria.utils.imu import (
-    RIGHT_IMU_STREAM_ID,
-)
+import lamaria.utils.constants as constant
 
 
 def remove_images_when_slam_drops(
@@ -137,14 +131,15 @@ def write_image_csv(image_timestamps, cam_folder):
 
 def write_imu_data_to_csv(vrs_provider, csv_file):
     imu_timestamps = vrs_provider.get_timestamps_ns(
-        RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
+        constant.RIGHT_IMU_STREAM_ID,
+        TimeDomain.DEVICE_TIME
     )
 
     last_timestamp = None
     if os.path.exists(csv_file):
         with open(csv_file) as f:
             last_row = None
-            for _last_row in csv.reader(f):
+            for _ in csv.reader(f):
                 pass
             if last_row is not None:
                 last_timestamp = int(last_row[0])
@@ -160,7 +155,7 @@ def write_imu_data_to_csv(vrs_provider, csv_file):
         writer = csv.writer(f)
         for timestamp in tqdm(imu_timestamps, desc="Appending IMU data to CSV"):
             imu_data = vrs_provider.get_imu_data_by_time_ns(
-                RIGHT_IMU_STREAM_ID,
+                constant.RIGHT_IMU_STREAM_ID,
                 timestamp,
                 TimeDomain.DEVICE_TIME,
                 TimeQueryOptions.CLOSEST,
@@ -195,7 +190,7 @@ def form_aria_asl_folder(
 
     # Get all image timestamps (in ns)
     image_timestamps = vrs_provider.get_timestamps_ns(
-        LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+        constant.LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
     )
     assert len(image_timestamps) > 0, "No timestamps found"
 
@@ -203,7 +198,7 @@ def form_aria_asl_folder(
     matched_timestamps = None
     if has_slam_drops:
         right_image_timestamps = vrs_provider.get_timestamps_ns(
-            RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+            constant.RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
         )
         assert len(right_image_timestamps) > 0, (
             "No right camera image timestamps found"
