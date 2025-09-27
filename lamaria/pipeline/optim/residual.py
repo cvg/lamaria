@@ -3,8 +3,8 @@ import pyceres
 import pycolmap
 from tqdm import tqdm
 
-from .session import SingleSeqSession
 from ...config.options import OptIMUOptions
+from .session import SingleSeqSession
 
 
 def add_imu_residuals_to_problem(
@@ -13,12 +13,12 @@ def add_imu_residuals_to_problem(
     problem,
 ):
     loss = pyceres.TrivialLoss()
-    
+
     frame_ids = sorted(session.data.reconstruction.frames.keys())
-        
+
     for k in tqdm(
         range(len(session.preintegrated_imu_measurements)),
-        desc="Adding IMU residuals"
+        desc="Adding IMU residuals",
     ):
         i = frame_ids[k]
         j = frame_ids[k + 1]
@@ -45,7 +45,7 @@ def add_imu_residuals_to_problem(
                 session.imu_states[j].data,
             ],
         )
-    
+
     problem = setup_manifolds_and_constraints(
         imu_options,
         session,
@@ -53,7 +53,7 @@ def add_imu_residuals_to_problem(
     )
 
     return problem
-    
+
 
 def setup_manifolds_and_constraints(
     imu_options: OptIMUOptions,
@@ -63,10 +63,9 @@ def setup_manifolds_and_constraints(
     """Setup manifolds and parameter constraints"""
     problem.set_manifold(session.gravity, pyceres.SphereManifold(3))
     problem.set_manifold(
-        session.imu_from_rig.rotation.quat,
-        pyceres.EigenQuaternionManifold()
+        session.imu_from_rig.rotation.quat, pyceres.EigenQuaternionManifold()
     )
-    
+
     # Apply optimization constraints based on configuration
     if not imu_options.optimize_scale:
         problem.set_parameter_block_constant(session.log_scale)
@@ -82,5 +81,5 @@ def setup_manifolds_and_constraints(
                 session.imu_states[frame_id].data,
                 pyceres.SubsetManifold(9, constant_idxs),
             )
-    
+
     return problem

@@ -1,24 +1,22 @@
 import os
-import pycolmap
-from pathlib import Path
-from typing import List, Tuple, Dict
 import shutil
-from bisect import bisect_left
-from typing import List
 import subprocess
+from bisect import bisect_left
+from pathlib import Path
+from typing import Dict, Tuple
+
+import pycolmap
 
 from lamaria import logger
-
 
 CUSTOM_ORIGIN_COORDINATES = (2683594.4120000005, 1247727.7470000014, 417.307)
 
 
 def find_closest_timestamp(
-    timestamps: list, 
+    timestamps: list,
     target_ts: int,
     max_diff: float,
 ) -> int | None:
-    
     """Timestamps must be in nano seconds"""
     index = bisect_left(timestamps, target_ts)
     if index == 0:
@@ -39,21 +37,24 @@ def find_closest_timestamp(
 
 
 def get_matched_timestamps(
-    left_timestamps: List[int],
-    right_timestamps: List[int],
+    left_timestamps: list[int],
+    right_timestamps: list[int],
     max_diff: float,
-) -> List[Tuple[int, int]]:
-
+) -> list[Tuple[int, int]]:
     matched_timestamps = []
 
-    assert all(isinstance(ts, int) for ts in left_timestamps), \
+    assert all(isinstance(ts, int) for ts in left_timestamps), (
         "Left timestamps must be integers"
-    assert all(isinstance(ts, int) for ts in right_timestamps), \
+    )
+    assert all(isinstance(ts, int) for ts in right_timestamps), (
         "Right timestamps must be integers"
+    )
 
     if len(left_timestamps) < len(right_timestamps):
         for lts in left_timestamps:
-            closest_rts = find_closest_timestamp(right_timestamps, lts, max_diff)
+            closest_rts = find_closest_timestamp(
+                right_timestamps, lts, max_diff
+            )
             if closest_rts is not None:
                 matched_timestamps.append((lts, closest_rts))
     else:
@@ -128,10 +129,7 @@ def extract_images_from_vrs(
         logger.info("Done!")
 
 
-def get_image_names_to_ids(
-    reconstruction_path: Path
-) -> Dict[str, int]:
-    
+def get_image_names_to_ids(reconstruction_path: Path) -> Dict[str, int]:
     recon = pycolmap.Reconstruction(reconstruction_path)
     image_names_to_ids = {}
 

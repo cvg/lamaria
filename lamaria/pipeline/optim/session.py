@@ -1,13 +1,15 @@
 from __future__ import annotations
-import pycolmap
-import numpy as np
 
+import numpy as np
+import pycolmap
+
+from ...config.options import OptIMUOptions
+from ..lamaria_reconstruction import LamariaReconstruction
 from .imu import (
     load_imu_states,
     load_preintegrated_imu_measurements,
 )
-from ...config.options import OptIMUOptions
-from ..lamaria_reconstruction import LamariaReconstruction
+
 
 class SingleSeqSession:
     def __init__(
@@ -19,11 +21,9 @@ class SingleSeqSession:
         self._init_imu_data(imu_options)
 
     def _init_imu_data(self, imu_options):
-        self.preintegrated_imu_measurements = \
-            load_preintegrated_imu_measurements(
-                imu_options,
-                self.data
-            )
+        self.preintegrated_imu_measurements = (
+            load_preintegrated_imu_measurements(imu_options, self.data)
+        )
         self.imu_states = load_imu_states(self.data)
         self.imu_from_rig = pycolmap.Rigid3d()
         self.gravity = np.array([0.0, 0.0, -1.0])

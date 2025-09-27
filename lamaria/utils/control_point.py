@@ -1,16 +1,14 @@
 import json
-import os
 from pathlib import Path
+from typing import Dict
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pycolmap
 from tqdm import tqdm
-from typing import Dict, List
 
 from .general import (
-    get_image_names_to_ids,
     CUSTOM_ORIGIN_COORDINATES,
+    get_image_names_to_ids,
 )
 
 
@@ -21,8 +19,8 @@ def construct_control_points_from_json(
     Args:
         cp_json_file (Path): Path to the sparse GT JSON file
     """
-    
-    cp_data = json.load(open(cp_json_file, 'r'))
+
+    cp_data = json.load(open(cp_json_file))
     control_points = {}
     for geo_id, data in cp_data["control_points"].items():
         tag_ids = data["tag_id"]
@@ -30,24 +28,28 @@ def construct_control_points_from_json(
         unc = data["uncertainty"]
 
         if measurement[2] == None:
-            assert unc[2] == None, "Uncertainty for z coordinate should be None if measurement is None"
+            assert unc[2] == None, (
+                "Uncertainty for z coordinate should be None if measurement is None"
+            )
             measurement[2] = CUSTOM_ORIGIN_COORDINATES[2]
-            unc[2] = 1e9 # some large number
-        
-        translated_measurement = np.array(measurement) - np.array(CUSTOM_ORIGIN_COORDINATES)
+            unc[2] = 1e9  # some large number
+
+        translated_measurement = np.array(measurement) - np.array(
+            CUSTOM_ORIGIN_COORDINATES
+        )
         # those without height will have 0 height and large uncertainty in z
 
         for tag_id in tag_ids:
             control_points[tag_id] = {
                 "control_point": geo_id,
                 "topo": translated_measurement,
-                "covariance": np.diag(np.square(unc))
+                "covariance": np.diag(np.square(unc)),
             }
-            
+
     return control_points
 
 
-def check_3d_error_bet_triang_and_topo(triangulated: List, topo: List):
+def check_3d_error_bet_triang_and_topo(triangulated: list, topo: list):
     """Calculate L2 error between triangulated and topo points
     Args:
         triangulated (list): list of triangulated points
@@ -62,7 +64,7 @@ def check_3d_error_bet_triang_and_topo(triangulated: List, topo: List):
     return errors
 
 
-def check_2d_error_bet_triang_and_topo(triangulated: List, topo: List):
+def check_2d_error_bet_triang_and_topo(triangulated: list, topo: list):
     """Calculate L2 error between triangulated and topo points
     Args:
         triangulated (list): list of 3d triangulated points
@@ -99,13 +101,15 @@ def transform_triangulated_control_points(control_points: Dict, r, t, scale):
 def run_control_point_triangulation_from_json(
     reconstruction_path: Path,
     cp_json_file: Path,
-    control_points: Dict, # edits control_points in place
+    control_points: Dict,  # edits control_points in place
 ) -> None:
     rec = pycolmap.Reconstruction(reconstruction_path)
 
-    image_names_to_ids = get_image_names_to_ids(reconstruction_path=reconstruction_path)
+    image_names_to_ids = get_image_names_to_ids(
+        reconstruction_path=reconstruction_path
+    )
 
-    with open(cp_json_file, "r") as file:
+    with open(cp_json_file) as file:
         data = json.load(file)
 
     image_data = data["images"]
@@ -153,9 +157,7 @@ def run_control_point_triangulation_from_json(
                 },
             )
         except Exception as e:
-            print(
-                f"Error in triangulating control point {geo_id}: {e}"
-            )
+            print(f"Error in triangulating control point {geo_id}: {e}")
             output = None
 
         if output is None:

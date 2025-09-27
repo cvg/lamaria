@@ -4,12 +4,11 @@ from collections import defaultdict
 from pathlib import Path
 
 import pycolmap
-
 from hloc import (
     extract_features,
     match_features,
     pairs_from_retrieval,
-    triangulation
+    triangulation,
 )
 
 from ... import logger
@@ -19,13 +18,18 @@ from ...config.options import TriangulatorOptions
 def set_colmap_triangulation_options(
     options: TriangulatorOptions,
 ) -> pycolmap.IncrementalPipelineOptions:
-    
     colmap_options = pycolmap.IncrementalPipelineOptions()
-    colmap_options.triangulation.merge_max_reproj_error = options.merge_max_reproj_error
-    colmap_options.triangulation.complete_max_reproj_error = options.complete_max_reproj_error
+    colmap_options.triangulation.merge_max_reproj_error = (
+        options.merge_max_reproj_error
+    )
+    colmap_options.triangulation.complete_max_reproj_error = (
+        options.complete_max_reproj_error
+    )
     colmap_options.triangulation.min_angle = options.min_angle
 
-    colmap_options.mapper.filter_max_reproj_error = options.filter_max_reproj_error
+    colmap_options.mapper.filter_max_reproj_error = (
+        options.filter_max_reproj_error
+    )
     colmap_options.mapper.filter_min_tri_angle = options.filter_min_tri_angle
 
     return colmap_options
@@ -55,17 +59,20 @@ def pairs_from_frames(recon: pycolmap.Reconstruction):
 
     return frame_pairs, adj_pairs
 
+
 def postprocess_pairs_with_reconstruction(
-    sfm_pairs_file: Path,
-    reconstruction: pycolmap.Reconstruction | Path
+    sfm_pairs_file: Path, reconstruction: pycolmap.Reconstruction | Path
 ):
-    recon = (reconstruction if isinstance(reconstruction, pycolmap.Reconstruction)
-             else pycolmap.Reconstruction(reconstruction.as_posix()))
+    recon = (
+        reconstruction
+        if isinstance(reconstruction, pycolmap.Reconstruction)
+        else pycolmap.Reconstruction(reconstruction.as_posix())
+    )
 
     frame_pairs, adj_pairs = pairs_from_frames(recon)
 
     existing = set()
-    with open(sfm_pairs_file, "r") as f:
+    with open(sfm_pairs_file) as f:
         for line in f:
             a, b = line.strip().split()
             existing.add((a, b))
@@ -80,34 +87,43 @@ def postprocess_pairs_with_reconstruction(
 
 def run(
     options: TriangulatorOptions,
-    reference_model: Path, # reconstruction path
+    reference_model: Path,  # reconstruction path
     keyframes: Path,
     hloc_dir: Path,
     pairs_path: Path,
     triangulated_model_path: Path,
 ) -> Path:
-
     if not keyframes.exists():
         raise FileNotFoundError(f"keyframes_dir not found at {keyframes}")
-    
+
     hloc_dir.mkdir(parents=True, exist_ok=True)
 
     if not reference_model.exists():
-        raise FileNotFoundError(f"reference_model not found at {reference_model}")
+        raise FileNotFoundError(
+            f"reference_model not found at {reference_model}"
+        )
 
     retrieval_conf = extract_features.confs[options.retrieval_conf]
-    feature_conf   = extract_features.confs[options.feature_conf]
-    matcher_conf   = match_features.confs[options.matcher_conf]
+    feature_conf = extract_features.confs[options.feature_conf]
+    matcher_conf = match_features.confs[options.matcher_conf]
 
-    logger.info("HLOC confs: retrieval=%s, features=%s, matcher=%s",
-                options.retrieval_conf,
-                options.feature_conf,
-                options.matcher_conf)
+    logger.info(
+        "HLOC confs: retrieval=%s, features=%s, matcher=%s",
+        options.retrieval_conf,
+        options.feature_conf,
+        options.matcher_conf,
+    )
 
-    retrieval_path = extract_features.main(retrieval_conf, image_dir=keyframes, export_dir=hloc_dir)
-    features_path = extract_features.main(feature_conf, image_dir=keyframes, export_dir=hloc_dir)
+    retrieval_path = extract_features.main(
+        retrieval_conf, image_dir=keyframes, export_dir=hloc_dir
+    )
+    features_path = extract_features.main(
+        feature_conf, image_dir=keyframes, export_dir=hloc_dir
+    )
 
-    pairs_from_retrieval.main(retrieval_path, pairs_path, options.num_retrieval_matches)
+    pairs_from_retrieval.main(
+        retrieval_path, pairs_path, options.num_retrieval_matches
+    )
     postprocess_pairs_with_reconstruction(pairs_path, reference_model)
 
     matches_path = match_features.main(

@@ -1,15 +1,12 @@
-
 import json
+from pathlib import Path
+
 import numpy as np
 import pycolmap
-from pathlib import Path
-from typing import List
-
-from projectaria_tools.core.stream_id import StreamId
 from projectaria_tools.core.calibration import CameraCalibration
+from projectaria_tools.core.stream_id import StreamId
 
 from .transformation import get_t_cam_a_cam_b_from_json
-
 
 ARIA_CAMERAS = [("cam0", "camera-slam-left"), ("cam1", "camera-slam-right")]
 LEFT_CAMERA_STREAM_ID = StreamId("1201-1")
@@ -18,14 +15,13 @@ LEFT_CAMERA_STREAM_LABEL = "camera-slam-left"
 RIGHT_CAMERA_STREAM_LABEL = "camera-slam-right"
 
 
-
 def add_cameras_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
     calibration_file: Path,
 ) -> None:
-    """ Add Aria cameras to COLMAP reconstruction from calibration json file found on website:
+    """Add Aria cameras to COLMAP reconstruction from calibration json file found on website:
     https://lamaria.ethz.ch/slam_datasets
-    
+
     Args:
         reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction to which cameras will be added
         calibration_file (Path): Path to the Aria calibration json file
@@ -49,26 +45,26 @@ def add_cameras_to_reconstruction(
     sensor1 = pycolmap.sensor_t(id=2, type=pycolmap.SensorType.CAMERA)
     sensor_from_rig = get_t_cam_a_cam_b_from_json(
         calibration_file=calibration_file,
-        camera_a_label="cam1", # right
-        camera_b_label="cam0", # left
+        camera_a_label="cam1",  # right
+        camera_b_label="cam0",  # left
     )
     rig.add_sensor(sensor1, sensor_from_rig)
-    
+
     reconstruction.add_rig(rig)
 
 
 def get_camera_params_for_colmap(
     camera_calibration: CameraCalibration,
     camera_model: str,
-) -> List[float]:
-    """ 
+) -> list[float]:
+    """
     Convert Aria CameraCalibration to COLMAP camera parameters.
     Supported models: OPENCV_FISHEYE, FULL_OPENCV, RAD_TAN_THIN_PRISM_FISHEYE
     Args:
         camera_calibration (CameraCalibration): The projectaria_tools CameraCalibration object
         camera_model (str): The COLMAP camera model to use
     Returns:
-        List[float]: The camera parameters in COLMAP format
+        list[float]: The camera parameters in COLMAP format
     """
     # params = [f_u {f_v} c_u c_v [k_0: k_{numK-1}]
     # {p_0 p_1} {s_0 s_1 s_2 s_3}]
@@ -108,7 +104,9 @@ def get_camera_params_for_colmap(
 def camera_colmap_from_calib(calib: CameraCalibration) -> pycolmap.Camera:
     """Loads pycolmap camera from Aria CameraCalibration object"""
     if calib.get_model_name().name != "FISHEYE624":
-        raise ValueError(f"Unsupported Aria model {calib.get_model_name().name}")
+        raise ValueError(
+            f"Unsupported Aria model {calib.get_model_name().name}"
+        )
     model = "RAD_TAN_THIN_PRISM_FISHEYE"
     params = get_camera_params_for_colmap(calib, model)
     width, height = calib.get_image_size()
@@ -121,8 +119,8 @@ def camera_colmap_from_calib(calib: CameraCalibration) -> pycolmap.Camera:
 
 
 def camera_colmap_from_json(
-    calibration_file: Path, # open sourced aria calibration files
-    camera_label: str
+    calibration_file: Path,  # open sourced aria calibration files
+    camera_label: str,
 ) -> pycolmap.Camera:
     """Loads pycolmap camera from Aria calibration json file found on website:
     https://lamaria.ethz.ch/slam_datasets"""
@@ -131,7 +129,7 @@ def camera_colmap_from_json(
     camera_data = calib[camera_label]
     if camera_data["model"] != "RAD_TAN_THIN_PRISM_FISHEYE":
         raise ValueError(f"Unsupported Aria model {camera_data['model']}")
-    
+
     model = "RAD_TAN_THIN_PRISM_FISHEYE"
     params = camera_data["params"]
     width = camera_data["resolution"]["width"]

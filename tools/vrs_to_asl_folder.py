@@ -2,17 +2,21 @@ import argparse
 import csv
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
 from projectaria_tools.core import data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
 from lamaria import logger
-from lamaria.utils.general import (
+from lamaria.utils.imu import (
+    RIGHT_IMU_STREAM_ID,
+)
+from lamaria.utils.camera import (
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
-    IMU_STREAM_ID,
+)
+from lamaria.utils.general import (
     extract_images_from_vrs,
     get_matched_timestamps,
 )
@@ -20,9 +24,9 @@ from lamaria.utils.general import (
 
 def remove_images_when_slam_drops(
     image_folder: Path,
-    left_timestamps: List[int],
-    right_timestamps: List[int],
-    matched_timestamps: List[Tuple[int, int]],
+    left_timestamps: list[int],
+    right_timestamps: list[int],
+    matched_timestamps: list[Tuple[int, int]],
     left_subfolder_name="cam0/data",
     right_subfolder_name="cam1/data",
 ):
@@ -71,18 +75,25 @@ def rename_images_in_folder(
     left_subfolder_name="cam0/data",
     right_subfolder_name="cam1/data",
     image_extension=".jpg",
-) -> List[int]:
-    
+) -> list[int]:
     for subfolder in [left_subfolder_name, right_subfolder_name]:
         subfolder_path = aria_folder / subfolder
 
         if not subfolder_path.exists() and not subfolder_path.is_dir():
-            raise ValueError(f"{subfolder_path} does not exist or is not a directory")
+            raise ValueError(
+                f"{subfolder_path} does not exist or is not a directory"
+            )
 
-        original_images = sorted([f for f in os.listdir(subfolder_path) if f.endswith(image_extension)])
+        original_images = sorted(
+            [
+                f
+                for f in os.listdir(subfolder_path)
+                if f.endswith(image_extension)
+            ]
+        )
         if len(original_images) == 0:
             raise ValueError(f"No images found in {subfolder_path}")
-        
+
         if len(original_images) != len(image_timestamps):
             raise ValueError(
                 f"Number of images {len(original_images)} \
@@ -98,7 +109,7 @@ def rename_images_in_folder(
     return image_timestamps
 
 
-def write_image_timestamps_to_txt(image_timestamps: List, txt_file: Path):
+def write_image_timestamps_to_txt(image_timestamps: list, txt_file: Path):
     with open(txt_file, "w") as f:
         for timestamp in image_timestamps:
             f.write(f"{timestamp}\n")
@@ -127,14 +138,14 @@ def write_image_csv(image_timestamps, cam_folder):
 
 def write_imu_data_to_csv(vrs_provider, csv_file):
     imu_timestamps = vrs_provider.get_timestamps_ns(
-        IMU_STREAM_ID, TimeDomain.DEVICE_TIME
+        RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
     )
 
     last_timestamp = None
     if os.path.exists(csv_file):
-        with open(csv_file, "r") as f:
+        with open(csv_file) as f:
             last_row = None
-            for last_row in csv.reader(f):
+            for _last_row in csv.reader(f):
                 pass
             if last_row is not None:
                 last_timestamp = int(last_row[0])
@@ -150,7 +161,7 @@ def write_imu_data_to_csv(vrs_provider, csv_file):
         writer = csv.writer(f)
         for timestamp in tqdm(imu_timestamps, desc="Appending IMU data to CSV"):
             imu_data = vrs_provider.get_imu_data_by_time_ns(
-                IMU_STREAM_ID,
+                RIGHT_IMU_STREAM_ID,
                 timestamp,
                 TimeDomain.DEVICE_TIME,
                 TimeQueryOptions.CLOSEST,
@@ -172,13 +183,11 @@ def write_imu_data_to_csv(vrs_provider, csv_file):
 
 
 def form_aria_asl_folder(
-    vrs_file: Path,
-    output_asl_folder: Path,
-    has_slam_drops=False
+    vrs_file: Path, output_asl_folder: Path, has_slam_drops=False
 ):
     if output_asl_folder.exists():
         raise ValueError(f"{output_asl_folder=} already exists.")
-    
+
     aria_folder = output_asl_folder / "aria"
     aria_folder.mkdir(parents=True, exist_ok=True)
 
@@ -189,9 +198,7 @@ def form_aria_asl_folder(
     image_timestamps = vrs_provider.get_timestamps_ns(
         LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
     )
-    assert (
-        len(image_timestamps) > 0
-    ), "No timestamps found"
+    assert len(image_timestamps) > 0, "No timestamps found"
 
     right_image_timestamps = None
     matched_timestamps = None
@@ -199,16 +206,16 @@ def form_aria_asl_folder(
         right_image_timestamps = vrs_provider.get_timestamps_ns(
             RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
         )
-        assert (
-            len(right_image_timestamps) > 0
-        ), "No right camera image timestamps found"
-        assert len(right_image_timestamps) != len(
-            image_timestamps
-        ), "Left and right camera image timestamps are the same"
+        assert len(right_image_timestamps) > 0, (
+            "No right camera image timestamps found"
+        )
+        assert len(right_image_timestamps) != len(image_timestamps), (
+            "Left and right camera image timestamps are the same"
+        )
         matched_timestamps = get_matched_timestamps(
             left_timestamps=image_timestamps,
             right_timestamps=right_image_timestamps,
-            max_diff=1e6, # 1 ms in nanoseconds
+            max_diff=1e6,  # 1 ms in nanoseconds
         )
 
         assert len(matched_timestamps) > 0, "No matched timestamps found"

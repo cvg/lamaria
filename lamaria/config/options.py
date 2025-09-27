@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
 from typing import Optional
+
 from omegaconf import OmegaConf, open_dict
+
 
 def _structured_merge_to_obj(cls, section) -> object:
     """
@@ -19,17 +21,18 @@ def _structured_merge_to_obj(cls, section) -> object:
 @dataclass(slots=True)
 class MPSOptions:
     use_mps: bool = False
-    use_online_calibration: bool = False # when use_mps is true (for online calib file)
-    has_slam_drops: bool = False # check vrs json metadata file for each sequence
+    use_online_calibration: bool = (
+        False  # when use_mps is true (for online calib file)
+    )
+    has_slam_drops: bool = (
+        False  # check vrs json metadata file for each sequence
+    )
 
     @classmethod
-    def load(
-        cls,
-        cfg: Optional[OmegaConf] = None
-    ) -> MPSOptions:
+    def load(cls, cfg: Optional[OmegaConf] = None) -> MPSOptions:
         if cfg is None:
             return cls()
-        
+
         return _structured_merge_to_obj(cls, cfg)
 
 
@@ -41,13 +44,10 @@ class SensorOptions:
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
 
     @classmethod
-    def load(
-        cls,
-        cfg: Optional[OmegaConf] = None
-    ) -> "SensorOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> SensorOptions:
         if cfg is None:
             return cls()
-        
+
         obj: SensorOptions = _structured_merge_to_obj(cls, cfg)
         return obj
 
@@ -60,34 +60,30 @@ class EstimateToColmapOptions:
 
     @classmethod
     def load(
-        cls, 
+        cls,
         cfg_mps: Optional[OmegaConf] = None,
         cfg_sensor: Optional[OmegaConf] = None,
     ) -> EstimateToColmapOptions:
-        
         if cfg_mps is None or cfg_sensor is None:
             return cls()
-        
+
         base = cls()
         return replace(
             base,
             mps=MPSOptions.load(cfg_mps),
-            sensor=SensorOptions.load(cfg_sensor)
+            sensor=SensorOptions.load(cfg_sensor),
         )
 
 
 # Keyframing options
 @dataclass(slots=True)
 class KeyframeSelectorOptions:
-    max_rotation: float = 20.0 # degrees
-    max_distance: float = 1.0 # meters
-    max_elapsed: int = int(1e9) # 1 second in ns
+    max_rotation: float = 20.0  # degrees
+    max_distance: float = 1.0  # meters
+    max_elapsed: int = int(1e9)  # 1 second in ns
 
     @classmethod
-    def load(
-        cls,
-        cfg: Optional[OmegaConf] = None
-    ) -> "KeyframeSelectorOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> KeyframeSelectorOptions:
         if cfg is None:
             return cls()
 
@@ -95,7 +91,7 @@ class KeyframeSelectorOptions:
         with open_dict(cfg):
             if "max_elapsed" in cfg and isinstance(cfg.max_elapsed, float):
                 cfg.max_elapsed = int(cfg.max_elapsed)
-        
+
         obj: KeyframeSelectorOptions = _structured_merge_to_obj(cls, cfg)
         return obj
 
@@ -117,24 +113,22 @@ class TriangulatorOptions:
     filter_min_tri_angle: float = 1.5
 
     @classmethod
-    def load(
-        cls,
-        cfg: Optional[OmegaConf] = None
-    ) -> "TriangulatorOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> TriangulatorOptions:
         if cfg is None:
             return cls()
-        
+
         return _structured_merge_to_obj(cls, cfg)
 
 
 # Optimization options
 @dataclass(slots=True)
 class OptCamOptions:
-    feature_std: float = 1.0 # in pixels
+    feature_std: float = 1.0  # in pixels
     optimize_focal_length: bool = False
     optimize_principal_point: bool = False
     optimize_extra_params: bool = False
     optimize_cam_from_rig: bool = False
+
 
 @dataclass(slots=True)
 class OptIMUOptions:
@@ -147,6 +141,7 @@ class OptIMUOptions:
     optimize_imu_from_rig: bool = False
     optimize_bias: bool = False
 
+
 @dataclass(slots=True)
 class OptOptions:
     use_callback: bool = True
@@ -155,6 +150,7 @@ class OptOptions:
     minimizer_progress_to_stdout: bool = True
     update_state_every_iteration: bool = True
 
+
 @dataclass(slots=True)
 class VIOptimizerOptions:
     cam: OptCamOptions = field(default_factory=OptCamOptions)
@@ -162,13 +158,10 @@ class VIOptimizerOptions:
     optim: OptOptions = field(default_factory=OptOptions)
 
     @classmethod
-    def load(
-        cls,
-        cfg: Optional[OmegaConf] = None
-    ) -> "VIOptimizerOptions":
+    def load(cls, cfg: Optional[OmegaConf] = None) -> VIOptimizerOptions:
         if cfg is None:
             return cls()
-        
+
         base = cls()
         cam = _structured_merge_to_obj(OptCamOptions, cfg.cam)
         imu = _structured_merge_to_obj(OptIMUOptions, cfg.imu)

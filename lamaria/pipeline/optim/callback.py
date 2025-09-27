@@ -1,16 +1,17 @@
-
 from copy import deepcopy
-from typing import List, Tuple
+from typing import Tuple
+
 import numpy as np
-import pycolmap
 import pyceres
+import pycolmap
 
 from ... import logger
+
 
 class RefinementCallback(pyceres.IterationCallback):
     def __init__(
         self,
-        poses: List[pycolmap.Rigid3d],
+        poses: list[pycolmap.Rigid3d],
         min_pose_change: Tuple[float, float] = (0.001, 0.000001),
         min_iterations: int = 2,
     ):

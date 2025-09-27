@@ -70,10 +70,7 @@ def write_cameras_json(cameras: Dict[int | str, pycolmap.Camera], path: Path):
 
 
 def undistort_asl(
-    calibration_file: Path,
-    asl_path: Path,
-    output_asl_path: Path,
-    **kwargs
+    calibration_file: Path, asl_path: Path, output_asl_path: Path, **kwargs
 ):
     if output_asl_path.exists():
         raise ValueError(f"{output_asl_path=} already exists.")
@@ -108,15 +105,16 @@ def undistort_asl(
             )
             image_id += 1
             colmap_images[key].append(im)
-    
-    zipped_images = list(
-        zip(*[colmap_images[key] for key, _ in ARIA_CAMERAS])
-    )
-    
-    for j, (left_im, right_im) in enumerate(tqdm(
-        zipped_images, total=len(zipped_images),
-        desc="Adding images to reconstruction"
-    )):
+
+    zipped_images = list(zip(*[colmap_images[key] for key, _ in ARIA_CAMERAS]))
+
+    for j, (left_im, right_im) in enumerate(
+        tqdm(
+            zipped_images,
+            total=len(zipped_images),
+            desc="Adding images to reconstruction",
+        )
+    ):
         frame = pycolmap.Frame()
         frame.rig_id = rig.rig_id
         frame.frame_id = j + 1
@@ -128,7 +126,7 @@ def undistort_asl(
         recon.add_frame(frame)
         recon.add_image(left_im)
         recon.add_image(right_im)
-    
+
     with tempfile.TemporaryDirectory() as temp_rec_path:
         recon.write(temp_rec_path)
         cameras_undist = undistort_reconstruction(
@@ -137,7 +135,7 @@ def undistort_asl(
 
     # Copy the undistorted cameras in json.
     cameras_undist = {
-        key: cameras_undist[i+1] for i, (key, _) in enumerate(ARIA_CAMERAS)
+        key: cameras_undist[i + 1] for i, (key, _) in enumerate(ARIA_CAMERAS)
     }
     write_cameras_json(
         cameras_undist, output_asl_path / "aria" / "cameras.json"
@@ -159,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_asl_path", type=Path, required=True)
     parser.add_argument("--ratio_blank_pixels", type=float, default=0.2)
     args = parser.parse_args()
-    
+
     undistort_asl(
         args.calibration_file,
         args.asl_path,

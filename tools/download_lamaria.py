@@ -3,8 +3,10 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Dict, List, Tuple, Iterable
+from typing import Dict, Tuple
+
 import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -13,7 +15,7 @@ BASE_URL_DEFAULT = "https://cvg-data.inf.ethz.ch/lamaria/"
 
 FOLDERS = [
     "raw_data",
-    "aria_calibrations", 
+    "aria_calibrations",
     "asl_folder",
     "pinhole_calibrations",
     "rosbag",
@@ -34,7 +36,8 @@ PAYLOADS = {
     ],
 }
 
-def fetch_index(full_url: str) -> List[str]:
+
+def fetch_index(full_url: str) -> list[str]:
     """Return list of hrefs on an Apache index page (files and folders)."""
     r = requests.get(full_url, timeout=30)
     r.raise_for_status()
@@ -51,11 +54,13 @@ def fetch_index(full_url: str) -> List[str]:
     return hrefs
 
 
-def build_catalog(base_url: str) -> Dict[str, List[Tuple[str, str]]]:
+def build_catalog(base_url: str) -> Dict[str, list[Tuple[str, str]]]:
     catalog = {}
     for folder in FOLDERS:
         entries = []
-        subfolders = GT_SUBFOLDERS if folder == "ground_truth" else DEFAULT_SUBFOLDERS
+        subfolders = (
+            GT_SUBFOLDERS if folder == "ground_truth" else DEFAULT_SUBFOLDERS
+        )
         for sub in subfolders:
             url = base_url.rstrip("/") + "/" + folder + "/" + sub
             try:
@@ -70,27 +75,29 @@ def build_catalog(base_url: str) -> Dict[str, List[Tuple[str, str]]]:
         catalog[folder] = entries
     return catalog
 
-def names_from_listing(files: Iterable[str]) -> List[str]:
+
+def names_from_listing(files: Iterable[str]) -> list[str]:
     names = set()
-    pattern = (
-        r"\.(zip|tar|tar\.gz|tgz|7z|bag|vrs|json|txt|csv|tar\.xz)$"
-    )
+    pattern = r"\.(zip|tar|tar\.gz|tgz|7z|bag|vrs|json|txt|csv|tar\.xz)$"
     for f in files:
         f = f.rstrip("/")
         name = re.split(pattern, f, maxsplit=1, flags=re.IGNORECASE)[0]
         names.add(name)
     return sorted(names)
 
-def derive_splits(catalog: Dict[str, List[Tuple[str, str]]]) -> Tuple[List[str], List[str]]:
+
+def derive_splits(
+    catalog: Dict[str, list[Tuple[str, str]]],
+) -> Tuple[list[str], list[str]]:
     raw_entries = catalog.get("raw_data", [])
     train_files = [fname for (sub, fname) in raw_entries if sub == "training/"]
-    test_files  = [fname for (sub, fname) in raw_entries if sub == "test/"]
+    test_files = [fname for (sub, fname) in raw_entries if sub == "test/"]
     train = sorted(names_from_listing(train_files))
-    test  = sorted(names_from_listing(test_files))
+    test = sorted(names_from_listing(test_files))
     return train, test
 
 
-def raw_split_map(catalog: Dict[str, List[Tuple[str, str]]]) -> Dict[str, str]:
+def raw_split_map(catalog: Dict[str, list[Tuple[str, str]]]) -> Dict[str, str]:
     mapping: Dict[str, str] = {}
     for sub, fname in catalog.get("raw_data", []):
         if sub not in ("training/", "test/"):
@@ -104,14 +111,13 @@ def raw_split_map(catalog: Dict[str, List[Tuple[str, str]]]) -> Dict[str, str]:
     return mapping
 
 
-
 def pick_files_for_sequence(
-    catalog: Dict[str, List[Tuple[str, str]]],
+    catalog: Dict[str, list[Tuple[str, str]]],
     sequence: str,
-    folders: List[str],
+    folders: list[str],
     split: str | None,
-) -> List[Tuple[str, str, str]]:
-    matches: List[Tuple[str, str, str]] = []
+) -> list[Tuple[str, str, str]]:
+    matches: list[Tuple[str, str, str]] = []
     for folder in folders:
         for sub, fname in catalog.get(folder, []):
             if folder != "ground_truth" and split is not None and sub != split:
@@ -160,15 +166,18 @@ def download_file(
         if total is not None:
             total_to_show = total - existing if "Range" in headers else total
 
-        with open(dest, mode) as f, tqdm(
-            total=total_to_show,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
-            initial=0,
-            desc=dest.name,
-            leave=False,
-        ) as pbar:
+        with (
+            open(dest, mode) as f,
+            tqdm(
+                total=total_to_show,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                initial=0,
+                desc=dest.name,
+                leave=False,
+            ) as pbar,
+        ):
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if chunk:
                     f.write(chunk)
@@ -200,7 +209,9 @@ def main():
         help="Sequence names (required for --set specific). Example: R_01_easy sequence_3_17",
     )
     parser.add_argument(
-        "--out-dir", default="out_dir", help="Root output folder (script will create out_dir/lamaria)"
+        "--out-dir",
+        default="out_dir",
+        help="Root output folder (script will create out_dir/lamaria)",
     )
     args = parser.parse_args()
 
@@ -221,7 +232,9 @@ def main():
         global_split = "test/"
     else:
         if not args.sequences:
-            print("[error] --set specific requires --sequences", file=sys.stderr)
+            print(
+                "[error] --set specific requires --sequences", file=sys.stderr
+            )
             sys.exit(2)
         target_sequences = args.sequences
         global_split = None  # per-sequence
@@ -238,7 +251,9 @@ def main():
         else:
             seq_split = split_lookup.get(seq)
             if seq_split is None:
-                raise ValueError(f"Could not determine split for sequence: {seq}")
+                raise ValueError(
+                    f"Could not determine split for sequence: {seq}"
+                )
 
         if seq_split in ("training/", "test/"):
             split_folder = "training" if seq_split == "training/" else "test"
@@ -252,7 +267,10 @@ def main():
         ensure_dir(seq_root)
 
         selected = pick_files_for_sequence(
-            catalog, seq, folders, split=(seq_split if seq_split in ("training/", "test/") else None)
+            catalog,
+            seq,
+            folders,
+            split=(seq_split if seq_split in ("training/", "test/") else None),
         )
 
         if seq_split == "training/":
@@ -286,9 +304,14 @@ def main():
             try:
                 download_file(url, dest, sess)
             except Exception as e:
-                print(f"[error] Failed: {url} -> {dest}\n        {e}", file=sys.stderr)
+                print(
+                    f"[error] Failed: {url} -> {dest}\n        {e}",
+                    file=sys.stderr,
+                )
 
-    print("\n[done] All downloads attempted. Files stored under:", root.resolve())
+    print(
+        "\n[done] All downloads attempted. Files stored under:", root.resolve()
+    )
 
 
 if __name__ == "__main__":

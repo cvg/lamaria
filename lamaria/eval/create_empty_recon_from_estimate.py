@@ -10,12 +10,12 @@ from ..utils.camera import (
     RIGHT_CAMERA_STREAM_LABEL,
     add_cameras_to_reconstruction,
 )
-from ..utils.general import (
-    find_closest_timestamp,
-    delete_files_in_folder,
-)
 from ..utils.estimate import (
     round_ns,
+)
+from ..utils.general import (
+    delete_files_in_folder,
+    find_closest_timestamp,
 )
 from ..utils.transformation import (
     get_t_imu_camera_from_json,
@@ -31,7 +31,7 @@ def add_images_to_reconstruction(
 ):
     """Add images to an existing empty reconstruction from a pose estimate file."""
     pose_data = []
-    with open(estimate_file, "r") as f:
+    with open(estimate_file) as f:
         lines = f.readlines()
 
         if len(lines) == 0:
@@ -47,27 +47,25 @@ def add_images_to_reconstruction(
 
             timestamp = round_ns(parts[0])
 
-            tvec = np.array(
-                [float(parts[1]),
-                 float(parts[2]),
-                 float(parts[3])])
-            q_xyzw = np.array([
-                float(parts[4]),
-                float(parts[5]),
-                float(parts[6]),
-                float(parts[7]),
-            ])
-            T_world_device = pycolmap.Rigid3d(pycolmap.Rotation3d(q_xyzw),
-                                              tvec)
+            tvec = np.array([float(parts[1]), float(parts[2]), float(parts[3])])
+            q_xyzw = np.array(
+                [
+                    float(parts[4]),
+                    float(parts[5]),
+                    float(parts[6]),
+                    float(parts[7]),
+                ]
+            )
+            T_world_device = pycolmap.Rigid3d(pycolmap.Rotation3d(q_xyzw), tvec)
 
             pose_data.append((timestamp, T_world_device))
 
-    with open(cp_json_file, "r") as f:
+    with open(cp_json_file) as f:
         cp_data = json.load(f)
 
     image_id = 1
     rig = reconstruction.rig(rig_id=1)
-    
+
     # if slam_input_imu is 1, then the poses are IMU poses
     # otherwise, the poses are left camera poses (monocular-cam0) (rig poses)
     if slam_input_imu == 1:
@@ -82,12 +80,15 @@ def add_images_to_reconstruction(
     for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
         ts_data = cp_data["timestamps"][label]
         ts_data_processed[label] = {int(k): v for k, v in ts_data.items()}
-        ts_data_processed[label]["sorted_keys"] = sorted(ts_data_processed[label].keys())
+        ts_data_processed[label]["sorted_keys"] = sorted(
+            ts_data_processed[label].keys()
+        )
 
-    for i, (timestamp, pose) in tqdm(enumerate(pose_data), 
-                                     total=len(pose_data),
-                                     desc="Adding images to reconstruction"):
-
+    for i, (timestamp, pose) in tqdm(
+        enumerate(pose_data),
+        total=len(pose_data),
+        desc="Adding images to reconstruction",
+    ):
         T_world_rig = pose * transform
         frame = pycolmap.Frame()
         frame.rig_id = rig.rig_id
@@ -96,13 +97,13 @@ def add_images_to_reconstruction(
 
         images_to_add = []
 
-        for label, camera_id in [(LEFT_CAMERA_STREAM_LABEL, 1),
-                             (RIGHT_CAMERA_STREAM_LABEL, 2)]:
-
+        for label, camera_id in [
+            (LEFT_CAMERA_STREAM_LABEL, 1),
+            (RIGHT_CAMERA_STREAM_LABEL, 2),
+        ]:
             source_timestamps = ts_data_processed[label]["sorted_keys"]
             closest_timestamp = find_closest_timestamp(
-                source_timestamps,
-                timestamp
+                source_timestamps, timestamp
             )
             if closest_timestamp is None:
                 raise ValueError
@@ -120,7 +121,7 @@ def add_images_to_reconstruction(
 
             images_to_add.append(im)
             image_id += 1
-        
+
         reconstruction.add_frame(frame)
         for im in images_to_add:
             reconstruction.add_image(im)
@@ -135,7 +136,7 @@ def create_baseline_reconstruction(
 ):
     """Create a baseline reconstruction from a pose estimate file.
     The pose estimate file is assumed to be in the format:
-    
+
     timestamp(ns) tx ty tz q_x q_y q_z q_w
 
     Args:

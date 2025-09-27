@@ -4,7 +4,7 @@ import argparse
 import csv
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Tuple
+from typing import Tuple
 
 import cv2
 import rosbag
@@ -15,12 +15,14 @@ from tqdm import tqdm
 
 NS_TO_S = 1e-9
 
+
 @dataclass(frozen=True)
 class CamSample:
     ts_ns: int
     path: Path
     topic: str
     frame_id: str
+
 
 @dataclass(frozen=True)
 class ImuSample:
@@ -30,16 +32,19 @@ class ImuSample:
     topic: str
     frame_id: str
 
+
 def _is_int(s: str) -> bool:
     try:
         int(s)
         return True
     except Exception:
         return False
-    
 
-def _read_cam_csv(csv_path: Path, images_dir: Path, topic: str, frame_id: str) -> List[CamSample]:
-    samples: List[CamSample] = []
+
+def _read_cam_csv(
+    csv_path: Path, images_dir: Path, topic: str, frame_id: str
+) -> list[CamSample]:
+    samples: list[CamSample] = []
     with csv_path.open("r", newline="") as f:
         reader = csv.reader(f)
         for row in reader:
@@ -49,12 +54,15 @@ def _read_cam_csv(csv_path: Path, images_dir: Path, topic: str, frame_id: str) -
                 continue
             ts_ns = int(row[0])
             img_rel = row[1]
-            samples.append(CamSample(ts_ns, images_dir / img_rel, topic, frame_id))
-    
+            samples.append(
+                CamSample(ts_ns, images_dir / img_rel, topic, frame_id)
+            )
+
     return samples
 
-def _read_imu_csv(csv_path: Path, topic: str, frame_id: str) -> List[ImuSample]:
-    samples: List[ImuSample] = []
+
+def _read_imu_csv(csv_path: Path, topic: str, frame_id: str) -> list[ImuSample]:
+    samples: list[ImuSample] = []
     with csv_path.open("r", newline="") as f:
         reader = csv.reader(f)
         for row in reader:
@@ -65,8 +73,10 @@ def _read_imu_csv(csv_path: Path, topic: str, frame_id: str) -> List[ImuSample]:
             ts_ns = int(row[0])
             wx, wy, wz = (float(x) for x in row[1:4])
             ax, ay, az = (float(x) for x in row[4:7])
-            samples.append(ImuSample(ts_ns, (wx, wy, wz), (ax, ay, az), topic, frame_id))
-    
+            samples.append(
+                ImuSample(ts_ns, (wx, wy, wz), (ax, ay, az), topic, frame_id)
+            )
+
     return samples
 
 
@@ -80,7 +90,6 @@ def asl_to_rosbag(
     cam1_frame: str = "cam1",
     imu_frame: str = "imu0",
 ) -> None:
-
     aria = input_asl_folder / "aria"
     cam0_dir, cam1_dir, imu_dir = aria / "cam0", aria / "cam1", aria / "imu0"
 
@@ -89,10 +98,14 @@ def asl_to_rosbag(
     if not imu_dir.exists():
         raise FileNotFoundError(f"Missing IMU folder: {imu_dir}")
 
-    cam0 = _read_cam_csv(cam0_dir / "data.csv", cam0_dir / "data", cam0_topic, cam0_frame)
+    cam0 = _read_cam_csv(
+        cam0_dir / "data.csv", cam0_dir / "data", cam0_topic, cam0_frame
+    )
     cam1 = []
     if cam1_dir.exists() and (cam1_dir / "data.csv").exists():
-        cam1 = _read_cam_csv(cam1_dir / "data.csv", cam1_dir / "data", cam1_topic, cam1_frame)
+        cam1 = _read_cam_csv(
+            cam1_dir / "data.csv", cam1_dir / "data", cam1_topic, cam1_frame
+        )
     imu = _read_imu_csv(imu_dir / "data.csv", imu_topic, imu_frame)
 
     if not cam0:
@@ -110,9 +123,13 @@ def asl_to_rosbag(
     bridge = CvBridge()
     bag = rosbag.Bag(str(output_rosbag), "w")
 
-    print(f"[asl_to_rosbag] Writing {len(bag_timeline):,} messages -> {output_rosbag}")
+    print(
+        f"[asl_to_rosbag] Writing {len(bag_timeline):,} messages -> {output_rosbag}"
+    )
 
-    for ts_ns, kind, sample in tqdm(bag_timeline, desc="Writing bag", unit="msg"):
+    for ts_ns, kind, sample in tqdm(
+        bag_timeline, desc="Writing bag", unit="msg"
+    ):
         stamp = rospy.Time.from_sec(ts_ns * NS_TO_S)
 
         if kind == "cam":
@@ -131,8 +148,16 @@ def asl_to_rosbag(
             imu_msg.header.frame_id = sample.frame_id
             wx, wy, wz = sample.gyro
             ax, ay, az = sample.accel
-            imu_msg.angular_velocity.x, imu_msg.angular_velocity.y, imu_msg.angular_velocity.z = wx, wy, wz
-            imu_msg.linear_acceleration.x, imu_msg.linear_acceleration.y, imu_msg.linear_acceleration.z = ax, ay, az
+            (
+                imu_msg.angular_velocity.x,
+                imu_msg.angular_velocity.y,
+                imu_msg.angular_velocity.z,
+            ) = wx, wy, wz
+            (
+                imu_msg.linear_acceleration.x,
+                imu_msg.linear_acceleration.y,
+                imu_msg.linear_acceleration.z,
+            ) = ax, ay, az
 
             imu_msg.orientation_covariance[0] = -1
             imu_msg.angular_velocity_covariance[0] = -1

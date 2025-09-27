@@ -1,22 +1,23 @@
-import pycolmap
-import shutil
 import argparse
-from typing import Optional
+import shutil
 from pathlib import Path
+from typing import Optional
 
-from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
-from lamaria.pipeline.keyframing.to_colmap import EstimateToColmap
-from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.pipeline.optim.triangulation import run as triangulate
-from lamaria.pipeline.optim.session import SingleSeqSession
-from lamaria.pipeline.optim.vi_optimization import VIOptimizer
-from lamaria.config.pipeline import PipelineOptions
+import pycolmap
+
 from lamaria.config.options import (
     EstimateToColmapOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
 )
+from lamaria.config.pipeline import PipelineOptions
+from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
+from lamaria.pipeline.keyframing.to_colmap import EstimateToColmap
+from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
+from lamaria.pipeline.optim.session import SingleSeqSession
+from lamaria.pipeline.optim.triangulation import run as triangulate
+from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 
 
 def run_estimate_to_colmap(
@@ -26,11 +27,10 @@ def run_estimate_to_colmap(
     estimate: Path,
     colmap_model: Path,
 ) -> LamariaReconstruction:
-
     if colmap_model.exists():
         lamaria_recon = LamariaReconstruction.read(colmap_model)
         return lamaria_recon
-        
+
     colmap_model.mkdir(parents=True, exist_ok=True)
 
     lamaria_recon = EstimateToColmap.convert(
@@ -51,11 +51,10 @@ def run_mps_to_colmap(
     mps_folder: Path,
     colmap_model: Path,
 ) -> LamariaReconstruction:
-
     if colmap_model.exists():
         lamaria_recon = LamariaReconstruction.read(colmap_model)
         return lamaria_recon
-        
+
     colmap_model.mkdir(parents=True, exist_ok=True)
 
     lamaria_recon = EstimateToColmap.convert(
@@ -76,7 +75,6 @@ def run_keyframe_selection(
     keyframes: Path,
     kf_model: Path,
 ) -> LamariaReconstruction:
-    
     if isinstance(input, Path):
         input_recon = LamariaReconstruction.read(input)
     else:
@@ -85,7 +83,7 @@ def run_keyframe_selection(
     if kf_model.exists():
         kf_lamaria_recon = LamariaReconstruction.read(kf_model)
         return kf_lamaria_recon
-    
+
     kf_model.mkdir(parents=True, exist_ok=True)
 
     kf_lamaria_recon = KeyframeSelector.run(
@@ -94,7 +92,7 @@ def run_keyframe_selection(
         images,
         keyframes,
     )
-    
+
     kf_lamaria_recon.write(kf_model)
 
     return kf_lamaria_recon
@@ -102,7 +100,7 @@ def run_keyframe_selection(
 
 def run_triangulation(
     options: TriangulatorOptions,
-    input: Path, # path to LamariaReconstruction
+    input: Path,  # path to LamariaReconstruction
     keyframes: Path,
     hloc: Path,
     pairs_file: Path,
@@ -110,9 +108,9 @@ def run_triangulation(
 ) -> LamariaReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
-    
+
     assert input.exists(), f"input reconstruction path {input} does not exist"
-    
+
     if tri_model.exists():
         tri_lamaria_recon = LamariaReconstruction.read(tri_model)
         return tri_lamaria_recon
@@ -141,22 +139,24 @@ def run_triangulation(
 def run_optimization(
     vi_options: VIOptimizerOptions,
     triangulator_options: TriangulatorOptions,
-    input: Path, # path to LamariaReconstruction
+    input: Path,  # path to LamariaReconstruction
     optim_model: Path,
 ) -> LamariaReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
-    
+
     db_path = input / "database.db"
-    assert db_path.exists(), f"Database path {db_path} does not exist in input reconstruction"
-    
+    assert db_path.exists(), (
+        f"Database path {db_path} does not exist in input reconstruction"
+    )
+
     if optim_model.exists():
         shutil.rmtree(optim_model)
-    
+
     optim_model.mkdir(parents=True, exist_ok=True)
     db_dst = optim_model / "database.db"
     shutil.copy(db_path, db_dst)
-    
+
     init_lamaria_recon = LamariaReconstruction.read(input)
     session = SingleSeqSession(
         vi_options.imu,
@@ -164,10 +164,7 @@ def run_optimization(
     )
 
     optimized_recon = VIOptimizer.optimize(
-        vi_options,
-        triangulator_options,
-        session,
-        db_dst
+        vi_options, triangulator_options, session, db_dst
     )
 
     optim_lamaria_recon = LamariaReconstruction()
@@ -192,9 +189,10 @@ def run_pipeline(
     # Estimate to COLMAP
     est_options = options.estimate_to_colmap_options
     if not est_options.mps.use_mps:
-        assert estimate is not None \
-            and estimate.exists(), "Estimate path must be provided if not using MPS"
-        
+        assert estimate is not None and estimate.exists(), (
+            "Estimate path must be provided if not using MPS"
+        )
+
         _ = run_estimate_to_colmap(
             est_options,
             vrs,
@@ -203,9 +201,10 @@ def run_pipeline(
             options.colmap_model,
         )
     else:
-        assert mps_folder is not None \
-            and mps_folder.exists(), "MPS folder path must be provided if using MPS"
-        
+        assert mps_folder is not None and mps_folder.exists(), (
+            "MPS folder path must be provided if using MPS"
+        )
+
         _ = run_mps_to_colmap(
             est_options,
             vrs,
@@ -243,6 +242,7 @@ def run_pipeline(
         options.tri_model,
         options.optim_model,
     )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run full pipeline.")
@@ -282,7 +282,9 @@ if __name__ == "__main__":
     if args.estimate is None and args.mps_folder is None:
         parser.error("Either --estimate or --mps_folder must be provided.")
     if args.estimate is not None and args.mps_folder is not None:
-        parser.error("Only one of --estimate or --mps_folder should be provided.")
+        parser.error(
+            "Only one of --estimate or --mps_folder should be provided."
+        )
 
     options = PipelineOptions()
     options.load(args.config)

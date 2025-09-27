@@ -1,10 +1,11 @@
-import pycolmap
-from typing import Optional
 from pathlib import Path
-from tqdm import tqdm
-from projectaria_tools.core import mps, data_provider
+from typing import Optional
+
+import pycolmap
+from projectaria_tools.core import data_provider, mps
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
+from tqdm import tqdm
 
 from lamaria.utils.general import (
     find_closest_timestamp,
@@ -14,16 +15,15 @@ RIGHT_IMU_STREAM_ID = StreamId("1202-1")
 RIGHT_IMU_STREAM_LABEL = "imu-right"
 
 
-
 def get_online_params_for_imu_from_mps(
-    online_calibs_file: Path,
-    stream_label: str,
-    num_error: float = 1e6
+    online_calibs_file: Path, stream_label: str, num_error: float = 1e6
 ):
     online_calibs = mps.read_online_calibration(online_calibs_file.as_posix())
     online_imu_calibs = {}
     num_error = int(num_error)
-    for calib in tqdm(online_calibs, desc="Reading online IMU calibration data"):
+    for calib in tqdm(
+        online_calibs, desc="Reading online IMU calibration data"
+    ):
         for imuCalib in calib.imu_calibs:
             if imuCalib.get_label() == stream_label:
                 # calib timestamp in microseconds
@@ -39,23 +39,23 @@ def get_imu_data_from_vrs(
     vrs_provider: data_provider.VrsDataProvider,
     mps_folder: Optional[Path] = None,
 ) -> pycolmap.ImuMeasurements:
-    """ Get rectified IMU data from VRS file. If mps_folder is provided, use online
-    calibration data from MPS folder. Otherwise, use device calibration from VRS file. """
+    """Get rectified IMU data from VRS file. If mps_folder is provided, use online
+    calibration data from MPS folder. Otherwise, use device calibration from VRS file."""
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
-            RIGHT_IMU_STREAM_ID,
-            TimeDomain.DEVICE_TIME
+            RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
         )
     )
-    imu_stream_label = vrs_provider.get_label_from_stream_id(RIGHT_IMU_STREAM_ID)
+    imu_stream_label = vrs_provider.get_label_from_stream_id(
+        RIGHT_IMU_STREAM_ID
+    )
 
     if mps_folder is not None:
         online_calibs_file = mps_folder / "slam" / "online_calibration.jsonl"
         online_imu_calibs = get_online_params_for_imu_from_mps(
-            online_calibs_file,
-            imu_stream_label
+            online_calibs_file, imu_stream_label
         )
-        acceptable_diff_ms = 1 # 1 milliseconds
+        acceptable_diff_ms = 1  # 1 milliseconds
         calib_timestamps = sorted(online_imu_calibs.keys())
     else:
         device_calib = vrs_provider.get_device_calibration()
@@ -66,16 +66,16 @@ def get_imu_data_from_vrs(
         if mps_folder is not None:
             quantized_timestamp = timestamp // int(1e6)
             closest_ts = find_closest_timestamp(
-                calib_timestamps,
-                quantized_timestamp,
-                acceptable_diff_ms
+                calib_timestamps, quantized_timestamp, acceptable_diff_ms
             )
 
             if closest_ts not in online_imu_calibs:
-                raise ValueError(f"No calibration found for timestamp {timestamp}")
+                raise ValueError(
+                    f"No calibration found for timestamp {timestamp}"
+                )
 
             calibration = online_imu_calibs[closest_ts]
-        
+
         imu_data = vrs_provider.get_imu_data_by_time_ns(
             RIGHT_IMU_STREAM_ID,
             timestamp,

@@ -1,31 +1,25 @@
 from pathlib import Path
+
 import numpy as np
 import pycolmap
 from scipy.interpolate import interp1d
-from typing import List
 
 
 def get_sim3_from_sparse_evaluation(
-    sparse_evaluation_npy: Path
+    sparse_evaluation_npy: Path,
 ) -> pycolmap.Sim3d:
     data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
     sim3 = data_sparse["full_alignment"]["sim3"]
     return sim3
 
 
-def get_all_tag_ids(
-    sparse_evaluation_npy: Path
-) -> List[str]:
-    
+def get_all_tag_ids(sparse_evaluation_npy: Path) -> list[str]:
     data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
     tag_ids = sorted(list(data_sparse["control_points"].keys()))
     return tag_ids
 
 
-def calculate_2d_alignment_errors(
-    sparse_evaluation_npy: Path
-) -> List[float]:
-    
+def calculate_2d_alignment_errors(sparse_evaluation_npy: Path) -> list[float]:
     data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
     tag_ids = get_all_tag_ids(sparse_evaluation_npy)
     err_2d = [
@@ -79,19 +73,16 @@ def calculate_score_piecewise(errors):
     return S_j
 
 
-def calculate_score_from_alignment_data(
-    sparse_evaluation_npy: Path
-) -> float:
-    
+def calculate_score_from_alignment_data(sparse_evaluation_npy: Path) -> float:
     tag_ids = get_all_tag_ids(sparse_evaluation_npy)
     err_2d = calculate_2d_alignment_errors(sparse_evaluation_npy)
 
     if len(err_2d) == 0:
         raise ValueError("No valid control points found.")
 
-    assert len(err_2d) == len(
-        tag_ids
-    ), "Mismatch in number of 2D CPs and errors."
+    assert len(err_2d) == len(tag_ids), (
+        "Mismatch in number of 2D CPs and errors."
+    )
 
     S_2d = calculate_score_piecewise(err_2d)
 

@@ -1,16 +1,15 @@
+import argparse
 import copy
 import os
-import argparse
-import numpy as np
+from pathlib import Path
 from typing import Dict
 
-from pathlib import Path
+import numpy as np
 import pyceres
 import pycolmap
 import pycolmap.cost_functions
 
 from .. import logger
-
 from ..utils.control_point import (
     construct_control_points_from_json,
     get_cps_for_initial_alignment,
@@ -27,18 +26,15 @@ def update_sim3d_scale(variables: Dict):
 
 
 def create_variables_for_sparse_evaluation(
-    control_points: Dict,
-    sim3d: pycolmap.Sim3d,
-    cp_reproj_std: float = 1.0
+    control_points: Dict, sim3d: pycolmap.Sim3d, cp_reproj_std: float = 1.0
 ) -> Dict:
-    
     variables = {}
     variables["control_points"] = copy.deepcopy(control_points)
     variables["sim3d"] = copy.deepcopy(sim3d)
     variables["cp_reproj_std"] = cp_reproj_std
     scale = copy.deepcopy(variables["sim3d"].scale)
     variables["log_scale"] = np.array(np.log(scale), dtype=np.float64)
-    
+
     return variables
 
 
@@ -64,7 +60,6 @@ def add_alignment_residuals(
     reconstruction: pycolmap.Reconstruction,
     variables: Dict,
 ) -> pyceres.Problem:
-    
     if (
         variables["control_points"] is not None
         and variables["sim3d"] is not None
@@ -79,7 +74,7 @@ def add_alignment_residuals(
                 image = reconstruction.images[image_id]
                 pose = image.cam_from_world()
                 camera = reconstruction.cameras[image.camera_id]
-                
+
                 point2d = np.asarray(point2d, dtype=np.float64).reshape(2, 1)
                 point2d_cov = np.eye(2) * pow(variables["cp_reproj_std"], 2)
                 cost = pycolmap.cost_functions.ReprojErrorCost(
@@ -113,7 +108,7 @@ def add_alignment_residuals(
                 ],
             )
 
-        logger.info(f"Added Point3dAlignmentCost and ReprojErrorCost costs")
+        logger.info("Added Point3dAlignmentCost and ReprojErrorCost costs")
 
         problem.set_manifold(
             variables["sim3d"].rotation.quat,
@@ -129,14 +124,15 @@ def run_baseline_evaluation(
     output_path: Path,
     cp_reproj_std=1.0,
 ):
-    
     output_path.mkdir(parents=True, exist_ok=True)
-    
+
     aligned_transformed_folder = output_path / "aligned_transformed"
     aligned_transformed_folder.mkdir(parents=True, exist_ok=True)
-    
+
     control_points = construct_control_points_from_json(cp_json_file)
-    assert control_points is not None, "Control points could not be constructed from JSON"
+    assert control_points is not None, (
+        "Control points could not be constructed from JSON"
+    )
 
     run_control_point_triangulation_from_json(
         reconstruction_path,
@@ -169,11 +165,10 @@ def run_baseline_evaluation(
         robust_sim3d,
         cp_reproj_std,
     )
-    
+
     reconstruction = pycolmap.Reconstruction(reconstruction_path)
     problem, solver_options, summary = get_problem_for_sparse_alignment(
-        reconstruction,
-        variables
+        reconstruction, variables
     )
     pyceres.solve(solver_options, problem, summary)
     print(summary.BriefReport())
@@ -264,5 +259,5 @@ if __name__ == "__main__":
         Path(args.output_path),
         args.cp_reproj_std,
     )
-    
+
     logger.info(f"Evaluation completed? {state}. Message: {msg}")
