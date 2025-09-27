@@ -80,7 +80,7 @@ class PipelineOptions:
         return self._keyframing_options
 
     @property
-    def keyframes(self) -> Path:
+    def keyframes_path(self) -> Path:
         return self._output_path / "keyframes"
 
     @property
@@ -101,7 +101,7 @@ class PipelineOptions:
         return self._output_path / "hloc" / "pairs.txt"
 
     @property
-    def tri_model(self) -> Path:
+    def tri_model_path(self) -> Path:
         return self._output_path / "triangulated_recon"
 
     # Properties for visual-inertial optimization
@@ -110,5 +110,5 @@ class PipelineOptions:
         return self._vi_optimizer_options
 
     @property
-    def optim_model(self) -> Path:
+    def optim_model_path(self) -> Path:
         return self._output_path / "optim_recon"

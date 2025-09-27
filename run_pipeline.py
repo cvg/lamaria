@@ -77,7 +77,7 @@ def run_keyframe_selection(
     options: KeyframeSelectorOptions,
     input: Path | LamariaReconstruction,
     images: Path,
-    keyframes: Path,
+    keyframes_path: Path,
     kf_model: Path,
 ) -> LamariaReconstruction:
     if isinstance(input, Path):
@@ -95,7 +95,7 @@ def run_keyframe_selection(
         options,
         input_recon,
         images,
-        keyframes,
+        keyframes_path,
     )
 
     kf_lamaria_recon.write(kf_model)
@@ -106,27 +106,27 @@ def run_keyframe_selection(
 def run_triangulation(
     options: TriangulatorOptions,
     input: Path,  # path to LamariaReconstruction
-    keyframes: Path,
+    keyframes_path: Path,
     hloc: Path,
     pairs_file: Path,
-    tri_model: Path,
+    tri_model_path: Path,
 ) -> LamariaReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
 
     assert input.exists(), f"input reconstruction path {input} does not exist"
 
-    if tri_model.exists():
-        tri_lamaria_recon = LamariaReconstruction.read(tri_model)
+    if tri_model_path.exists():
+        tri_lamaria_recon = LamariaReconstruction.read(tri_model_path)
         return tri_lamaria_recon
 
     triangulated_model_path = triangulate(
         options,
         input,
-        keyframes,
+        keyframes_path,
         hloc,
         pairs_file,
-        tri_model,
+        tri_model_path,
     )
 
     input_lamaria_recon = LamariaReconstruction.read(input)
@@ -145,7 +145,7 @@ def run_optimization(
     vi_options: VIOptimizerOptions,
     triangulator_options: TriangulatorOptions,
     input: Path,  # path to LamariaReconstruction
-    optim_model: Path,
+    optim_model_path: Path,
 ) -> LamariaReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
@@ -155,11 +155,11 @@ def run_optimization(
         f"Database path {db_path} does not exist in input reconstruction"
     )
 
-    if optim_model.exists():
-        shutil.rmtree(optim_model)
+    if optim_model_path.exists():
+        shutil.rmtree(optim_model_path)
 
-    optim_model.mkdir(parents=True, exist_ok=True)
-    db_dst = optim_model / "database.db"
+    optim_model_path.mkdir(parents=True, exist_ok=True)
+    db_dst = optim_model_path / "database.db"
     shutil.copy(db_path, db_dst)
 
     init_lamaria_recon = LamariaReconstruction.read(input)
@@ -176,7 +176,7 @@ def run_optimization(
     optim_lamaria_recon.reconstruction = optimized_recon
     optim_lamaria_recon.timestamps = init_lamaria_recon.timestamps
     optim_lamaria_recon.imu_measurements = init_lamaria_recon.imu_measurements
-    optim_lamaria_recon.write(optim_model)
+    optim_lamaria_recon.write(optim_model_path)
 
 
 def run_pipeline(
@@ -224,7 +224,7 @@ def run_pipeline(
         kf_options,
         options.colmap_model,
         options.images,
-        options.keyframes,
+        options.keyframes_path,
         options.kf_model,
     )
 
@@ -233,10 +233,10 @@ def run_pipeline(
     _ = run_triangulation(
         tri_options,
         options.kf_model,
-        options.keyframes,
+        options.keyframes_path,
         options.hloc,
         options.pairs_file,
-        options.tri_model,
+        options.tri_model_path,
     )
 
     # Visual-Inertial Optimization
@@ -244,8 +244,8 @@ def run_pipeline(
     _ = run_optimization(
         vi_options,
         tri_options,
-        options.tri_model,
-        options.optim_model,
+        options.tri_model_path,
+        options.optim_model_path,
     )
 
 
