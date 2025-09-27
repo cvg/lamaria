@@ -10,9 +10,9 @@ import pycolmap
 from tqdm import tqdm
 
 from lamaria.utils.camera import (
-    ARIA_CAMERAS,
     add_cameras_to_reconstruction,
 )
+import lamaria.utils.constants as constant
 
 
 def undistort_reconstruction(
@@ -88,7 +88,7 @@ def undistort_asl(
     image_id = 1
     rig = recon.rig(rig_id=1)
     colmap_images = {}
-    for i, (key, _) in enumerate(ARIA_CAMERAS):
+    for i, (key, _) in enumerate(constant.ARIA_CAMERAS):
         cam = recon.cameras[i + 1]
         image_names = sorted(
             p.relative_to(asl_path)
@@ -105,7 +105,7 @@ def undistort_asl(
             image_id += 1
             colmap_images[key].append(im)
 
-    zipped_images = list(zip(*[colmap_images[key] for key, _ in ARIA_CAMERAS]))
+    zipped_images = list(zip(*[colmap_images[key] for key, _ in constant.ARIA_CAMERAS]))
 
     for j, (left_im, right_im) in enumerate(
         tqdm(
@@ -134,7 +134,7 @@ def undistort_asl(
 
     # Copy the undistorted cameras in json.
     cameras_undist = {
-        key: cameras_undist[i + 1] for i, (key, _) in enumerate(ARIA_CAMERAS)
+        key: cameras_undist[i + 1] for i, (key, _) in enumerate(constant.ARIA_CAMERAS)
     }
     write_cameras_json(
         cameras_undist, output_asl_path / "aria" / "cameras.json"
