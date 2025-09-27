@@ -12,8 +12,6 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Imu
 from tqdm import tqdm
 
-NS_TO_S = 1e-9
-
 
 @dataclass(frozen=True)
 class CamSample:
