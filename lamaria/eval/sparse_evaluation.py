@@ -257,11 +257,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    state, msg = run_baseline_evaluation(
+    _ = run_baseline_evaluation(
         Path(args.reconstruction_path),
         Path(args.cp_json_file),
         Path(args.output_path),
         args.cp_reproj_std,
     )
-
-    logger.info(f"Evaluation completed? {state}. Message: {msg}")
