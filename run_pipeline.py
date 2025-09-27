@@ -12,7 +12,9 @@ from lamaria.config.options import (
 )
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.pipeline.keyframing.to_lamaria_reconstruction import EstimateToLamaria
+from lamaria.pipeline.keyframing.to_lamaria_reconstruction import (
+    EstimateToLamaria,
+)
 from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
@@ -26,6 +28,9 @@ def run_estimate_to_lamaria(
     estimate: Path,
     colmap_model: Path,
 ) -> LamariaReconstruction:
+    """Function to convert a general input
+    estimate file to a LamariaReconstruction.
+    """
     if colmap_model.exists():
         lamaria_recon = LamariaReconstruction.read(colmap_model)
         return lamaria_recon
@@ -50,6 +55,7 @@ def run_mps_to_lamaria(
     mps_folder: Path,
     colmap_model: Path,
 ) -> LamariaReconstruction:
+    """Function to convert MPS estimate to a LamariaReconstruction."""
     if colmap_model.exists():
         lamaria_recon = LamariaReconstruction.read(colmap_model)
         return lamaria_recon

@@ -5,6 +5,23 @@ import pycolmap
 
 
 class LamariaReconstruction:
+    """Custom class to hold COLMAP reconstruction data along with
+    timestamps and IMU measurements.
+
+    Attributes:
+        reconstruction (pycolmap.Reconstruction):
+        The COLMAP reconstruction object. This object contains all the
+        3D points, cameras (intrinsics, extrinsics), and images.
+        Additionally holds a dummy camera, with no associated images,
+        to serve as a placeholder for the IMU.
+
+        timestamps (dict[int, int]): A dictionary mapping reconstruction
+        frame IDs to their corresponding timestamps in nanoseconds.
+
+        imu_measurements (pycolmap.ImuMeasurements): The factory/online
+        rectified IMU measurements generated from input VRS file.
+    """
+
     def __init__(self) -> None:
         self.reconstruction = pycolmap.Reconstruction()
         self.timestamps: dict[int, int] = {}
