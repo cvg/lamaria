@@ -1,4 +1,3 @@
-
 import numpy as np
 import pycolmap
 from tqdm import tqdm
