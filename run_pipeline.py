@@ -178,8 +178,8 @@ def run_pipeline(
     options: PipelineOptions,
     vrs: Path,
     output_path: Path,
-    estimate: Optional[Path] = None,
-    mps_folder: Optional[Path] = None,
+    estimate: Path | None = None,
+    mps_folder: Path | None = None,
 ):
     # Setting output path for entire pipeline
     options.output_path = output_path

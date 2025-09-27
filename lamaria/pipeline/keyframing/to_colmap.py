@@ -62,8 +62,8 @@ class EstimateToColmap:
         options: EstimateToColmapOptions,
         vrs: Path,
         images: Path,
-        estimate: Optional[Path] = None,
-        mps_folder: Optional[Path] = None,
+        estimate: Path | None = None,
+        mps_folder: Path | None = None,
     ) -> LamariaReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
         to_colmap = EstimateToColmap(options)
@@ -73,8 +73,8 @@ class EstimateToColmap:
         self,
         vrs: Path,
         images: Path,
-        estimate: Optional[Path] = None,
-        mps_folder: Optional[Path] = None,
+        estimate: Path | None = None,
+        mps_folder: Path | None = None,
     ) -> LamariaReconstruction:
         self._init_data(vrs, images, estimate, mps_folder)
 
@@ -98,8 +98,8 @@ class EstimateToColmap:
         self,
         vrs: Path,
         image_folder: Path,
-        estimate: Optional[Path] = None,
-        mps_folder: Optional[Path] = None,
+        estimate: Path | None = None,
+        mps_folder: Path | None = None,
     ) -> None:
         """Initializes data providers and extracts images, timestamps and builds per-frame data object.
         Per-frame data is used to create the initial Lamaria reconstruction.
@@ -523,7 +523,7 @@ class EstimateToColmap:
 
     def _get_rectified_imu_data(
         self,
-        mps_folder: Optional[Path] = None,
+        mps_folder: Path | None = None,
     ) -> pycolmap.ImuMeasurements:
         """Generates rectified IMU data from VRS file"""
         if self.options.mps.use_online_calibration and self.options.mps.use_mps:

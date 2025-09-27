@@ -27,7 +27,7 @@ class PipelineOptions:
     def load(
         self,
         yaml: Path | str,
-        cli_overrides: Optional[Sequence[str]] = None,
+        cli_overrides: Sequence[str] | None = None,
     ) -> None:
         """Load configuration from a YAML file and apply any overrides."""
         cfg = OmegaConf.load(str(yaml))
