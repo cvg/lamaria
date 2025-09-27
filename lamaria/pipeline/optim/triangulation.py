@@ -88,13 +88,13 @@ def postprocess_pairs_with_reconstruction(
 def run(
     options: TriangulatorOptions,
     reference_model: Path,  # reconstruction path
-    keyframes: Path,
+    keyframes_path: Path,
     hloc_dir: Path,
     pairs_path: Path,
     triangulated_model_path: Path,
 ) -> Path:
-    if not keyframes.exists():
-        raise FileNotFoundError(f"keyframes_dir not found at {keyframes}")
+    if not keyframes_path.exists():
+        raise FileNotFoundError(f"keyframes not found at {keyframes_path}")
 
     hloc_dir.mkdir(parents=True, exist_ok=True)
 
@@ -115,10 +115,10 @@ def run(
     )
 
     retrieval_path = extract_features.main(
-        retrieval_conf, image_dir=keyframes, export_dir=hloc_dir
+        retrieval_conf, image_dir=keyframes_path, export_dir=hloc_dir
     )
     features_path = extract_features.main(
-        feature_conf, image_dir=keyframes, export_dir=hloc_dir
+        feature_conf, image_dir=keyframes_path, export_dir=hloc_dir
     )
 
     pairs_from_retrieval.main(
@@ -138,7 +138,7 @@ def run(
     _ = triangulation.main(
         sfm_dir=triangulated_model_path,
         reference_model=reference_model,
-        image_dir=keyframes,
+        image_dir=keyframes_path,
         pairs=pairs_path,
         features=features_path,
         matches=matches_path,
