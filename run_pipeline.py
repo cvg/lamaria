@@ -191,10 +191,12 @@ def run_pipeline(
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
 
+    src = "estimate" if estimate is not None else "mps"
+
     # Estimate to Lamaria Reconstruction
     est_options = options.estimate_to_colmap_options
-    if not est_options.mps.use_mps:
-        assert estimate is not None and estimate.exists(), (
+    if src == "estimate":
+        assert estimate.exists(), (
             "Estimate path must be provided if not using MPS"
         )
 
@@ -206,7 +208,7 @@ def run_pipeline(
             options.colmap_model_path,
         )
     else:
-        assert mps_folder is not None and mps_folder.exists(), (
+        assert mps_folder.exists(), (
             "MPS folder path must be provided if using MPS"
         )
 
