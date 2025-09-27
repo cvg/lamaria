@@ -26,16 +26,16 @@ def run_estimate_to_lamaria(
     vrs: Path,
     images: Path,
     estimate: Path,
-    colmap_model: Path,
+    colmap_model_path: Path,
 ) -> LamariaReconstruction:
     """Function to convert a general input
     estimate file to a LamariaReconstruction.
     """
-    if colmap_model.exists():
-        lamaria_recon = LamariaReconstruction.read(colmap_model)
+    if colmap_model_path.exists():
+        lamaria_recon = LamariaReconstruction.read(colmap_model_path)
         return lamaria_recon
 
-    colmap_model.mkdir(parents=True, exist_ok=True)
+    colmap_model_path.mkdir(parents=True, exist_ok=True)
 
     lamaria_recon = EstimateToLamaria.convert(
         options,
@@ -43,7 +43,7 @@ def run_estimate_to_lamaria(
         images,
         estimate,
     )
-    lamaria_recon.write(colmap_model)
+    lamaria_recon.write(colmap_model_path)
 
     return lamaria_recon
 
@@ -53,14 +53,14 @@ def run_mps_to_lamaria(
     vrs: Path,
     images: Path,
     mps_folder: Path,
-    colmap_model: Path,
+    colmap_model_path: Path,
 ) -> LamariaReconstruction:
     """Function to convert MPS estimate to a LamariaReconstruction."""
-    if colmap_model.exists():
-        lamaria_recon = LamariaReconstruction.read(colmap_model)
+    if colmap_model_path.exists():
+        lamaria_recon = LamariaReconstruction.read(colmap_model_path)
         return lamaria_recon
 
-    colmap_model.mkdir(parents=True, exist_ok=True)
+    colmap_model_path.mkdir(parents=True, exist_ok=True)
 
     lamaria_recon = EstimateToLamaria.convert(
         options,
@@ -68,7 +68,7 @@ def run_mps_to_lamaria(
         images,
         mps_folder,
     )
-    lamaria_recon.write(colmap_model)
+    lamaria_recon.write(colmap_model_path)
 
     return lamaria_recon
 
@@ -203,7 +203,7 @@ def run_pipeline(
             vrs,
             options.images,
             estimate,
-            options.colmap_model,
+            options.colmap_model_path,
         )
     else:
         assert mps_folder is not None and mps_folder.exists(), (
@@ -215,14 +215,14 @@ def run_pipeline(
             vrs,
             options.images,
             mps_folder,
-            options.colmap_model,
+            options.colmap_model_path,
         )
 
     # Keyframe Selection
     kf_options = options.keyframing_options
     _ = run_keyframe_selection(
         kf_options,
-        options.colmap_model,
+        options.colmap_model_path,
         options.images,
         options.keyframes_path,
         options.kf_model,
