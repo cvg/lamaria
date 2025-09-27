@@ -144,14 +144,18 @@ def run_baseline_evaluation(
     )
 
     if triangulated_cp_alignment is None or topo_cp_alignment is None:
-        return (False, "Not enough control points for INITIAL alignment")
+        logger.error(
+            "Not enough control points for initial alignment"
+        )
+        return False
 
     ret = pycolmap.estimate_sim3d_robust(
         triangulated_cp_alignment, topo_cp_alignment, {"max_error": 5}
     )
 
     if ret is None:
-        return (False, "Failed to estimate robust sim3d")
+        logger.error("Failed to estimate robust sim3d")
+        return False
 
     robust_sim3d = ret["tgt_from_src"]
 
@@ -219,7 +223,8 @@ def run_baseline_evaluation(
 
     np.save(os.path.join(output_path, "sparse_evaluation.npy"), output_data)
 
-    return (True, "Sparse evaluation completed successfully")
+    logger.info("Sparse evaluation completed successfully")
+    return True
 
 
 if __name__ == "__main__":
