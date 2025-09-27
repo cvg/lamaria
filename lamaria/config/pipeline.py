@@ -93,7 +93,7 @@ class PipelineOptions:
         return self._triangulator_options
 
     @property
-    def hloc(self) -> Path:
+    def hloc_path(self) -> Path:
         return self._output_path / "hloc"
 
     @property
