@@ -1,20 +1,20 @@
 import json
 from pathlib import Path
-from tqdm import tqdm
 
 import numpy as np
 import pycolmap
-from projectaria_tools.core import mps, data_provider
-from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core import data_provider, mps
 from projectaria_tools.core.calibration import CameraCalibration, ImuCalibration
 from projectaria_tools.core.mps.utils import get_nearest_pose
+from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from scipy.spatial.transform import Rotation
+from tqdm import tqdm
 
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .general import find_closest_timestamp
 
-
 # ----- Camera functions ----- #
+
 
 def add_cameras_to_reconstruction(
     reconstruction: pycolmap.Reconstruction,
@@ -146,7 +146,9 @@ def camera_colmap_from_json(
         params=params,
     )
 
+
 # ----- Transformation functions ----- #
+
 
 def get_closed_loop_data_from_mps(
     mps_path: Path,
@@ -229,7 +231,7 @@ def get_t_imu_camera(
 
 def rigid3d_from_transform(transform) -> pycolmap.Rigid3d:
     """Converts projectaria_tools Rigid3d to pycolmap Rigid3d
-    
+
     Note: to_quat() returns in wxyz format, but pycolmap.Rotation3d
     expects xyzw format."""
 
@@ -310,6 +312,7 @@ def get_t_imu_camera_from_json(
 
 
 # ----- IMU functions ----- #
+
 
 def get_online_params_for_imu_from_mps(
     online_calibs_file: Path, stream_label: str, num_error: float = 1e6
