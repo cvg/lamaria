@@ -6,7 +6,7 @@ from pycolmap import logging
 from ... import logger
 from ...config.options import VIOptimizerOptions
 from .callback import RefinementCallback
-from .residual import add_imu_residuals_to_problem
+from .imu import add_imu_residuals_to_problem
 from .session import SingleSeqSession
 
 
