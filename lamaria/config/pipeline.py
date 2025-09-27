@@ -71,7 +71,7 @@ class PipelineOptions:
         return self._output_path / "images"
 
     @property
-    def colmap_model(self) -> Path:
+    def colmap_model_path(self) -> Path:
         return self._output_path / "initial_recon"
 
     # Properties for keyframing
