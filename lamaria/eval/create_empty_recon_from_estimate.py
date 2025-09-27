@@ -6,9 +6,11 @@ import pycolmap
 from tqdm import tqdm
 
 from ..utils.camera import (
+    add_cameras_to_reconstruction,
+)
+from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
-    add_cameras_to_reconstruction,
 )
 from ..utils.estimate import (
     round_ns,
