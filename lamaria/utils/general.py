@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pycolmap
 
-from lamaria import logger
+from .. import logger
 
 
 def find_closest_timestamp(
