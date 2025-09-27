@@ -53,7 +53,7 @@ class SensorOptions:
 
 # Estimate to COLMAP options
 @dataclass(slots=True)
-class EstimateToColmapOptions:
+class EstimateToLamariaOptions:
     mps: MPSOptions = field(default_factory=MPSOptions)
     sensor: SensorOptions = field(default_factory=SensorOptions)
 
@@ -62,7 +62,7 @@ class EstimateToColmapOptions:
         cls,
         cfg_mps: OmegaConf | None = None,
         cfg_sensor: OmegaConf | None = None,
-    ) -> EstimateToColmapOptions:
+    ) -> EstimateToLamariaOptions:
         if cfg_mps is None or cfg_sensor is None:
             return cls()
 

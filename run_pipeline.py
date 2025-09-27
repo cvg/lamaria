@@ -5,22 +5,22 @@ from pathlib import Path
 import pycolmap
 
 from lamaria.config.options import (
-    EstimateToColmapOptions,
+    EstimateToLamariaOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
 )
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.pipeline.keyframing.to_colmap import EstimateToColmap
+from lamaria.pipeline.keyframing.to_lamaria_reconstruction import EstimateToLamaria
 from lamaria.pipeline.lamaria_reconstruction import LamariaReconstruction
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 
 
-def run_estimate_to_colmap(
-    options: EstimateToColmapOptions,
+def run_estimate_to_lamaria(
+    options: EstimateToLamariaOptions,
     vrs: Path,
     images: Path,
     estimate: Path,
@@ -32,7 +32,7 @@ def run_estimate_to_colmap(
 
     colmap_model.mkdir(parents=True, exist_ok=True)
 
-    lamaria_recon = EstimateToColmap.convert(
+    lamaria_recon = EstimateToLamaria.convert(
         options,
         vrs,
         images,
@@ -43,8 +43,8 @@ def run_estimate_to_colmap(
     return lamaria_recon
 
 
-def run_mps_to_colmap(
-    options: EstimateToColmapOptions,
+def run_mps_to_lamaria(
+    options: EstimateToLamariaOptions,
     vrs: Path,
     images: Path,
     mps_folder: Path,
@@ -56,7 +56,7 @@ def run_mps_to_colmap(
 
     colmap_model.mkdir(parents=True, exist_ok=True)
 
-    lamaria_recon = EstimateToColmap.convert(
+    lamaria_recon = EstimateToLamaria.convert(
         options,
         vrs,
         images,
@@ -185,14 +185,14 @@ def run_pipeline(
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
 
-    # Estimate to COLMAP
+    # Estimate to Lamaria Reconstruction
     est_options = options.estimate_to_colmap_options
     if not est_options.mps.use_mps:
         assert estimate is not None and estimate.exists(), (
             "Estimate path must be provided if not using MPS"
         )
 
-        _ = run_estimate_to_colmap(
+        _ = run_estimate_to_lamaria(
             est_options,
             vrs,
             options.images,
@@ -204,7 +204,7 @@ def run_pipeline(
             "MPS folder path must be provided if using MPS"
         )
 
-        _ = run_mps_to_colmap(
+        _ = run_mps_to_lamaria(
             est_options,
             vrs,
             options.images,
