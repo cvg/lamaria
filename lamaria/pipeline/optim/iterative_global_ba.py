@@ -10,27 +10,6 @@ from .imu import add_imu_residuals_to_problem
 from .session import SingleSeqSession
 
 
-def apply_constraints(problem, session: SingleSeqSession):
-    """Apply rig constraints to the problem for fixing gauge freedom."""
-    # Fix the first rig pose
-    frame_ids = sorted(session.data.reconstruction.frames.keys())
-    first_frame_rfw = session.data.reconstruction.frames[
-        frame_ids[0]
-    ].rig_from_world
-    problem.set_parameter_block_constant(first_frame_rfw.rotation.quat)
-    problem.set_parameter_block_constant(first_frame_rfw.translation)
-
-    # Fix 1 DoF translation of the second rig
-    second_frame_rfw = session.data.reconstruction.frames[
-        frame_ids[1]
-    ].rig_from_world
-    problem.set_manifold(
-        second_frame_rfw.translation,
-        pyceres.SubsetManifold(3, np.array([0])),
-    )
-    return problem
-
-
 class VIBundleAdjuster:
     """Visual-Inertial Bundle Adjuster class that
     adds visual and IMU residuals to the
@@ -82,7 +61,6 @@ class VIBundleAdjuster:
             self.session,
             problem,
         )
-        # problem = apply_constraints(problem, self.session)
 
         # Setup callback if needed
         if vi_options.optim.use_callback:
