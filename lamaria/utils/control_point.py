@@ -23,8 +23,9 @@ def construct_control_points_from_json(
         cp_json_file (Path): Path to the sparse GT JSON file.
 
     Returns:
-        Mapping
-        ``{ tag_id: {"control_point": str, "topo": ndarray(3,), "covariance": ndarray(3,3)} }``.
+        control_points (dict): Control points dictionary of the form
+        ``{ tag_id: {"control_point": str, "topo": ndarray(3,),
+        "covariance": ndarray(3,3)} }``.
     """
     with open(cp_json_file) as file:
         cp_data = json.load(file)
@@ -115,7 +116,7 @@ def run_control_point_triangulation_from_json(
     """
     Triangulate control points from JSON file and add to control_points dict.
     Updates `control_points` in place to add:
-    
+
     - ``triangulated``: np.ndarray(3,) or None if triangulation fails
     - ``inlier_ratio``: float
     - ``image_id_and_point2d``: list of (image_id, [x, y]) tuples
