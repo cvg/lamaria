@@ -107,7 +107,7 @@ def run_triangulation(
     options: TriangulatorOptions,
     input: Path,  # path to LamariaReconstruction
     keyframes_path: Path,
-    hloc: Path,
+    hloc_path: Path,
     pairs_file: Path,
     tri_model_path: Path,
 ) -> LamariaReconstruction:
@@ -124,7 +124,7 @@ def run_triangulation(
         options,
         input,
         keyframes_path,
-        hloc,
+        hloc_path,
         pairs_file,
         tri_model_path,
     )
@@ -234,7 +234,7 @@ def run_pipeline(
         tri_options,
         options.kf_model,
         options.keyframes_path,
-        options.hloc,
+        options.hloc_path,
         options.pairs_file,
         options.tri_model_path,
     )
