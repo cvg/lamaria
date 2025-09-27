@@ -9,7 +9,7 @@ import pycolmap
 
 from ...config.options import KeyframeSelectorOptions
 from ...structs.lamaria_reconstruction import LamariaReconstruction
-from ...utils.transformation import get_magnitude_from_transform
+from ...utils.aria import get_magnitude_from_transform
 
 
 class KeyframeSelector:
