@@ -1,9 +1,10 @@
-
 from projectaria_tools.core.stream_id import StreamId
 
 # ASL folder name, stream label for Aria cameras
-ARIA_CAMERAS: list = [("cam0", "camera-slam-left"), 
-                      ("cam1", "camera-slam-right")]
+ARIA_CAMERAS: list = [
+    ("cam0", "camera-slam-left"),
+    ("cam1", "camera-slam-right"),
+]
 
 # Aria camera constants
 LEFT_CAMERA_STREAM_ID = StreamId("1201-1")

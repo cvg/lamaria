@@ -21,8 +21,8 @@ class SingleSeqSession:
         self._init_imu_data(imu_options)
 
     def _init_imu_data(self, imu_options):
-        self.preintegrated_imu_measurements = (
-            preintegrate_imu_measurements(imu_options, self.data)
+        self.preintegrated_imu_measurements = preintegrate_imu_measurements(
+            imu_options, self.data
         )
         self.imu_states = load_imu_states(self.data)
         self.imu_from_rig = pycolmap.Rigid3d()

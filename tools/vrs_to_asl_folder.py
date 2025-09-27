@@ -8,14 +8,14 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
 from lamaria import logger
-from lamaria.utils.general import (
-    extract_images_from_vrs,
-    get_matched_timestamps,
-)
 from lamaria.utils.constants import (
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
     RIGHT_IMU_STREAM_ID,
+)
+from lamaria.utils.general import (
+    extract_images_from_vrs,
+    get_matched_timestamps,
 )
 
 
@@ -135,8 +135,7 @@ def write_image_csv(image_timestamps, cam_folder):
 
 def write_imu_data_to_csv(vrs_provider, csv_file):
     imu_timestamps = vrs_provider.get_timestamps_ns(
-        RIGHT_IMU_STREAM_ID,
-        TimeDomain.DEVICE_TIME
+        RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
     )
 
     last_timestamp = None

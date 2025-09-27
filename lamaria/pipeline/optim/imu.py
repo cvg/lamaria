@@ -1,6 +1,6 @@
 import numpy as np
-import pycolmap
 import pyceres
+import pycolmap
 from tqdm import tqdm
 
 from ...config.options import OptIMUOptions

@@ -83,9 +83,7 @@ def get_t_imu_camera(
 
     t_imu_cam = t_imu_device @ t_device_cam
 
-    colmap_t_imu_cam = rigid3d_from_transform(
-        t_imu_cam
-    )
+    colmap_t_imu_cam = rigid3d_from_transform(t_imu_cam)
 
     return colmap_t_imu_cam
 

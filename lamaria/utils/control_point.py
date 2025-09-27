@@ -5,11 +5,11 @@ import numpy as np
 import pycolmap
 from tqdm import tqdm
 
-from .general import (
-    get_image_names_to_ids,
-)
 from .constants import (
     CUSTOM_ORIGIN_COORDINATES,
+)
+from .general import (
+    get_image_names_to_ids,
 )
 
 

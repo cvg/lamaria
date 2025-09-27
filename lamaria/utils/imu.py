@@ -5,11 +5,11 @@ from projectaria_tools.core import data_provider, mps
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
-from .general import (
-    find_closest_timestamp,
-)
 from .constants import (
     RIGHT_IMU_STREAM_ID,
+)
+from .general import (
+    find_closest_timestamp,
 )
 
 

@@ -144,9 +144,7 @@ def run_baseline_evaluation(
     )
 
     if triangulated_cp_alignment is None or topo_cp_alignment is None:
-        logger.error(
-            "Not enough control points for initial alignment"
-        )
+        logger.error("Not enough control points for initial alignment")
         return False
 
     ret = pycolmap.estimate_sim3d_robust(

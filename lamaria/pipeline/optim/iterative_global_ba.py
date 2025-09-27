@@ -1,4 +1,3 @@
-import numpy as np
 import pyceres
 import pycolmap
 from pycolmap import logging
