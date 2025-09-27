@@ -18,18 +18,20 @@ def get_rig_from_worlds_from_estimate(
 ) -> list[pycolmap.Rigid3d]:
     """Estimate file format: ts t_x t_y t_z q_x q_y q_z q_w"""
 
-    rig_from_worlds = []
+    rig_from_worlds: list[pycolmap.Rigid3d] = []
+
     with open(estimate_path) as f:
         lines = f.readlines()
-        for line in lines:
-            if line.startswith("#"):
+        for lineno, line in enumerate(lines, start=1):
+            line = line.strip()
+            if not line or line.startswith("#"):
                 continue
 
-            parts = line.strip().split()
+            parts = line.split()
             if len(parts) != 8:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each line must have 8 values."
+                    f"{estimate_path}:{lineno}: "
+                    f"expected 8 values, got {len(parts)}"
                 )
 
             try:
@@ -44,11 +46,11 @@ def get_rig_from_worlds_from_estimate(
                         float(parts[7]),
                     ]
                 )
-            except ValueError:
+            except ValueError as e:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each value must be a number."
-                )
+                    f"{estimate_path}:{lineno}: "
+                    f"expected a number, got {parts!r}"
+                ) from e
 
             pose = pycolmap.Rigid3d(pycolmap.Rotation3d(qvec), tvec)
             rig_from_world = pose.inverse()
@@ -59,32 +61,36 @@ def get_rig_from_worlds_from_estimate(
 
 def check_estimate_format(estimate_path: Path) -> bool:
     """Estimate file format: ts t_x t_y t_z q_x q_y q_z q_w"""
+
+    exists_lines = False
     with open(estimate_path) as f:
         lines = f.readlines()
-        lines = [line for line in lines if not line.startswith("#")]
-        if not lines:
-            raise ValueError(
-                f"Estimate file {estimate_path} is empty \
-                             or has no valid lines."
-            )
+        for lineno, line in enumerate(lines, start=1):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
 
-        for line in lines:
-            parts = line.strip().split()
+            exists_lines = True
+
+            parts = line.split()
             if len(parts) != 8:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each line must have 8 values."
+                    f"{estimate_path}:{lineno}: expected "
+                    f"8 values, got {len(parts)}"
                 )
 
             try:
                 [float(part) for part in parts]
-            except ValueError:
+            except ValueError as e:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each value must be a number."
-                )
+                    f"{estimate_path}:{lineno}: "
+                    f"expected a number, got {parts!r}"
+                ) from e
 
-    return True
+    if not exists_lines:
+        raise ValueError(
+            f"Estimate file {estimate_path} is empty or has no valid lines."
+        )
 
 
 def get_estimate_timestamps(estimate_path: Path) -> list[int]:
@@ -96,24 +102,28 @@ def get_estimate_timestamps(estimate_path: Path) -> list[int]:
         if not lines:
             raise ValueError(
                 f"Estimate file {estimate_path} is empty \
-                             or has no valid lines."
+                    or has no valid lines."
             )
 
-        for line in lines:
-            parts = line.strip().split()
+        for lineno, line in enumerate(lines, start=1):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+
+            parts = line.split()
             if len(parts) != 8:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each line must have 8 values."
+                    f"{estimate_path}:{lineno}: "
+                    f"expected 8 values, got {len(parts)}"
                 )
 
             try:
                 ts = round_ns(parts[0])
-            except ValueError:
+            except ValueError as e:
                 raise ValueError(
-                    f"Estimate file {estimate_path} has invalid format. \
-                                 Each value must be a number."
-                )
+                    f"{estimate_path}:{lineno}: "
+                    f"expected a number, got {parts[0]!r}"
+                ) from e
 
             timestamps.append(ts)
 

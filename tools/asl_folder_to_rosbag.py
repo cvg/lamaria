@@ -123,7 +123,8 @@ def asl_to_rosbag(
     bag = rosbag.Bag(str(output_rosbag), "w")
 
     print(
-        f"[asl_to_rosbag] Writing {len(bag_timeline):,} messages -> {output_rosbag}"
+        f"[asl_to_rosbag] Writing {len(bag_timeline):,} "
+        f"messages -> {output_rosbag}"
     )
 
     for ts_ns, kind, sample in tqdm(

@@ -184,7 +184,8 @@ def download_file(
 
     if total is not None and dest.stat().st_size != total:
         print(
-            f"[warn] Size mismatch for {dest} (expected {total}, got {dest.stat().st_size})"
+            f"[warn] Size mismatch for {dest} "
+            f"(expected {total}, got {dest.stat().st_size})"
         )
 
 
@@ -194,7 +195,10 @@ def main():
         "--set",
         choices=["training", "test", "specific"],
         required=True,
-        help="What to download: training sequences, test sequences, or a specific list",
+        help=(
+            "What to download: training sequences, "
+            "test sequences, or a specific list",
+        ),
     )
     parser.add_argument(
         "--type",
@@ -205,7 +209,10 @@ def main():
     parser.add_argument(
         "--sequences",
         nargs="+",
-        help="Sequence names (required for --set specific). Example: R_01_easy sequence_3_17",
+        help=(
+            "Sequence names (required for --set specific).\n"
+            "Example: R_01_easy sequence_3_17"
+        ),
     )
     parser.add_argument(
         "--out-dir",
@@ -298,7 +305,7 @@ def main():
 
     print("\n[download] Starting downloads.")
     with requests.Session() as sess:
-        for _area, _sub, fname, url, dest in plan:
+        for _area, _sub, _fname, url, dest in plan:
             print(f"[get] {url}")
             try:
                 download_file(url, dest, sess)

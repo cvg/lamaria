@@ -22,8 +22,11 @@ def get_mps_poses_for_timestamps(
     trajectory_data: list[mps.ClosedLoopTrajectoryPose],
     timestamps: list[int],
 ) -> list:
-    """Get T_world_device for a list of device timestamps in nanoseconds using MPS trajectory data.
-    Returns None for timestamps where no trajectory data is found."""
+    """Get T_world_device for a list of device timestamps
+    in nanoseconds using MPS trajectory data.
+    Returns None for timestamps where
+    no trajectory data is found.
+    """
     poses = []
     if trajectory_data:
         for ts in timestamps:
@@ -42,8 +45,10 @@ def get_t_rig_world_for_device_time_ns(
     device_time_ns: int,
     imu_calibration: ImuCalibration,
 ):
-    """Get T_rig_world (rig is right IMU sensor) for a given device time in nanoseconds using MPS trajectory data and IMU calibration.
-    Returns None if no trajectory data is found for the given timestamp."""
+    """Get T_rig_world (rig is right IMU sensor) for a given device time
+    in nanoseconds using MPS trajectory data and IMU calibration.
+    Returns None if no trajectory data is found for the given timestamp.
+    """
     if trajectory_data:
         pose_information = get_nearest_pose(trajectory_data, device_time_ns)
         if pose_information:
@@ -70,8 +75,11 @@ def get_t_imu_camera(
     return_qt=False,
     return_matrix=False,
 ):
-    """Get T_imu_camera from Aria calibrations. Either return as qvec,tvec or 4x4 matrix.
-    If neither return_qt or return_matrix is True, returns as projectaria_tools Rigid3d object."""
+    """Get T_imu_camera from Aria calibrations.
+    Either return as qvec,tvec or 4x4 matrix.
+    If neither return_qt or return_matrix is True,
+    returns as projectaria_tools Rigid3d object.
+    """
 
     t_device_cam = camera_calib.get_transform_device_camera()
     t_device_imu = imu_calib.get_transform_device_imu()
@@ -120,7 +128,10 @@ def rigid3d_from_transform(transform) -> pycolmap.Rigid3d:
 def get_magnitude_from_transform(
     transform: pycolmap.Rigid3d,
 ) -> tuple[float, float]:
-    """Returns rotation (in degrees) and translation (in meters) magnitudes from a Rigid3d transform"""
+    """Returns rotation (in degrees) and
+    translation (in meters) magnitudes
+    from a Rigid3d transform
+    """
     translation = transform.translation
     quat_xyzw = transform.rotation.quat
     rotation = Rotation.from_quat(quat_xyzw)

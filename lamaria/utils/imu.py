@@ -38,8 +38,9 @@ def get_imu_data_from_vrs(
     vrs_provider: data_provider.VrsDataProvider,
     mps_folder: Path | None = None,
 ) -> pycolmap.ImuMeasurements:
-    """Get rectified IMU data from VRS file. If mps_folder is provided, use online
-    calibration data from MPS folder. Otherwise, use device calibration from VRS file."""
+    """Get rectified IMU data from VRS file.
+    If mps_folder is provided, use online calibration data
+    from MPS folder. Otherwise, use device calibration from VRS file."""
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
             RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME

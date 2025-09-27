@@ -26,9 +26,10 @@ def construct_control_points_from_json(
         measurement = data["measurement"]
         unc = data["uncertainty"]
 
-        if measurement[2] == None:
-            assert unc[2] == None, (
-                "Uncertainty for z coordinate should be None if measurement is None"
+        if measurement[2] is None:
+            assert unc[2] is None, (
+                "Uncertainty for z coordinate "
+                "should be None if measurement is None"
             )
             measurement[2] = CUSTOM_ORIGIN_COORDINATES[2]
             unc[2] = 1e9  # some large number
@@ -89,7 +90,7 @@ def transform_points(points, r, t, scale):
 
 
 def transform_triangulated_control_points(control_points: dict, r, t, scale):
-    for tag_id, cp in control_points.items():
+    for _tag_id, cp in control_points.items():
         triangulated_point = cp["triangulated"]
         triangulated_point = scale * r.apply(triangulated_point) + t
         cp["triangulated"] = triangulated_point

@@ -79,7 +79,7 @@ def delete_files_in_folder(folder, exclude_pattern=None):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                print("Failed to delete %s. Reason: %s" % (file_path, e))
+                print(f"Failed to delete {file_path}. Reason: {e}")
     else:
         os.makedirs(folder, exist_ok=True)
 
@@ -132,7 +132,7 @@ def get_image_names_to_ids(reconstruction_path: Path) -> dict[str, int]:
     recon = pycolmap.Reconstruction(reconstruction_path)
     image_names_to_ids = {}
 
-    for image_id in recon.images.keys():
+    for image_id in recon.images:
         image_name = recon.images[image_id].name
         image_names_to_ids[image_name] = image_id
 

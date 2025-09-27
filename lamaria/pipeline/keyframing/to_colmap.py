@@ -147,9 +147,9 @@ class EstimateToColmap:
             assert estimate is not None, (
                 "Estimate path must be provided if not using MPS"
             )
-            flag = check_estimate_format(estimate)
-            if not flag:
-                raise ValueError("Estimate file format is incorrect.")
+
+            # Raises error if estimate file is invalid
+            check_estimate_format(estimate)
 
             timestamps = get_estimate_timestamps(estimate)
             if len(images) != len(timestamps):
