@@ -10,13 +10,12 @@ from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
 from ...config.options import EstimateToLamariaOptions
+from ...structs.lamaria_reconstruction import LamariaReconstruction
 from ...utils.camera import (
     camera_colmap_from_calib,
 )
-from ...utils.estimate import (
-    check_estimate_format,
-    get_estimate_timestamps,
-    get_rig_from_worlds_from_estimate,
+from ...structs.estimate import (
+    Estimate,
 )
 from ...utils.general import (
     extract_images_from_vrs,
@@ -31,7 +30,6 @@ from ...utils.transformation import (
     get_t_imu_camera,
     rigid3d_from_transform,
 )
-from ...structs.lamaria_reconstruction import LamariaReconstruction
 
 
 @dataclass
@@ -150,17 +148,16 @@ class EstimateToLamaria:
             )
 
             # Raises error if estimate file is invalid
-            check_estimate_format(estimate)
+            est = Estimate(invert_poses=True)
+            est.load_from_file(estimate)
 
-            timestamps = get_estimate_timestamps(estimate)
+            timestamps = est.timestamps
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(
                     images, timestamps
                 )
 
-            rig_from_worlds = get_rig_from_worlds_from_estimate(
-                estimate,
-            )
+            rig_from_worlds = est.poses
             self._per_frame_data = self._build_per_frame_data_from_estimate(
                 images, timestamps, rig_from_worlds
             )
