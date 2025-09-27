@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-import numpy as np
 import pycolmap
 from tqdm import tqdm
 
