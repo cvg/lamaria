@@ -16,7 +16,9 @@ from ..utils.control_point import (
 )
 
 
-def update_sim3d_scale(variables: dict):
+def update_sim3d_scale(variables: dict) -> None:
+    """Update the scale of the sim3d in the variables dictionary
+    from the log_scale variable. Occurs in place."""
     if "log_scale" not in variables:
         raise ValueError("log_scale not found in variables")
 
@@ -27,6 +29,16 @@ def update_sim3d_scale(variables: dict):
 def create_variables_for_sparse_evaluation(
     control_points: dict, sim3d: pycolmap.Sim3d, cp_reproj_std: float = 1.0
 ) -> dict:
+    """Create variables dictionary for sparse evaluation.
+    
+    Variables consists of -
+    - ```control_points```: Control points dictionary
+    - ```sim3d```: pycolmap.sim3d transformation
+    - ```cp_reproj_std```: Control point reprojection 
+    - ```log scale``` (np.ndarray): Logarithm of the scale factor 
+        (from sim3d.scale)
+    """
+    
     variables = {}
     variables["control_points"] = copy.deepcopy(control_points)
     variables["sim3d"] = copy.deepcopy(sim3d)
@@ -40,7 +52,18 @@ def create_variables_for_sparse_evaluation(
 def get_problem_for_sparse_alignment(
     reconstruction: pycolmap.Reconstruction,
     variables: dict,
-):
+) -> tuple:
+    """Create a Ceres problem for sparse alignment.
+    Args:
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction.
+        variables (dict): The variables dictionary from 
+            create_variables_for_sparse_evaluation.
+    
+    Returns:
+        problem (pyceres.Problem): The Ceres problem.
+        solver_options (pyceres.SolverOptions): The solver options.
+        summary (pyceres.SolverSummary): The solver summary.
+    """
     problem = pyceres.Problem()
     problem = add_alignment_residuals(
         problem,
@@ -59,6 +82,17 @@ def add_alignment_residuals(
     reconstruction: pycolmap.Reconstruction,
     variables: dict,
 ) -> pyceres.Problem:
+    """Add alignment residuals to the Ceres problem.
+    
+    Variables consists of -
+    - ReprojErrorCost for each observation of each control point
+    - Point3DAlignmentCost for each control point
+    Args:
+        problem (pyceres.Problem): The Ceres problem.
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction.
+        variables (dict): The variables dictionary from 
+            create_variables_for_sparse_evaluation.
+    """
     if (
         variables["control_points"] is not None
         and variables["sim3d"] is not None
@@ -117,7 +151,7 @@ def add_alignment_residuals(
     return problem
 
 
-def run_baseline_evaluation(
+def run(
     reconstruction_path: Path,
     cp_json_file: Path,
     output_path: Path,
@@ -255,7 +289,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    _ = run_baseline_evaluation(
+    _ = run(
         Path(args.reconstruction_path),
         Path(args.cp_json_file),
         Path(args.output_path),
