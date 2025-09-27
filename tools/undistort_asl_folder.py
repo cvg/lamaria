@@ -22,7 +22,7 @@ def undistort_reconstruction(
     output_path: Path,
     ratio_blank_pixels: float = 0.2,
     verbose: bool = False,
-) -> Dict[int, pycolmap.Camera]:
+) -> dict[int, pycolmap.Camera]:
     with tempfile.TemporaryDirectory() as tmp_path:
         tmp_path = Path(tmp_path)
 
@@ -59,7 +59,7 @@ def undistort_reconstruction(
     return cameras
 
 
-def write_cameras_json(cameras: Dict[int | str, pycolmap.Camera], path: Path):
+def write_cameras_json(cameras: dict[int | str, pycolmap.Camera], path: Path):
     camera_dicts = {}
     for key, c in cameras.items():
         d = d = c.todict()

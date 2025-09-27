@@ -27,7 +27,7 @@ class KeyframeSelector:
         self.timestamps = data.timestamps  # frame id to timestamp mapping
 
         self.keyframed_data: LamariaReconstruction = LamariaReconstruction()
-        self.keyframe_frame_ids: Optional[Dict[int, int]] = None
+        self.keyframe_frame_ids: Optional[dict[int, int]] = None
 
     @staticmethod
     def run(
@@ -45,7 +45,7 @@ class KeyframeSelector:
         return kf_recon
 
     def _select_keyframes(self):
-        self.keyframe_frame_ids: Dict[int, int] = {}
+        self.keyframe_frame_ids: dict[int, int] = {}
         dr_dt = np.array([0.0, 0.0])
         dts = 0.0
 

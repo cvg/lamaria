@@ -14,7 +14,7 @@ from .general import (
 
 def construct_control_points_from_json(
     cp_json_file: Path,
-) -> Dict:
+) -> dict:
     """Construct control points dict from JSON file
     Args:
         cp_json_file (Path): Path to the sparse GT JSON file
@@ -89,7 +89,7 @@ def transform_points(points, r, t, scale):
     return transformed_points
 
 
-def transform_triangulated_control_points(control_points: Dict, r, t, scale):
+def transform_triangulated_control_points(control_points: dict, r, t, scale):
     for tag_id, cp in control_points.items():
         triangulated_point = cp["triangulated"]
         triangulated_point = scale * r.apply(triangulated_point) + t
@@ -101,7 +101,7 @@ def transform_triangulated_control_points(control_points: Dict, r, t, scale):
 def run_control_point_triangulation_from_json(
     reconstruction_path: Path,
     cp_json_file: Path,
-    control_points: Dict,  # edits control_points in place
+    control_points: dict,  # edits control_points in place
 ) -> None:
     rec = pycolmap.Reconstruction(reconstruction_path)
 
@@ -175,7 +175,7 @@ def run_control_point_triangulation_from_json(
         control_points[tag_id]["image_id_and_point2d"] = image_ids_and_centers
 
 
-def get_cps_for_initial_alignment(control_points: Dict):
+def get_cps_for_initial_alignment(control_points: dict):
     triangulated_cp_alignment = []
     topo_cp_alignment = []
     for tag_id, cp in control_points.items():

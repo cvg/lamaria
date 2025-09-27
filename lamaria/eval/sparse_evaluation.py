@@ -17,7 +17,7 @@ from ..utils.control_point import (
 )
 
 
-def update_sim3d_scale(variables: Dict):
+def update_sim3d_scale(variables: dict):
     if "log_scale" not in variables:
         raise ValueError("log_scale not found in variables")
 
@@ -26,8 +26,8 @@ def update_sim3d_scale(variables: Dict):
 
 
 def create_variables_for_sparse_evaluation(
-    control_points: Dict, sim3d: pycolmap.Sim3d, cp_reproj_std: float = 1.0
-) -> Dict:
+    control_points: dict, sim3d: pycolmap.Sim3d, cp_reproj_std: float = 1.0
+) -> dict:
     variables = {}
     variables["control_points"] = copy.deepcopy(control_points)
     variables["sim3d"] = copy.deepcopy(sim3d)
@@ -40,7 +40,7 @@ def create_variables_for_sparse_evaluation(
 
 def get_problem_for_sparse_alignment(
     reconstruction: pycolmap.Reconstruction,
-    variables: Dict,
+    variables: dict,
 ):
     problem = pyceres.Problem()
     problem = add_alignment_residuals(
@@ -58,7 +58,7 @@ def get_problem_for_sparse_alignment(
 def add_alignment_residuals(
     problem,
     reconstruction: pycolmap.Reconstruction,
-    variables: Dict,
+    variables: dict,
 ) -> pyceres.Problem:
     if (
         variables["control_points"] is not None

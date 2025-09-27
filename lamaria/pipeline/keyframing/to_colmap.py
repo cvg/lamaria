@@ -55,7 +55,7 @@ class EstimateToColmap:
         self._left_cam_sid: StreamId | None = None
         self._right_cam_sid: StreamId | None = None
         self._right_imu_sid: StreamId | None = None
-        self._per_frame_data: Dict[int, PerFrameData] = {}
+        self._per_frame_data: dict[int, PerFrameData] = {}
 
     @staticmethod
     def convert(
@@ -167,8 +167,8 @@ class EstimateToColmap:
 
     def _build_per_frame_data_from_mps(
         self, images, timestamps, mps_poses
-    ) -> Dict[int, PerFrameData]:
-        per_frame_data: Dict[int, PerFrameData] = {}
+    ) -> dict[int, PerFrameData]:
+        per_frame_data: dict[int, PerFrameData] = {}
         imu_stream_label = self._vrs_provider.get_label_from_stream_id(
             self._right_imu_sid
         )
@@ -216,8 +216,8 @@ class EstimateToColmap:
 
     def _build_per_frame_data_from_estimate(
         self, images, timestamps, rig_from_worlds
-    ) -> Dict[int, PerFrameData]:
-        per_frame_data: Dict[int, PerFrameData] = {}
+    ) -> dict[int, PerFrameData]:
+        per_frame_data: dict[int, PerFrameData] = {}
         assert len(images) == len(timestamps) == len(rig_from_worlds), (
             "Number of images, timestamps and poses must be equal"
         )

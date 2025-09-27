@@ -129,7 +129,7 @@ def extract_images_from_vrs(
         logger.info("Done!")
 
 
-def get_image_names_to_ids(reconstruction_path: Path) -> Dict[str, int]:
+def get_image_names_to_ids(reconstruction_path: Path) -> dict[str, int]:
     recon = pycolmap.Reconstruction(reconstruction_path)
     image_names_to_ids = {}
 

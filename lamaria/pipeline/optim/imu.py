@@ -11,7 +11,7 @@ from ..lamaria_reconstruction import LamariaReconstruction
 def load_preintegrated_imu_measurements(
     options: OptIMUOptions,
     data: LamariaReconstruction,
-) -> Dict[int, pycolmap.PreintegratedImuMeasurement]:
+) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
     preintegrated_measurements = {}
 
     imu_measurements = data.imu_measurements
@@ -53,7 +53,7 @@ def load_preintegrated_imu_measurements(
 
 def load_imu_states(
     data: LamariaReconstruction,
-) -> Dict[int, pycolmap.ImuState]:
+) -> dict[int, pycolmap.ImuState]:
     imu_states = {}
 
     frame_ids = sorted(data.reconstruction.frames.keys())
