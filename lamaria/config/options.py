@@ -19,12 +19,8 @@ def _structured_merge_to_obj(cls, section) -> object:
 # General options
 @dataclass(slots=True)
 class MPSOptions:
-    use_mps: bool = False
     use_online_calibration: bool = (
         False  # when use_mps is true (for online calib file)
-    )
-    has_slam_drops: bool = (
-        False  # check vrs json metadata file for each sequence
     )
 
     @classmethod
@@ -41,6 +37,9 @@ class SensorOptions:
     right_cam_stream_id: str = "1201-2"
     right_imu_stream_id: str = "1202-1"
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
+    has_slam_drops: bool = (
+        False  # check vrs json metadata file for each sequence
+    )
 
     @classmethod
     def load(cls, cfg: OmegaConf | None = None) -> SensorOptions:
