@@ -1,4 +1,6 @@
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +12,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
+from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .general import find_closest_timestamp
 
@@ -395,3 +398,48 @@ def get_imu_data_from_vrs(
             )
 
     return ms
+
+
+def extract_images_from_vrs(
+    vrs_file: Path,
+    image_folder: Path,
+    left_subfolder_name="left",
+    right_subfolder_name="right",
+    rgb_subfolder_name="rgb",
+    verbose: bool = False,
+    extract_rgb: bool = False,
+    extract_left: bool = True,
+    extract_right: bool = True,
+):
+    for camera, stream_id in [
+        (left_subfolder_name, "1201-1"),
+        (right_subfolder_name, "1201-2"),
+        (rgb_subfolder_name, "214-1"),
+    ]:
+        if camera == rgb_subfolder_name and not extract_rgb:
+            continue
+
+        if camera == left_subfolder_name and not extract_left:
+            continue
+
+        if camera == right_subfolder_name and not extract_right:
+            continue
+
+        output_dir = image_folder / camera
+        output_dir.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(output_dir)
+
+        logger.info(
+            "Extracting images for camera %s in VRS %s", camera, vrs_file
+        )
+        cmd = f"vrs extract-images {vrs_file} --to {output_dir} + {stream_id}"
+        stdout = None if verbose else subprocess.PIPE
+        out = subprocess.run(
+            cmd, shell=True, stderr=subprocess.STDOUT, stdout=stdout
+        )
+        if out.returncode:
+            msg = f"Command '{cmd}' returned {out.returncode}."
+            if out.stdout:
+                msg += "\n" + out.stdout.decode("utf-8")
+            raise subprocess.SubprocessError(msg)
+        logger.info("Done!")
