@@ -10,7 +10,7 @@ from .control_point import ControlPoint
 
 @dataclass(slots=True)
 class SparseEvalVariables:
-    """Container for sparse-eval optimization state."""
+    """Container for sparse evaluation optimization variables."""
     control_points: dict[int, "ControlPoint"]       # tag_id to ControlPoint
     sim3d: pycolmap.Sim3d
     cp_reproj_std: float = 1.0
@@ -60,7 +60,7 @@ def get_problem_for_sparse_alignment(
         summary (pyceres.SolverSummary): The solver summary.
     """
     problem = pyceres.Problem()
-    problem = add_alignment_residuals(
+    problem = add_residuals_for_sparse_eval(
         problem,
         reconstruction,
         variables,
@@ -72,7 +72,7 @@ def get_problem_for_sparse_alignment(
     return problem, solver_options, summary
 
 
-def add_alignment_residuals(
+def add_residuals_for_sparse_eval(
     problem,
     reconstruction: pycolmap.Reconstruction,
     variables: SparseEvalVariables,
