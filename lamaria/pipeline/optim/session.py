@@ -4,7 +4,7 @@ import numpy as np
 import pycolmap
 
 from ...config.options import OptIMUOptions
-from ...structs.lamaria_reconstruction import LamariaReconstruction
+from ...structs.vi_reconstruction import VIReconstruction
 from .imu import (
     initialize_imu_states,
     preintegrate_imu_measurements,
@@ -15,7 +15,7 @@ class SingleSeqSession:
     def __init__(
         self,
         imu_options: OptIMUOptions,
-        data: LamariaReconstruction,
+        data: VIReconstruction,
     ):
         self.data = data
         self._init_imu_data(imu_options)
