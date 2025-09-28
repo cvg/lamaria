@@ -1,11 +1,11 @@
+import json
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
-from dataclasses import dataclass
 
 import numpy as np
-import json
-from tqdm import tqdm
 import pycolmap
+from tqdm import tqdm
 
 from ..utils.aria import (
     add_cameras_to_reconstruction as _add_cams,
@@ -32,10 +32,11 @@ def _round_ns(x: str | int | float) -> int:
 @dataclass(slots=True)
 class _BaselineCfg:
     """Configuration for creating a baseline reconstruction."""
+
     cp_json_file: Path
     device_calibration_json: Path
     output_path: Path
-    uses_imu: bool  = True  # if False, uses monocular-cam0 poses
+    uses_imu: bool = True  # if False, uses monocular-cam0 poses
 
 
 class Estimate:
@@ -48,7 +49,9 @@ class Estimate:
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
-    def __init__(self, invert_poses: bool = True, uses_imu: bool = True) -> None:
+    def __init__(
+        self, invert_poses: bool = True, uses_imu: bool = True
+    ) -> None:
         self.invert_poses = invert_poses
         # uses_imu controls default behavior for baseline recon creation
         self.uses_imu = uses_imu
@@ -67,7 +70,7 @@ class Estimate:
 
         self._parse(lines)  # raises error if format is invalid
         return self
-    
+
     def configure_baseline_cfg(
         self,
         cp_json_file: str | Path,
@@ -78,7 +81,7 @@ class Estimate:
         """
         Store config used by create_baseline_reconstruction().
 
-        use_imu: 
+        uses_imu:
         If True, the poses in the estimate file are IMU poses.
         If False, the poses are left camera poses (monocular-cam0).
         """
@@ -92,7 +95,7 @@ class Estimate:
             uses_imu,
         )
         return self
-    
+
     def create_baseline_reconstruction(self) -> pycolmap.Reconstruction:
         """
         Build a COLMAP reconstruction from this Estimate and the
@@ -103,9 +106,10 @@ class Estimate:
         self._ensure_loaded()
         if self._baseline_cfg is None:
             raise RuntimeError(
-                "Baseline not configured. Call configure_baseline_cfg(...) first."
+                "Baseline not configured. "
+                "Call configure_baseline_cfg(...) first."
             )
-        
+
         cfg = self._baseline_cfg
         recon_path = cfg.output_path / "reconstruction"
         recon_path.mkdir(parents=True, exist_ok=True)
@@ -243,7 +247,7 @@ class Estimate:
             ts_data_processed[label]["sorted_keys"] = sorted(
                 ts_data_processed[label].keys()
             )
-        
+
         for i, (timestamp, pose) in tqdm(
             enumerate(pose_data),
             total=len(pose_data),
@@ -255,7 +259,7 @@ class Estimate:
             else:
                 # poses are in world_from_cam/imu format
                 T_world_rig = pose * transform
-            
+
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
             frame.frame_id = i + 1
@@ -274,7 +278,7 @@ class Estimate:
                 )
                 if closest_timestamp is None:
                     raise ValueError
-                
+
                 image_name = ts_data_processed[label][closest_timestamp]
 
                 im = pycolmap.Image(
@@ -288,13 +292,9 @@ class Estimate:
 
                 images_to_add.append(im)
                 image_id += 1
-            
+
             reconstruction.add_frame(frame)
             for im in images_to_add:
                 reconstruction.add_image(im)
-            
-        return reconstruction
-        
-                
 
-        
+        return reconstruction
