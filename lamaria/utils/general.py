@@ -3,8 +3,6 @@ import subprocess
 from bisect import bisect_left
 from pathlib import Path
 
-import pycolmap
-
 from .. import logger
 
 

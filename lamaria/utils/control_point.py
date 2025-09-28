@@ -125,7 +125,9 @@ def run_control_point_triangulation_from_json(
     """
     rec = pycolmap.Reconstruction(reconstruction_path)
 
-    image_names_to_ids = {image.name: image_id for image_id, image in rec.images.items()}
+    image_names_to_ids = {
+        image.name: image_id for image_id, image in rec.images.items()
+    }
 
     with open(cp_json_file) as file:
         data = json.load(file)
