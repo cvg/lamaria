@@ -16,6 +16,7 @@ from ...structs.estimate import (
 from ...structs.lamaria_reconstruction import LamariaReconstruction
 from ...utils.aria import (
     camera_colmap_from_calib,
+    extract_images_from_vrs,
     get_closed_loop_data_from_mps,
     get_imu_data_from_vrs,
     get_mps_poses_for_timestamps,
@@ -23,7 +24,6 @@ from ...utils.aria import (
     rigid3d_from_transform,
 )
 from ...utils.general import (
-    extract_images_from_vrs,
     get_matched_timestamps,
 )
 

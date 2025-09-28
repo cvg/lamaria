@@ -243,7 +243,7 @@ class KeyframeSelector:
         Images are expected to be in `images/left`
         and `images/right` subdirectories.
         Check: `extract_images_from_vrs` in
-        `lamaria/utils/general.py` for more details.
+        `lamaria/utils/aria.py` for more details.
         """
         if self.keyframe_frame_ids is None:
             raise ValueError(

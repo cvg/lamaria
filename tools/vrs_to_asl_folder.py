@@ -8,13 +8,13 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from tqdm import tqdm
 
 from lamaria import logger
+from lamaria.utils.aria import extract_images_from_vrs
 from lamaria.utils.constants import (
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
     RIGHT_IMU_STREAM_ID,
 )
 from lamaria.utils.general import (
-    extract_images_from_vrs,
     get_matched_timestamps,
 )
 
