@@ -65,6 +65,9 @@ class Estimate:
         self.clear()
         self.path = Path(path)
 
+        if not self.path.exists():
+            raise FileNotFoundError(f"Estimate file not found: {self.path}")
+
         with open(self.path) as f:
             lines = f.readlines()
 
@@ -77,7 +80,7 @@ class Estimate:
         device_calibration_json: str | Path,
         output_path: str | Path,
         uses_imu: bool | None = None,
-    ) -> "Estimate":
+    ) -> None:
         """
         Store config used by create_baseline_reconstruction().
 
@@ -94,7 +97,6 @@ class Estimate:
             Path(output_path),
             uses_imu,
         )
-        return self
 
     def create_baseline_reconstruction(self) -> pycolmap.Reconstruction:
         """
@@ -137,6 +139,12 @@ class Estimate:
     def poses(self) -> list[pycolmap.Rigid3d]:
         self._ensure_loaded()
         return self._poses
+    
+    @property
+    def reconstruction_path(self) -> Path | None:
+        if self._baseline_cfg is None:
+            return None
+        return self._baseline_cfg.output_path / "reconstruction"
 
     def as_tuples(self) -> list[tuple[int, pycolmap.Rigid3d]]:
         """Return a list of (timestamp, pose) tuples."""
