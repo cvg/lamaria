@@ -32,28 +32,7 @@ def initialize_reconstruction_from_calibration_file(
         pycolmap.Reconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
-    add_cameras_to_reconstruction(reconstruction, calibration_file)
-    return reconstruction
-
-
-# ----- Camera functions ----- #
-
-
-def add_cameras_to_reconstruction(
-    reconstruction: pycolmap.Reconstruction,
-    calibration_file: Path,
-) -> None:
-    """Add Aria cameras to COLMAP reconstruction from calibration
-    json file found on website: https://lamaria.ethz.ch/slam_datasets
-
-    Args:
-        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction
-        to which cameras will be added
-
-        calibration_file (Path):
-        Path to the Aria calibration json file
-    """
-
+    
     for i, (key, _) in enumerate(ARIA_CAMERAS):
         cam = camera_colmap_from_json(
             calibration_file=calibration_file,
@@ -78,6 +57,11 @@ def add_cameras_to_reconstruction(
     rig.add_sensor(sensor1, sensor_from_rig)
 
     reconstruction.add_rig(rig)
+    
+    return reconstruction
+
+
+# ----- Camera functions ----- #
 
 
 def get_camera_params_for_colmap(
