@@ -16,6 +16,26 @@ from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .synchronization import find_closest_timestamp
 
+# ----- Reconstruction functions ----- #
+
+
+def initialize_reconstruction_from_calibration_file(
+    calibration_file: Path,
+) -> pycolmap.Reconstruction:
+    """Initialize a COLMAP reconstruction from Aria calibration
+    json file found on website: https://lamaria.ethz.ch/slam_datasets
+
+    Args:
+        calibration_file (Path):
+        Path to the Aria calibration json file
+    Returns:
+        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+    """
+    reconstruction = pycolmap.Reconstruction()
+    add_cameras_to_reconstruction(reconstruction, calibration_file)
+    return reconstruction
+
+
 # ----- Camera functions ----- #
 
 
