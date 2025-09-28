@@ -139,7 +139,9 @@ class EstimateToLamaria:
             # Raises error if estimate file is invalid
             est = Estimate(invert_poses=True)
             est.load_from_file(estimate)
-
+            if not est.is_loaded():
+                raise RuntimeError("Failed to load estimate file")
+            
             timestamps = est.timestamps
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(
