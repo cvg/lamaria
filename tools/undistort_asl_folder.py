@@ -10,7 +10,7 @@ import pycolmap
 from tqdm import tqdm
 
 from lamaria.utils.aria import (
-    add_cameras_to_reconstruction,
+    initialize_reconstruction_from_calibration_file,
 )
 from lamaria.utils.constants import (
     ARIA_CAMERAS,
@@ -80,9 +80,7 @@ def undistort_asl(
     if not calibration_file.exists():
         raise FileNotFoundError(f"{calibration_file=}")
 
-    recon = pycolmap.Reconstruction()
-    add_cameras_to_reconstruction(
-        reconstruction=recon,
+    recon = initialize_reconstruction_from_calibration_file(
         calibration_file=calibration_file,
     )
     # Create a dummy COLMAP reconstruction.
