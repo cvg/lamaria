@@ -1,4 +1,3 @@
-import os
 import shutil
 import subprocess
 from bisect import bisect_left
@@ -90,7 +89,7 @@ def extract_images_from_vrs(
 
         output_dir = image_folder / camera
         output_dir.mkdir(parents=True, exist_ok=True)
-        delete_files_in_folder(output_dir)
+        shutil.rmtree(output_dir)
         logger.info(
             "Extracting images for camera %s in VRS %s", camera, vrs_file
         )
