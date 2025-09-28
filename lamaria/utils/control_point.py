@@ -8,9 +8,6 @@ from tqdm import tqdm
 from .constants import (
     CUSTOM_ORIGIN_COORDINATES,
 )
-from .general import (
-    get_image_names_to_ids,
-)
 
 
 def construct_control_points_from_json(
@@ -128,9 +125,7 @@ def run_control_point_triangulation_from_json(
     """
     rec = pycolmap.Reconstruction(reconstruction_path)
 
-    image_names_to_ids = get_image_names_to_ids(
-        reconstruction_path=reconstruction_path
-    )
+    image_names_to_ids = {image.name: image_id for image_id, image in rec.images.items()}
 
     with open(cp_json_file) as file:
         data = json.load(file)

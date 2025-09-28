@@ -104,14 +104,3 @@ def extract_images_from_vrs(
                 msg += "\n" + out.stdout.decode("utf-8")
             raise subprocess.SubprocessError(msg)
         logger.info("Done!")
-
-
-def get_image_names_to_ids(reconstruction_path: Path) -> dict[str, int]:
-    recon = pycolmap.Reconstruction(reconstruction_path)
-    image_names_to_ids = {}
-
-    for image_id in recon.images:
-        image_name = recon.images[image_id].name
-        image_names_to_ids[image_name] = image_id
-
-    return image_names_to_ids
