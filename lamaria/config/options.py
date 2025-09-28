@@ -20,7 +20,7 @@ def _structured_merge_to_obj(cls, section) -> object:
 @dataclass(slots=True)
 class MPSOptions:
     use_online_calibration: bool = (
-        False  # when use_mps is true (for online calib file)
+        False  # set to True if using MPS online calibration result
     )
 
     @classmethod
