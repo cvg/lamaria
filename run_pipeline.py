@@ -21,7 +21,7 @@ from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 from lamaria.structs.vi_reconstruction import VIReconstruction
 
 
-def run_estimate_to_lamaria(
+def run_estimate_to_vi_recon(
     options: EstimateToVIReconOptions,
     vrs: Path,
     images_path: Path,
@@ -48,7 +48,7 @@ def run_estimate_to_lamaria(
     return vi_recon
 
 
-def run_mps_to_lamaria(
+def run_mps_to_vi_recon(
     options: EstimateToVIReconOptions,
     vrs: Path,
     images_path: Path,
@@ -200,7 +200,7 @@ def run_pipeline(
             "Estimate path must be provided if not using MPS"
         )
 
-        _ = run_estimate_to_lamaria(
+        _ = run_estimate_to_vi_recon(
             est_options,
             vrs,
             options.images_path,
@@ -212,7 +212,7 @@ def run_pipeline(
             "MPS folder path must be provided if using MPS"
         )
 
-        _ = run_mps_to_lamaria(
+        _ = run_mps_to_vi_recon(
             est_options,
             vrs,
             options.images_path,
