@@ -9,6 +9,7 @@ import pycolmap
 import pycolmap.cost_functions
 
 from .. import logger
+from ..structs.estimate import Estimate
 from ..utils.control_point import (
     construct_control_points_from_json,
     get_cps_for_initial_alignment,
@@ -152,26 +153,48 @@ def add_alignment_residuals(
 
 
 def run(
-    reconstruction_path: Path,
+    estimate: Path,
     cp_json_file: Path,
+    device_calibration_json: Path,
     output_path: Path,
+    uses_imu: bool,
     cp_reproj_std=1.0,
 ):
     """Run sparse evaluation for sequences that observe control points.
 
     Args:
-      reconstruction_path (Path): Path to the COLMAP reconstruction that
-        contains the poses to be evaluated.
-      cp_json_file (Path): Path to the sparse GT JSON file containing control
-        point data.
-      output_path (Path): Path to the output folder where the evaluation results
-        will be saved.
-      cp_reproj_std (float): Control point reprojection standard deviation.
+        estimate (Path): Path to the pose estimate file.
+        cp_json_file (Path): Path to the sparse ground-truth JSON file
+            containing control point data.
+        device_calibration_json (Path): Path to the device calibration JSON.
+        output_path (Path): Directory where intermediate data and evaluation results will be saved.
+        uses_imu (bool): Whether poses are in IMU frame or cam0 (left camera) frame.
+        cp_reproj_std (float, optional): Control point reprojection standard
+            deviation. Defaults to 1.0.
 
     Returns:
-      bool: True if the evaluation was successful, False otherwise.
+        bool: True if the evaluation was successful, False otherwise.
+
+    Notes:
+        Expected estimate file format (space-separated columns):
+        ```
+        timestamp tx ty tz qx qy qz qw
+        ```
     """
-    output_path.mkdir(parents=True, exist_ok=True)
+    est = Estimate()
+    est.load_from_file(estimate)
+    if not est.is_loaded():
+        logger.error("Estimate could not be loaded")
+        return False
+    
+    est.setup_baseline_cfg(
+        cp_json_file,
+        device_calibration_json,
+        output_path,
+        uses_imu,
+    )
+    _ = est.create_baseline_reconstruction()
+    reconstruction_path = est.reconstruction_path
 
     aligned_transformed_folder = output_path / "aligned_transformed"
     aligned_transformed_folder.mkdir(parents=True, exist_ok=True)
@@ -278,22 +301,35 @@ if __name__ == "__main__":
         description="Run baseline sparse evaluation"
     )
     parser.add_argument(
-        "--reconstruction_path",
-        type=str,
+        "--estimate",
+        type=Path,
         required=True,
-        help="Path to the reconstruction folder",
+        help="Path to the pose estimate file produced by a specific method",
     )
     parser.add_argument(
         "--cp_json_file",
-        type=str,
+        type=Path,
         required=True,
         help="Path to the sparse GT JSON file",
     )
     parser.add_argument(
-        "--output_path",
-        type=str,
+        "--device_calibration_json",
+        type=Path,
         required=True,
-        help="Path to the output folder",
+        help="Path to the Aria device calibration JSON file, found on the Lamaria website",
+    )
+    parser.add_argument(
+        "--output_path",
+        type=Path,
+        required=True,
+        help="Path to the output folder where intermediate data "
+        "and evaluation results will be saved",
+    )
+    parser.add_argument(
+        "--uses_imu",
+        action="store_true",
+        help="Set if the poses are in IMU frame. If not set, "
+        "poses are assumed to be in cam0 (left camera) frame.",
     )
     parser.add_argument(
         "--cp_reproj_std",
@@ -304,8 +340,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     _ = run(
-        Path(args.reconstruction_path),
-        Path(args.cp_json_file),
-        Path(args.output_path),
+        args.estimate,
+        args.cp_json_file,
+        args.device_calibration_json,
+        args.output_path,
+        args.uses_imu,
         args.cp_reproj_std,
     )
