@@ -8,12 +8,6 @@ import pycolmap
 from tqdm import tqdm
 
 from .. import logger
-from ..utils.aria import (
-    add_cameras_to_reconstruction as _add_cams,
-)
-from ..utils.aria import (
-    get_t_imu_camera_from_json,
-)
 from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
@@ -75,7 +69,7 @@ class Estimate:
         cp_json_file: Path,
         sensor_from_rig: pycolmap.Rigid3d,
         output_path: Path,
-    ) -> pycolmap.Reconstruction:
+    ) -> Path:
         """
         Adds estimate poses as frames to input reconstruction.
         """
@@ -92,8 +86,9 @@ class Estimate:
             sensor_from_rig
         )
 
-        reconstruction.write(str(recon_path))
-        return reconstruction
+        reconstruction.write(recon_path.as_posix())
+        
+        return recon_path
 
     @property
     def timestamps(self) -> list[int]:
