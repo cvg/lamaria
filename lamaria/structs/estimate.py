@@ -12,7 +12,7 @@ from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
 )
-from ..utils.synchronization import (
+from ..utils.timestamps import (
     find_closest_timestamp,
 )
 
@@ -42,13 +42,15 @@ class Estimate:
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
 
+    @classmethod
     def load_from_file(
-        self,
+        cls,
         path: str | Path,
         invert_poses: bool = True,
         corresponding_sensor: str = "imu",
     ) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
+        self = cls()
         self.clear()
         self.path = Path(path)
         self.invert_poses = invert_poses
@@ -67,7 +69,7 @@ class Estimate:
     def add_estimate_poses_to_reconstruction(
         self,
         reconstruction: pycolmap.Reconstruction,
-        cp_json_file: Path,
+        timestamp_to_images: dict,
         sensor_from_rig: pycolmap.Rigid3d,
         output_path: Path,
     ) -> Path:
@@ -82,7 +84,9 @@ class Estimate:
         shutil.rmtree(recon_path)
 
         reconstruction = self._add_images_to_reconstruction(
-            reconstruction, cp_json_file, sensor_from_rig
+            reconstruction,
+            timestamp_to_images,
+            sensor_from_rig
         )
 
         reconstruction.write(recon_path.as_posix())
@@ -183,26 +187,15 @@ class Estimate:
     def _add_images_to_reconstruction(
         self,
         reconstruction: pycolmap.Reconstruction,
-        cp_json_file: Path,
+        timestamp_to_images: dict,
         sensor_from_rig: pycolmap.Rigid3d,
     ) -> pycolmap.Reconstruction:
         pose_data = self.as_tuples()
-
-        with open(cp_json_file) as f:
-            cp_data = json.load(f)
 
         image_id = 1
         rig = reconstruction.rig(rig_id=1)
 
         transform = sensor_from_rig.inverse()
-
-        ts_data_processed = {}
-        for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
-            ts_data = cp_data["timestamps"][label]
-            ts_data_processed[label] = {int(k): v for k, v in ts_data.items()}
-            ts_data_processed[label]["sorted_keys"] = sorted(
-                ts_data_processed[label].keys()
-            )
 
         for i, (timestamp, pose) in tqdm(
             enumerate(pose_data),
@@ -227,7 +220,7 @@ class Estimate:
                 (LEFT_CAMERA_STREAM_LABEL, 1),
                 (RIGHT_CAMERA_STREAM_LABEL, 2),
             ]:
-                source_timestamps = ts_data_processed[label]["sorted_keys"]
+                source_timestamps = timestamp_to_images[label]["sorted_keys"]
                 # offsets upto 1 ms (1e6 ns)
                 closest_timestamp = find_closest_timestamp(
                     source_timestamps, timestamp, max_diff=1e6
@@ -235,7 +228,7 @@ class Estimate:
                 if closest_timestamp is None:
                     raise ValueError
 
-                image_name = ts_data_processed[label][closest_timestamp]
+                image_name = timestamp_to_images[label][closest_timestamp]
 
                 im = pycolmap.Image(
                     image_name,
