@@ -9,7 +9,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
-from ...config.options import EstimateToLamariaOptions
+from ...config.options import EstimateToVIReconOptions
 from ...structs.estimate import (
     Estimate,
 )
@@ -37,10 +37,10 @@ class PerFrameData:
     rig_from_world: pycolmap.Rigid3d
 
 
-class EstimateToLamaria:
+class EstimateToVIRecon:
     """Converts estimate or MPS data to COLMAP format."""
 
-    def __init__(self, options: EstimateToLamariaOptions):
+    def __init__(self, options: EstimateToVIReconOptions):
         self.options = options
         self.data: VIReconstruction = VIReconstruction()
         self._vrs_provider = None
@@ -52,14 +52,14 @@ class EstimateToLamaria:
 
     @staticmethod
     def convert(
-        options: EstimateToLamariaOptions,
+        options: EstimateToVIReconOptions,
         vrs: Path,
         images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
     ) -> VIReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
-        to_colmap = EstimateToLamaria(options)
+        to_colmap = EstimateToVIRecon(options)
         return to_colmap.process(vrs, images_path, estimate, mps_folder)
 
     def process(

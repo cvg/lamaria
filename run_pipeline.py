@@ -5,7 +5,7 @@ from pathlib import Path
 import pycolmap
 
 from lamaria.config.options import (
-    EstimateToLamariaOptions,
+    EstimateToVIReconOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
@@ -13,7 +13,7 @@ from lamaria.config.options import (
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
 from lamaria.pipeline.keyframing.to_vi_reconstruction import (
-    EstimateToLamaria,
+    EstimateToVIRecon,
 )
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
@@ -22,7 +22,7 @@ from lamaria.structs.vi_reconstruction import VIReconstruction
 
 
 def run_estimate_to_lamaria(
-    options: EstimateToLamariaOptions,
+    options: EstimateToVIReconOptions,
     vrs: Path,
     images_path: Path,
     estimate: Path,
@@ -37,7 +37,7 @@ def run_estimate_to_lamaria(
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
 
-    vi_recon = EstimateToLamaria.convert(
+    vi_recon = EstimateToVIRecon.convert(
         options,
         vrs,
         images_path,
@@ -49,7 +49,7 @@ def run_estimate_to_lamaria(
 
 
 def run_mps_to_lamaria(
-    options: EstimateToLamariaOptions,
+    options: EstimateToVIReconOptions,
     vrs: Path,
     images_path: Path,
     mps_folder: Path,
@@ -62,7 +62,7 @@ def run_mps_to_lamaria(
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
 
-    vi_recon = EstimateToLamaria.convert(
+    vi_recon = EstimateToVIRecon.convert(
         options,
         vrs,
         images_path,

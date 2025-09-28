@@ -4,7 +4,7 @@ from pathlib import Path
 from omegaconf import DictConfig, OmegaConf
 
 from .options import (
-    EstimateToLamariaOptions,
+    EstimateToVIReconOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
@@ -14,8 +14,8 @@ from .options import (
 class PipelineOptions:
     def __init__(self) -> None:
         self._output_path: Path = Path("output/")
-        self._estimate_to_colmap_options: EstimateToLamariaOptions = (
-            EstimateToLamariaOptions()
+        self._estimate_to_colmap_options: EstimateToVIReconOptions = (
+            EstimateToVIReconOptions()
         )
         self._keyframing_options: KeyframeSelectorOptions = (
             KeyframeSelectorOptions()
@@ -40,7 +40,7 @@ class PipelineOptions:
 
     def _update_from_cfg(self, cfg: DictConfig) -> None:
         """Update object attributes from a config."""
-        self._estimate_to_colmap_options = EstimateToLamariaOptions.load(
+        self._estimate_to_colmap_options = EstimateToVIReconOptions.load(
             cfg.mps,
             cfg.sensor,
         )
@@ -63,7 +63,7 @@ class PipelineOptions:
 
     # Properties for estimate to COLMAP
     @property
-    def estimate_to_colmap_options(self) -> EstimateToLamariaOptions:
+    def estimate_to_colmap_options(self) -> EstimateToVIReconOptions:
         return self._estimate_to_colmap_options
 
     @property
