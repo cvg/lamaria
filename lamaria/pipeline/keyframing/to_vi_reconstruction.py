@@ -13,7 +13,7 @@ from ...config.options import EstimateToLamariaOptions
 from ...structs.estimate import (
     Estimate,
 )
-from ...structs.lamaria_reconstruction import LamariaReconstruction
+from ...structs.vi_reconstruction import VIReconstruction
 from ...utils.aria import (
     camera_colmap_from_calib,
     extract_images_from_vrs,
@@ -42,7 +42,7 @@ class EstimateToLamaria:
 
     def __init__(self, options: EstimateToLamariaOptions):
         self.options = options
-        self.data: LamariaReconstruction = LamariaReconstruction()
+        self.data: VIReconstruction = VIReconstruction()
         self._vrs_provider = None
         self._mps_data_provider = None
         self._left_cam_sid: StreamId | None = None
@@ -57,7 +57,7 @@ class EstimateToLamaria:
         images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
-    ) -> LamariaReconstruction:
+    ) -> VIReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
         to_colmap = EstimateToLamaria(options)
         return to_colmap.process(vrs, images_path, estimate, mps_folder)
@@ -68,7 +68,7 @@ class EstimateToLamaria:
         images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
-    ) -> LamariaReconstruction:
+    ) -> VIReconstruction:
         self._init_data(vrs, images_path, estimate, mps_folder)
 
         if self.options.mps.use_online_calibration:
