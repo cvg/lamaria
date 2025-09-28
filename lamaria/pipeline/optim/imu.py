@@ -51,7 +51,7 @@ def preintegrate_imu_measurements(
     return preintegrated_measurements
 
 
-def load_imu_states(
+def initialize_imu_states(
     data: LamariaReconstruction,
 ) -> dict[int, pycolmap.ImuState]:
     imu_states = {}

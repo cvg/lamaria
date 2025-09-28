@@ -6,7 +6,7 @@ import pycolmap
 from ...config.options import OptIMUOptions
 from ...structs.lamaria_reconstruction import LamariaReconstruction
 from .imu import (
-    load_imu_states,
+    initialize_imu_states,
     preintegrate_imu_measurements,
 )
 
@@ -24,7 +24,7 @@ class SingleSeqSession:
         self.preintegrated_imu_measurements = preintegrate_imu_measurements(
             imu_options, self.data
         )
-        self.imu_states = load_imu_states(self.data)
+        self.imu_states = initialize_imu_states(self.data)
         self.imu_from_rig = pycolmap.Rigid3d()
         self.gravity = np.array([0.0, 0.0, -1.0])
         self.log_scale = np.array([0.0])
