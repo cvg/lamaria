@@ -12,13 +12,13 @@ from lamaria.config.options import (
 )
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.pipeline.keyframing.to_lamaria_reconstruction import (
+from lamaria.pipeline.keyframing.to_vi_reconstruction import (
     EstimateToLamaria,
 )
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
-from lamaria.structs.lamaria_reconstruction import LamariaReconstruction
+from lamaria.structs.vi_reconstruction import VIReconstruction
 
 
 def run_estimate_to_lamaria(
@@ -27,12 +27,12 @@ def run_estimate_to_lamaria(
     images_path: Path,
     estimate: Path,
     colmap_model_path: Path,
-) -> LamariaReconstruction:
+) -> VIReconstruction:
     """Function to convert a general input
-    estimate file to a LamariaReconstruction.
+    estimate file to a VIReconstruction.
     """
     if colmap_model_path.exists():
-        lamaria_recon = LamariaReconstruction.read(colmap_model_path)
+        lamaria_recon = VIReconstruction.read(colmap_model_path)
         return lamaria_recon
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
@@ -54,10 +54,10 @@ def run_mps_to_lamaria(
     images_path: Path,
     mps_folder: Path,
     colmap_model_path: Path,
-) -> LamariaReconstruction:
-    """Function to convert MPS estimate to a LamariaReconstruction."""
+) -> VIReconstruction:
+    """Function to convert MPS estimate to a VIReconstruction."""
     if colmap_model_path.exists():
-        lamaria_recon = LamariaReconstruction.read(colmap_model_path)
+        lamaria_recon = VIReconstruction.read(colmap_model_path)
         return lamaria_recon
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
@@ -75,18 +75,18 @@ def run_mps_to_lamaria(
 
 def run_keyframe_selection(
     options: KeyframeSelectorOptions,
-    input: Path | LamariaReconstruction,
+    input: Path | VIReconstruction,
     images_path: Path,
     keyframes_path: Path,
     kf_model_path: Path,
-) -> LamariaReconstruction:
+) -> VIReconstruction:
     if isinstance(input, Path):
-        input_recon = LamariaReconstruction.read(input)
+        input_recon = VIReconstruction.read(input)
     else:
         input_recon = input
 
     if kf_model_path.exists():
-        kf_lamaria_recon = LamariaReconstruction.read(kf_model_path)
+        kf_lamaria_recon = VIReconstruction.read(kf_model_path)
         return kf_lamaria_recon
 
     kf_model_path.mkdir(parents=True, exist_ok=True)
@@ -105,19 +105,19 @@ def run_keyframe_selection(
 
 def run_triangulation(
     options: TriangulatorOptions,
-    input: Path,  # path to LamariaReconstruction
+    input: Path,  # path to VIReconstruction
     keyframes_path: Path,
     hloc_path: Path,
     pairs_file: Path,
     tri_model_path: Path,
-) -> LamariaReconstruction:
+) -> VIReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
 
     assert input.exists(), f"input reconstruction path {input} does not exist"
 
     if tri_model_path.exists():
-        tri_lamaria_recon = LamariaReconstruction.read(tri_model_path)
+        tri_lamaria_recon = VIReconstruction.read(tri_model_path)
         return tri_lamaria_recon
 
     triangulated_model_path = triangulate(
@@ -129,10 +129,10 @@ def run_triangulation(
         tri_model_path,
     )
 
-    input_lamaria_recon = LamariaReconstruction.read(input)
+    input_lamaria_recon = VIReconstruction.read(input)
     tri_recon = pycolmap.Reconstruction(triangulated_model_path)
 
-    tri_lamaria_recon = LamariaReconstruction()
+    tri_lamaria_recon = VIReconstruction()
     tri_lamaria_recon.reconstruction = tri_recon
     tri_lamaria_recon.timestamps = input_lamaria_recon.timestamps
     tri_lamaria_recon.imu_measurements = input_lamaria_recon.imu_measurements
@@ -144,9 +144,9 @@ def run_triangulation(
 def run_optimization(
     vi_options: VIOptimizerOptions,
     triangulator_options: TriangulatorOptions,
-    input: Path,  # path to LamariaReconstruction
+    input: Path,  # path to VIReconstruction
     optim_model_path: Path,
-) -> LamariaReconstruction:
+) -> VIReconstruction:
     if not isinstance(input, Path):
         raise ValueError("Input must be a Path to the reconstruction")
 
@@ -162,7 +162,7 @@ def run_optimization(
     db_dst = optim_model_path / "database.db"
     shutil.copy(db_path, db_dst)
 
-    init_lamaria_recon = LamariaReconstruction.read(input)
+    init_lamaria_recon = VIReconstruction.read(input)
     session = SingleSeqSession(
         vi_options.imu,
         init_lamaria_recon,
@@ -172,7 +172,7 @@ def run_optimization(
         vi_options, triangulator_options, session, db_dst
     )
 
-    optim_lamaria_recon = LamariaReconstruction()
+    optim_lamaria_recon = VIReconstruction()
     optim_lamaria_recon.reconstruction = optimized_recon
     optim_lamaria_recon.timestamps = init_lamaria_recon.timestamps
     optim_lamaria_recon.imu_measurements = init_lamaria_recon.imu_measurements
