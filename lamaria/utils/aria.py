@@ -400,6 +400,9 @@ def get_imu_data_from_vrs(
     return ms
 
 
+# ----- VRS utils ----- #
+
+
 def extract_images_from_vrs(
     vrs_file: Path,
     image_folder: Path,
