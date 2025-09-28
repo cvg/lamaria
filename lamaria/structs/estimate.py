@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 from ..utils.aria import (
     add_cameras_to_reconstruction as _add_cams,
+)
+from ..utils.aria import (
     get_t_imu_camera_from_json,
 )
 from ..utils.constants import (
@@ -108,8 +110,7 @@ class Estimate:
         self._ensure_loaded()
         if self._baseline_cfg is None:
             raise RuntimeError(
-                "Baseline not configured. "
-                "Call setup_baseline_cfg(...) first."
+                "Baseline not configured. Call setup_baseline_cfg(...) first."
             )
 
         cfg = self._baseline_cfg
@@ -139,7 +140,7 @@ class Estimate:
     def poses(self) -> list[pycolmap.Rigid3d]:
         self._ensure_loaded()
         return self._poses
-    
+
     @property
     def reconstruction_path(self) -> Path | None:
         if self._baseline_cfg is None:

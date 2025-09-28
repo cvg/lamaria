@@ -167,8 +167,10 @@ def run(
         cp_json_file (Path): Path to the sparse ground-truth JSON file
             containing control point data.
         device_calibration_json (Path): Path to the device calibration JSON.
-        output_path (Path): Directory where intermediate data and evaluation results will be saved.
-        uses_imu (bool): Whether poses are in IMU frame or cam0 (left camera) frame.
+        output_path (Path): Directory where intermediate data and
+        evaluation results will be saved.
+        uses_imu (bool): Whether poses are in IMU frame
+        or cam0 (left camera) frame.
         cp_reproj_std (float, optional): Control point reprojection standard
             deviation. Defaults to 1.0.
 
@@ -186,7 +188,7 @@ def run(
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")
         return False
-    
+
     est.setup_baseline_cfg(
         cp_json_file,
         device_calibration_json,
@@ -316,7 +318,8 @@ if __name__ == "__main__":
         "--device_calibration_json",
         type=Path,
         required=True,
-        help="Path to the Aria device calibration JSON file, found on the Lamaria website",
+        help="Path to the Aria device calibration JSON file, "
+        "found on the Lamaria website",
     )
     parser.add_argument(
         "--output_path",
