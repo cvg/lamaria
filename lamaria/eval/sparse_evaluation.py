@@ -183,7 +183,7 @@ def run(
         timestamp tx ty tz qx qy qz qw
         ```
     """
-    est = Estimate()
+    est = Estimate(invert_poses=False)
     est.load_from_file(estimate)
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")

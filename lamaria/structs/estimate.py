@@ -47,16 +47,14 @@ class Estimate:
       ts t_x t_y t_z q_x q_y q_z q_w
     Blank lines and lines starting with '#' are ignored.
 
-    By default, poses are returned as rig_from_world
+    By default, poses are calculated as rig_from_world
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
     def __init__(
-        self, invert_poses: bool = True, uses_imu: bool = True
+        self, invert_poses: bool = True
     ) -> None:
         self.invert_poses = invert_poses
-        # uses_imu controls default behavior for baseline recon creation
-        self.uses_imu = uses_imu
         self.path: Path | None = None
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
@@ -81,7 +79,7 @@ class Estimate:
         cp_json_file: str | Path,
         device_calibration_json: str | Path,
         output_path: str | Path,
-        uses_imu: bool | None = None,
+        uses_imu: bool,
     ) -> None:
         """
         Store config used by create_baseline_reconstruction().
@@ -90,8 +88,6 @@ class Estimate:
         If True, the poses in the estimate file are IMU poses.
         If False, the poses are left camera poses (monocular-cam0).
         """
-        if uses_imu is None:
-            uses_imu = self.uses_imu
 
         self._baseline_cfg = _BaselineCfg(
             Path(cp_json_file),
@@ -122,10 +118,8 @@ class Estimate:
         # Adds cameras and rig to the reconstruction
         _add_cams(reconstruction, cfg.device_calibration_json)
         reconstruction = self._add_images_to_reconstruction(
+            cfg,
             reconstruction,
-            cfg.cp_json_file,
-            cfg.device_calibration_json,
-            cfg.uses_imu,
         )
 
         reconstruction.write(str(recon_path))
@@ -227,23 +221,22 @@ class Estimate:
 
     def _add_images_to_reconstruction(
         self,
+        cfg: _BaselineCfg,
         reconstruction: pycolmap.Reconstruction,
-        cp_json_file: Path,
-        device_calibration_json: Path,
     ) -> pycolmap.Reconstruction:
         """Add images to an existing empty
         reconstruction from this pose estimate."""
         pose_data = self.as_tuples()
 
-        with open(cp_json_file) as f:
+        with open(cfg.cp_json_file) as f:
             cp_data = json.load(f)
 
         image_id = 1
         rig = reconstruction.rig(rig_id=1)
 
-        if self.uses_imu:
+        if cfg.uses_imu:
             transform = get_t_imu_camera_from_json(
-                device_calibration_json=device_calibration_json,
+                cfg.device_calibration_json,
                 camera_label="cam0",
             )
         else:
