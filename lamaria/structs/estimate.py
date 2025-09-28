@@ -8,6 +8,7 @@ import numpy as np
 import pycolmap
 from tqdm import tqdm
 
+from .. import logger
 from ..utils.aria import (
     add_cameras_to_reconstruction as _add_cams,
 )
@@ -58,7 +59,7 @@ class Estimate:
         self._poses: list[pycolmap.Rigid3d] = []
         self._baseline_cfg: _BaselineCfg | None = None
 
-    def load_from_file(self, path: str | Path) -> "Estimate":
+    def load_from_file(self, path: str | Path) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
         self.clear()
         self.path = Path(path)
@@ -69,8 +70,9 @@ class Estimate:
         with open(self.path) as f:
             lines = f.readlines()
 
-        self._parse(lines)  # raises error if format is invalid
-        return self
+        state = self._parse(lines)  
+        if not state:
+            raise RuntimeError("Failed to parse estimate file.")
 
     def setup_baseline_cfg(
         self,
@@ -178,9 +180,8 @@ class Estimate:
             exists_lines = True
             parts = line.split()
             if len(parts) != 8:
-                raise ValueError(
-                    f"{lineno}: expected 8 values, got {len(parts)}"
-                )
+                logger.error(f"Line {lineno}: expected 8 values, got {len(parts)}")
+                return False
 
             try:
                 ts = _round_ns(parts[0])
@@ -197,9 +198,8 @@ class Estimate:
                 )
 
             except ValueError as e:
-                raise ValueError(
-                    f"{lineno}: non-numeric value in {parts!r}"
-                ) from e
+                logger.error(f"Line {lineno}: invalid number format: {e}")
+                return False
 
             world_from_rig = pycolmap.Rigid3d(pycolmap.Rotation3d(qvec), tvec)
             pose = (
@@ -212,7 +212,8 @@ class Estimate:
             pose_list.append(pose)
 
         if not exists_lines:
-            raise ValueError("No valid lines found in estimate file.")
+            logger.error("No valid lines found in the estimate file.")
+            return False
 
         self._timestamps = ts_list
         self._poses = pose_list
