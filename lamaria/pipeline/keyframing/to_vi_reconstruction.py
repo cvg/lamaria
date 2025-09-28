@@ -23,7 +23,7 @@ from ...utils.aria import (
     get_t_imu_camera,
     rigid3d_from_transform,
 )
-from ...utils.synchronization import (
+from ...utils.timestamps import (
     get_matched_timestamps,
 )
 
