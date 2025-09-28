@@ -307,31 +307,6 @@ class EstimateToLamaria:
 
         return matched_images, matched_timestamps
 
-    def _get_dummy_imu_params(self) -> tuple[int, int, list[float]]:
-        """Generates dummy IMU camera parameters for COLMAP."""
-        width = 640
-        height = 480
-        random_params = [
-            241.604,
-            241.604,
-            322.895,
-            240.444,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
-
-        return width, height, random_params
-
     def _add_device_sensors(self) -> None:
         """Adds a new rig with device calibrated sensors.
         The rig is consistent across all frames
@@ -347,14 +322,19 @@ class EstimateToLamaria:
 
         rig = pycolmap.Rig(rig_id=1)
 
-        w, h, p = self._get_dummy_imu_params()
         # DUMMY CAMERA FOR IMU, IMU ID is 1
         imu = pycolmap.Camera(
             camera_id=1,
             model=self.options.sensor.camera_model,
-            width=w,
-            height=h,
-            params=p,
+            width=640,
+            height=480,
+            params=[
+                241.604,
+                241.604,
+                322.895,
+                240.444,
+            ]
+            + [0.0] * 12,
         )
         self.data.reconstruction.add_camera(imu)
         rig.add_ref_sensor(imu.sensor_id)
@@ -396,14 +376,20 @@ class EstimateToLamaria:
                 continue
 
             rig = pycolmap.Rig(rig_id=fid)
-            w, h, p = self._get_dummy_imu_params()
+
             # DUMMY CAMERA FOR IMU
             imu = pycolmap.Camera(
                 camera_id=sensor_id,
                 model=self.options.sensor.camera_model,
-                width=w,
-                height=h,
-                params=p,
+                width=640,
+                height=480,
+                params=[
+                    241.604,
+                    241.604,
+                    322.895,
+                    240.444,
+                ]
+                + [0.0] * 12,
             )
             self.data.reconstruction.add_camera(imu)
             rig.add_ref_sensor(imu.sensor_id)
