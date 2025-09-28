@@ -136,8 +136,8 @@ class EstimateToVIRecon:
                 images, timestamps, mps_poses
             )
         else:
-            est = Estimate(invert_poses=True)
-            est.load_from_file(estimate)
+            est = Estimate()
+            est.load_from_file(estimate, invert_poses=True)
 
             timestamps = est.timestamps
             if len(images) != len(timestamps):
