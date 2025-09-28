@@ -1,4 +1,3 @@
-import json
 import shutil
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
@@ -84,9 +83,7 @@ class Estimate:
         shutil.rmtree(recon_path)
 
         reconstruction = self._add_images_to_reconstruction(
-            reconstruction,
-            timestamp_to_images,
-            sensor_from_rig
+            reconstruction, timestamp_to_images, sensor_from_rig
         )
 
         reconstruction.write(recon_path.as_posix())

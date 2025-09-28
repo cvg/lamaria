@@ -1,6 +1,6 @@
+import json
 from bisect import bisect_left
 from pathlib import Path
-import json
 
 from .constants import (
     LEFT_CAMERA_STREAM_LABEL,
@@ -11,7 +11,7 @@ from .constants import (
 def get_timestamp_to_images_from_json(
     json_file: str | Path,
 ):
-    with open(json_file, "r") as f:
+    with open(json_file) as f:
         data = json.load(f)
 
     processed_ts_data = {}
@@ -21,8 +21,8 @@ def get_timestamp_to_images_from_json(
         processed_ts_data[label]["sorted_keys"] = sorted(
             processed_ts_data[label].keys()
         )
-    
-    return processed_ts_data 
+
+    return processed_ts_data
 
 
 def find_closest_timestamp(

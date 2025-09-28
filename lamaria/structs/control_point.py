@@ -1,6 +1,6 @@
 import json
-from pathlib import Path
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 import pycolmap
@@ -13,15 +13,18 @@ from ..utils.constants import (
 
 ControlPoints = dict[int, "ControlPoint"]
 
+
 @dataclass(slots=True)
 class ControlPoint:
-    name: str # geo_id
+    name: str  # geo_id
     topo: np.ndarray
     covariance: np.ndarray
 
     triangulated: np.ndarray | None = None  # None if triangulation fails
     inlier_ratio: float = 0.0
-    image_id_and_point2d: list[tuple[int, np.ndarray]] = field(default_factory=list)
+    image_id_and_point2d: list[tuple[int, np.ndarray]] = field(
+        default_factory=list
+    )
 
     @staticmethod
     def from_measurement(
@@ -30,7 +33,6 @@ class ControlPoint:
         unc_xyz: list[float | None],
         origin_xyz: tuple[float, float, float],
     ) -> "ControlPoint":
-
         m = list(measurement_xyz)
         u = list(unc_xyz)
         if m[2] is None:
@@ -39,16 +41,18 @@ class ControlPoint:
             u[2] = 1e9  # very uncertain height
 
         # translated measurement to have smaller numerical values
-        topo = np.asarray(m, dtype=np.float64) - np.asarray(origin_xyz, dtype=np.float64)
+        topo = np.asarray(m, dtype=np.float64) - np.asarray(
+            origin_xyz, dtype=np.float64
+        )
         cov = np.diag(np.square(np.asarray(u, dtype=np.float64)))
-        
+
         return ControlPoint(name=name, topo=topo, covariance=cov)
-    
+
     def has_height(self) -> bool:
         return bool(self.topo[2] != 0)
-    
+
     def is_triangulated(self) -> bool:
-            return self.triangulated is not None
+        return self.triangulated is not None
 
 
 def construct_control_points_from_json(
@@ -92,7 +96,9 @@ def transform_points(points, r, t, scale):
     return transformed_points
 
 
-def transform_triangulated_control_points(control_points: ControlPoints, r, t, scale) -> ControlPoints:
+def transform_triangulated_control_points(
+    control_points: ControlPoints, r, t, scale
+) -> ControlPoints:
     """Apply similarity transform to triangulated control points in place."""
     for cp in control_points.values():
         if cp.triangulated is None:
@@ -104,7 +110,7 @@ def transform_triangulated_control_points(control_points: ControlPoints, r, t, s
 def run_control_point_triangulation_from_json(
     reconstruction_path: Path,
     cp_json_file: Path,
-    control_points: ControlPoints, 
+    control_points: ControlPoints,
 ) -> None:
     """
     Triangulate control points from JSON file and add to control_points dict.
@@ -131,7 +137,7 @@ def run_control_point_triangulation_from_json(
     image_data = data["images"]
     control_point_data = data["control_points"]
 
-    for tag_id, cp in tqdm(
+    for _, cp in tqdm(
         control_points.items(), desc="Triangulating control points"
     ):
         geo_id = cp.name
