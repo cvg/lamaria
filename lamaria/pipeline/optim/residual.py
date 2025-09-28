@@ -1,7 +1,7 @@
-import pyceres
-from tqdm import tqdm
 import numpy as np
+import pyceres
 import pycolmap
+from tqdm import tqdm
 
 from ...config.options import OptIMUOptions
 from .session import SingleSeqSession
