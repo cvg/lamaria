@@ -1,8 +1,24 @@
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+from dataclasses import dataclass
 
 import numpy as np
+import json
+from tqdm import tqdm
 import pycolmap
+
+from ..utils.aria import (
+    add_cameras_to_reconstruction as _add_cams,
+    get_t_imu_camera_from_json,
+)
+from ..utils.constants import (
+    LEFT_CAMERA_STREAM_LABEL,
+    RIGHT_CAMERA_STREAM_LABEL,
+)
+from ..utils.general import (
+    delete_files_in_folder,
+    find_closest_timestamp,
+)
 
 
 def _round_ns(x: str | int | float) -> int:
@@ -11,6 +27,15 @@ def _round_ns(x: str | int | float) -> int:
         return x
     s = str(x)
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+@dataclass(slots=True)
+class _BaselineCfg:
+    """Configuration for creating a baseline reconstruction."""
+    cp_json_file: Path
+    device_calibration_json: Path
+    output_path: Path
+    uses_imu: bool  = True  # if False, uses monocular-cam0 poses
 
 
 class Estimate:
@@ -23,11 +48,14 @@ class Estimate:
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
-    def __init__(self, invert_poses: bool = True) -> None:
+    def __init__(self, invert_poses: bool = True, uses_imu: bool = True) -> None:
         self.invert_poses = invert_poses
+        # uses_imu controls default behavior for baseline recon creation
+        self.uses_imu = uses_imu
         self.path: Path | None = None
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
+        self._baseline_cfg: _BaselineCfg | None = None
 
     def load_from_file(self, path: str | Path) -> "Estimate":
         """Parse the file, validate format, populate timestamps & poses."""
@@ -39,6 +67,62 @@ class Estimate:
 
         self._parse(lines)  # raises error if format is invalid
         return self
+    
+    def configure_baseline_cfg(
+        self,
+        cp_json_file: str | Path,
+        device_calibration_json: str | Path,
+        output_path: str | Path,
+        uses_imu: bool | None = None,
+    ) -> "Estimate":
+        """
+        Store config used by create_baseline_reconstruction().
+
+        use_imu: 
+        If True, the poses in the estimate file are IMU poses.
+        If False, the poses are left camera poses (monocular-cam0).
+        """
+        if uses_imu is None:
+            uses_imu = self.uses_imu
+
+        self._baseline_cfg = _BaselineCfg(
+            Path(cp_json_file),
+            Path(device_calibration_json),
+            Path(output_path),
+            uses_imu,
+        )
+        return self
+    
+    def create_baseline_reconstruction(self) -> pycolmap.Reconstruction:
+        """
+        Build a COLMAP reconstruction from this Estimate and the
+        parameters given via configure_baseline_cfg(). Writes to:
+        output_path / "reconstruction"
+        Returns pycolmap.Reconstruction.
+        """
+        self._ensure_loaded()
+        if self._baseline_cfg is None:
+            raise RuntimeError(
+                "Baseline not configured. Call configure_baseline_cfg(...) first."
+            )
+        
+        cfg = self._baseline_cfg
+        recon_path = cfg.output_path / "reconstruction"
+        recon_path.mkdir(parents=True, exist_ok=True)
+        delete_files_in_folder(recon_path)
+
+        reconstruction = pycolmap.Reconstruction()
+        # Adds cameras and rig to the reconstruction
+        _add_cams(reconstruction, cfg.device_calibration_json)
+        reconstruction = self._add_images_to_reconstruction(
+            reconstruction,
+            cfg.cp_json_file,
+            cfg.device_calibration_json,
+            cfg.uses_imu,
+        )
+
+        reconstruction.write(str(recon_path))
+        return reconstruction
 
     @property
     def timestamps(self) -> list[int]:
@@ -76,6 +160,7 @@ class Estimate:
                 "Estimate not loaded. Call load_from_file() first."
             )
 
+    # Parses the file lines, populating self._timestamps and self._poses
     def _parse(self, lines: list[str]) -> None:
         ts_list: list[int] = []
         pose_list: list[pycolmap.Rigid3d] = []
@@ -126,3 +211,90 @@ class Estimate:
 
         self._timestamps = ts_list
         self._poses = pose_list
+
+    def _add_images_to_reconstruction(
+        self,
+        reconstruction: pycolmap.Reconstruction,
+        cp_json_file: Path,
+        device_calibration_json: Path,
+    ) -> pycolmap.Reconstruction:
+        """Add images to an existing empty
+        reconstruction from this pose estimate."""
+        pose_data = self.as_tuples()
+
+        with open(cp_json_file) as f:
+            cp_data = json.load(f)
+
+        image_id = 1
+        rig = reconstruction.rig(rig_id=1)
+
+        if self.uses_imu:
+            transform = get_t_imu_camera_from_json(
+                device_calibration_json=device_calibration_json,
+                camera_label="cam0",
+            )
+        else:
+            transform = pycolmap.Rigid3d()
+
+        ts_data_processed = {}
+        for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
+            ts_data = cp_data["timestamps"][label]
+            ts_data_processed[label] = {int(k): v for k, v in ts_data.items()}
+            ts_data_processed[label]["sorted_keys"] = sorted(
+                ts_data_processed[label].keys()
+            )
+        
+        for i, (timestamp, pose) in tqdm(
+            enumerate(pose_data),
+            total=len(pose_data),
+            desc="Adding images to reconstruction",
+        ):
+            if self.invert_poses:
+                # poses are in imu/cam_from_world format
+                T_world_rig = pose.inverse() * transform
+            else:
+                # poses are in world_from_cam/imu format
+                T_world_rig = pose * transform
+            
+            frame = pycolmap.Frame()
+            frame.rig_id = rig.rig_id
+            frame.frame_id = i + 1
+            frame.rig_from_world = T_world_rig.inverse()
+
+            images_to_add = []
+
+            for label, camera_id in [
+                (LEFT_CAMERA_STREAM_LABEL, 1),
+                (RIGHT_CAMERA_STREAM_LABEL, 2),
+            ]:
+                source_timestamps = ts_data_processed[label]["sorted_keys"]
+                # offsets upto 1 ms (1e6 ns)
+                closest_timestamp = find_closest_timestamp(
+                    source_timestamps, timestamp, max_diff=1e6
+                )
+                if closest_timestamp is None:
+                    raise ValueError
+                
+                image_name = ts_data_processed[label][closest_timestamp]
+
+                im = pycolmap.Image(
+                    image_name,
+                    pycolmap.Point2DList(),
+                    camera_id,
+                    image_id,
+                )
+                im.frame_id = frame.frame_id
+                frame.add_data_id(im.data_id)
+
+                images_to_add.append(im)
+                image_id += 1
+            
+            reconstruction.add_frame(frame)
+            for im in images_to_add:
+                reconstruction.add_image(im)
+            
+        return reconstruction
+        
+                
+
+        
