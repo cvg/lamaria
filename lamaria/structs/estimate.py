@@ -1,6 +1,5 @@
 import json
 import shutil
-from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -42,21 +41,24 @@ class Estimate:
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
-    def __init__(
-        self, 
-        invert_poses: bool = True,
-        reference_sensor: str = "imu"
-    ) -> None:
-        self.invert_poses = invert_poses
-        self.reference_sensor = reference_sensor
+    def __init__(self) -> None:
+        self.invert_poses = None
+        self.reference_sensor = None
         self.path: Path | None = None
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
 
-    def load_from_file(self, path: str | Path) -> None:
+    def load_from_file(
+        self,
+        path: str | Path,
+        invert_poses: bool = True,
+        reference_sensor: str = "imu"
+    ) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
         self.clear()
         self.path = Path(path)
+        self.invert_poses = invert_poses
+        self.reference_sensor = reference_sensor
 
         if not self.path.exists():
             raise FileNotFoundError(f"Estimate file not found: {self.path}")
@@ -64,14 +66,14 @@ class Estimate:
         with open(self.path) as f:
             lines = f.readlines()
 
-        state = self._parse(lines)  
+        state = self._parse(lines)
         if not state:
             raise RuntimeError("Failed to parse estimate file.")
 
     def create_baseline_reconstruction(
         self,
         cp_json_file: Path,
-        device_calibration_json: Path,
+        sensor_from_rig: pycolmap.Rigid3d,
         output_path: Path,
     ) -> pycolmap.Reconstruction:
         """
@@ -84,15 +86,10 @@ class Estimate:
         recon_path.mkdir(parents=True, exist_ok=True)
         shutil.rmtree(recon_path)
 
-        reconstruction = pycolmap.Reconstruction()
-        _add_cams(
-            reconstruction,
-            device_calibration_json
-        )
         reconstruction = self._add_images_to_reconstruction(
             reconstruction,
             cp_json_file,
-            device_calibration_json
+            sensor_from_rig
         )
 
         reconstruction.write(str(recon_path))
@@ -107,12 +104,6 @@ class Estimate:
     def poses(self) -> list[pycolmap.Rigid3d]:
         self._ensure_loaded()
         return self._poses
-
-    @property
-    def reconstruction_path(self) -> Path | None:
-        if self._baseline_cfg is None:
-            return None
-        return self._baseline_cfg.output_path / "reconstruction"
 
     def as_tuples(self) -> list[tuple[int, pycolmap.Rigid3d]]:
         """Return a list of (timestamp, pose) tuples."""
@@ -153,7 +144,9 @@ class Estimate:
             exists_lines = True
             parts = line.split()
             if len(parts) != 8:
-                logger.error(f"Line {lineno}: expected 8 values, got {len(parts)}")
+                logger.error(
+                    f"Line {lineno}: expected 8 values, got {len(parts)}"
+                )
                 return False
 
             try:
@@ -195,7 +188,7 @@ class Estimate:
         self,
         reconstruction: pycolmap.Reconstruction,
         cp_json_file: Path,
-        device_calibration_json: Path,
+        sensor_from_rig: pycolmap.Rigid3d,
     ) -> pycolmap.Reconstruction:
         
         pose_data = self.as_tuples()
@@ -206,13 +199,7 @@ class Estimate:
         image_id = 1
         rig = reconstruction.rig(rig_id=1)
 
-        if self.reference_sensor == "imu":
-            transform = get_t_imu_camera_from_json(
-                device_calibration_json,
-                camera_label="cam0",
-            )
-        else:
-            transform = pycolmap.Rigid3d()
+        transform = sensor_from_rig.inverse()
 
         ts_data_processed = {}
         for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
