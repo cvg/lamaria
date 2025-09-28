@@ -18,7 +18,7 @@ from ..utils.constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
 )
-from ..utils.general import (
+from ..utils.synchronization import (
     find_closest_timestamp,
 )
 

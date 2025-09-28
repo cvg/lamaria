@@ -14,7 +14,7 @@ from lamaria.utils.constants import (
     RIGHT_CAMERA_STREAM_ID,
     RIGHT_IMU_STREAM_ID,
 )
-from lamaria.utils.general import (
+from lamaria.utils.synchronization import (
     get_matched_timestamps,
 )
 

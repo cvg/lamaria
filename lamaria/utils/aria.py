@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
-from .general import find_closest_timestamp
+from .synchronization import find_closest_timestamp
 
 # ----- Camera functions ----- #
 
