@@ -32,16 +32,6 @@ def _round_ns(x: str | int | float) -> int:
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
 
 
-@dataclass(slots=True)
-class _BaselineCfg:
-    """Configuration for creating a baseline reconstruction."""
-
-    cp_json_file: Path
-    device_calibration_json: Path
-    output_path: Path
-    uses_imu: bool = True  # if False, uses monocular-cam0 poses
-
-
 class Estimate:
     """
     Loads and stores an 'estimate' text file with rows:
@@ -52,12 +42,16 @@ class Estimate:
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
-    def __init__(self, invert_poses: bool = True) -> None:
+    def __init__(
+        self, 
+        invert_poses: bool = True,
+        reference_sensor: str = "imu"
+    ) -> None:
         self.invert_poses = invert_poses
+        self.reference_sensor = reference_sensor
         self.path: Path | None = None
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
-        self._baseline_cfg: _BaselineCfg | None = None
 
     def load_from_file(self, path: str | Path) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
@@ -74,52 +68,31 @@ class Estimate:
         if not state:
             raise RuntimeError("Failed to parse estimate file.")
 
-    def setup_baseline_cfg(
+    def create_baseline_reconstruction(
         self,
-        cp_json_file: str | Path,
-        device_calibration_json: str | Path,
-        output_path: str | Path,
-        uses_imu: bool,
-    ) -> None:
+        cp_json_file: Path,
+        device_calibration_json: Path,
+        output_path: Path,
+    ) -> pycolmap.Reconstruction:
         """
-        Store config used by create_baseline_reconstruction().
-
-        uses_imu:
-        If True, the poses in the estimate file are IMU poses.
-        If False, the poses are left camera poses (monocular-cam0).
+        Adds estimate poses as frames to input reconstruction.
         """
 
-        self._baseline_cfg = _BaselineCfg(
-            Path(cp_json_file),
-            Path(device_calibration_json),
-            Path(output_path),
-            uses_imu,
-        )
-
-    def create_baseline_reconstruction(self) -> pycolmap.Reconstruction:
-        """
-        Build a COLMAP reconstruction from this Estimate and the
-        parameters given via setup_baseline_cfg(). Writes to:
-        output_path / "reconstruction"
-        Returns pycolmap.Reconstruction.
-        """
         self._ensure_loaded()
-        if self._baseline_cfg is None:
-            raise RuntimeError(
-                "Baseline not configured. Call setup_baseline_cfg(...) first."
-            )
 
-        cfg = self._baseline_cfg
-        recon_path = cfg.output_path / "reconstruction"
+        recon_path = output_path / "reconstruction"
         recon_path.mkdir(parents=True, exist_ok=True)
         shutil.rmtree(recon_path)
 
         reconstruction = pycolmap.Reconstruction()
-        # Adds cameras and rig to the reconstruction
-        _add_cams(reconstruction, cfg.device_calibration_json)
-        reconstruction = self._add_images_to_reconstruction(
-            cfg,
+        _add_cams(
             reconstruction,
+            device_calibration_json
+        )
+        reconstruction = self._add_images_to_reconstruction(
+            reconstruction,
+            cp_json_file,
+            device_calibration_json
         )
 
         reconstruction.write(str(recon_path))
@@ -220,22 +193,22 @@ class Estimate:
 
     def _add_images_to_reconstruction(
         self,
-        cfg: _BaselineCfg,
         reconstruction: pycolmap.Reconstruction,
+        cp_json_file: Path,
+        device_calibration_json: Path,
     ) -> pycolmap.Reconstruction:
-        """Add images to an existing empty
-        reconstruction from this pose estimate."""
+        
         pose_data = self.as_tuples()
 
-        with open(cfg.cp_json_file) as f:
+        with open(cp_json_file) as f:
             cp_data = json.load(f)
 
         image_id = 1
         rig = reconstruction.rig(rig_id=1)
 
-        if cfg.uses_imu:
+        if self.reference_sensor == "imu":
             transform = get_t_imu_camera_from_json(
-                cfg.device_calibration_json,
+                device_calibration_json,
                 camera_label="cam0",
             )
         else:
