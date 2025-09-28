@@ -157,7 +157,7 @@ def run(
     cp_json_file: Path,
     device_calibration_json: Path,
     output_path: Path,
-    uses_imu: bool,
+    reference_sensor: str = "imu",
     cp_reproj_std=1.0,
 ):
     """Run sparse evaluation for sequences that observe control points.
@@ -169,8 +169,7 @@ def run(
         device_calibration_json (Path): Path to the device calibration JSON.
         output_path (Path): Directory where intermediate data and
         evaluation results will be saved.
-        uses_imu (bool): Whether poses are in IMU frame
-        or cam0 (left camera) frame.
+        reference_sensor (str): The reference sensor to use ("imu" or "cam0").
         cp_reproj_std (float, optional): Control point reprojection standard
             deviation. Defaults to 1.0.
 
@@ -183,18 +182,12 @@ def run(
         timestamp tx ty tz qx qy qz qw
         ```
     """
-    est = Estimate(invert_poses=False)
+    est = Estimate(invert_poses=False, reference_sensor=reference_sensor)
     est.load_from_file(estimate)
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")
         return False
 
-    est.setup_baseline_cfg(
-        cp_json_file,
-        device_calibration_json,
-        output_path,
-        uses_imu,
-    )
     _ = est.create_baseline_reconstruction()
     reconstruction_path = est.reconstruction_path
 
@@ -329,10 +322,11 @@ if __name__ == "__main__":
         "and evaluation results will be saved",
     )
     parser.add_argument(
-        "--uses_imu",
-        action="store_true",
-        help="Set if the poses are in IMU frame. If not set, "
-        "poses are assumed to be in cam0 (left camera) frame.",
+        "--reference_sensor",
+        type=str,
+        default="imu",
+        choices=["imu", "cam0"],
+        help="The reference sensor in which the poses are expressed.",
     )
     parser.add_argument(
         "--cp_reproj_std",
@@ -347,6 +341,6 @@ if __name__ == "__main__":
         args.cp_json_file,
         args.device_calibration_json,
         args.output_path,
-        args.uses_imu,
+        args.reference_sensor,
         args.cp_reproj_std,
     )
