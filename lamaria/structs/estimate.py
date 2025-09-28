@@ -51,9 +51,7 @@ class Estimate:
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
     """
 
-    def __init__(
-        self, invert_poses: bool = True
-    ) -> None:
+    def __init__(self, invert_poses: bool = True) -> None:
         self.invert_poses = invert_poses
         self.path: Path | None = None
         self._timestamps: list[int] = []
