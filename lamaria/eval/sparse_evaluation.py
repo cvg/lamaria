@@ -9,15 +9,15 @@ import pycolmap
 import pycolmap.cost_functions
 
 from .. import logger
-from ..structs.estimate import Estimate
-from ..utils.aria import (
-    get_t_imu_camera_from_json,
-    initialize_reconstruction_from_calibration_file,
-)
 from ..structs.control_point import (
     construct_control_points_from_json,
     get_cps_for_initial_alignment,
     run_control_point_triangulation_from_json,
+)
+from ..structs.estimate import Estimate
+from ..utils.aria import (
+    get_t_imu_camera_from_json,
+    initialize_reconstruction_from_calibration_file,
 )
 
 
@@ -173,7 +173,8 @@ def run(
         device_calibration_json (Path): Path to the device calibration JSON.
         output_path (Path): Directory where intermediate data and
         evaluation results will be saved.
-        corresponding_sensor (str): The reference sensor to use ("imu" or "cam0").
+        corresponding_sensor (str): The reference sensor to use
+        ("imu" or "cam0").
         cp_reproj_std (float, optional): Control point reprojection standard
             deviation. Defaults to 1.0.
 
