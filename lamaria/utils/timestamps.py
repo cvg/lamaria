@@ -8,7 +8,7 @@ from .constants import (
 )
 
 
-def get_timestamp_data_from_json(
+def get_timestamp_to_images_from_json(
     json_file: str | Path,
 ):
     with open(json_file, "r") as f:
