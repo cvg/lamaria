@@ -37,7 +37,7 @@ class Estimate:
 
     def __init__(self) -> None:
         self.invert_poses = None
-        self.reference_sensor = None
+        self.corresponding_sensor = None
         self.path: Path | None = None
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
@@ -46,13 +46,13 @@ class Estimate:
         self,
         path: str | Path,
         invert_poses: bool = True,
-        reference_sensor: str = "imu",
+        corresponding_sensor: str = "imu",
     ) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
         self.clear()
         self.path = Path(path)
         self.invert_poses = invert_poses
-        self.reference_sensor = reference_sensor
+        self.corresponding_sensor = corresponding_sensor
 
         if not self.path.exists():
             raise FileNotFoundError(f"Estimate file not found: {self.path}")

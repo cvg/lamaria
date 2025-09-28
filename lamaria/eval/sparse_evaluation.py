@@ -161,7 +161,7 @@ def run(
     cp_json_file: Path,
     device_calibration_json: Path,
     output_path: Path,
-    reference_sensor: str = "imu",
+    corresponding_sensor: str = "imu",
     cp_reproj_std=1.0,
 ):
     """Run sparse evaluation for sequences that observe control points.
@@ -173,7 +173,7 @@ def run(
         device_calibration_json (Path): Path to the device calibration JSON.
         output_path (Path): Directory where intermediate data and
         evaluation results will be saved.
-        reference_sensor (str): The reference sensor to use ("imu" or "cam0").
+        corresponding_sensor (str): The reference sensor to use ("imu" or "cam0").
         cp_reproj_std (float, optional): Control point reprojection standard
             deviation. Defaults to 1.0.
 
@@ -188,7 +188,7 @@ def run(
     """
     est = Estimate()
     est.load_from_file(
-        estimate, invert_poses=False, reference_sensor=reference_sensor
+        estimate, invert_poses=False, corresponding_sensor=corresponding_sensor
     )
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")
@@ -198,7 +198,7 @@ def run(
         device_calibration_json
     )
 
-    if reference_sensor == "imu":
+    if corresponding_sensor == "imu":
         rig_from_sensor = get_t_imu_camera_from_json(
             device_calibration_json, camera_label="cam0"
         )
@@ -344,11 +344,11 @@ if __name__ == "__main__":
         "and evaluation results will be saved",
     )
     parser.add_argument(
-        "--reference_sensor",
+        "--corresponding_sensor",
         type=str,
         default="imu",
         choices=["imu", "cam0"],
-        help="The reference sensor in which the poses are expressed.",
+        help="The sensor in which the poses are expressed.",
     )
     parser.add_argument(
         "--cp_reproj_std",
@@ -363,6 +363,6 @@ if __name__ == "__main__":
         args.cp_json_file,
         args.device_calibration_json,
         args.output_path,
-        args.reference_sensor,
+        args.corresponding_sensor,
         args.cp_reproj_std,
     )
