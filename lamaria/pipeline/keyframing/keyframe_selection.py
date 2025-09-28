@@ -8,33 +8,33 @@ import numpy as np
 import pycolmap
 
 from ...config.options import KeyframeSelectorOptions
-from ...structs.lamaria_reconstruction import LamariaReconstruction
+from ...structs.vi_reconstruction import VIReconstruction
 from ...utils.aria import get_magnitude_from_transform
 
 
 class KeyframeSelector:
-    """Class to perform keyframe selection on a LamariaReconstruction object."""
+    """Class to perform keyframe selection on a VIReconstruction object."""
 
     def __init__(
         self,
         options: KeyframeSelectorOptions,
-        data: LamariaReconstruction,
+        data: VIReconstruction,
     ):
         self.options = options
         self.init_data = data
         self.init_recons = data.reconstruction  # pycolmap.Reconstruction
         self.timestamps = data.timestamps  # frame id to timestamp mapping
 
-        self.keyframed_data = LamariaReconstruction()
+        self.keyframed_data = VIReconstruction()
         self.keyframe_frame_ids: dict[int, int] = {}
 
     @staticmethod
     def run(
         options: KeyframeSelectorOptions,
-        data: LamariaReconstruction,
+        data: VIReconstruction,
         images_path: Path,
         keyframes_path: Path,
-    ) -> LamariaReconstruction:
+    ) -> VIReconstruction:
         """Entry point to run keyframing and
         copy keyframes into keyframe directory.
         """
@@ -215,7 +215,7 @@ class KeyframeSelector:
             for img in images_to_add:
                 self.keyframed_data.reconstruction.add_image(img)
 
-    def run_keyframing(self) -> LamariaReconstruction:
+    def run_keyframing(self) -> VIReconstruction:
         """Function to run keyframing on lamaria reconstruction."""
         self._select_keyframes()
         if len(self.init_recons.rigs.keys()) == 1:  # device rig has been added
