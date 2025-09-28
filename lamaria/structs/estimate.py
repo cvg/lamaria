@@ -2,6 +2,7 @@ import json
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+import shutil
 
 import numpy as np
 import pycolmap
@@ -18,7 +19,6 @@ from ..utils.constants import (
     RIGHT_CAMERA_STREAM_LABEL,
 )
 from ..utils.general import (
-    delete_files_in_folder,
     find_closest_timestamp,
 )
 
@@ -110,7 +110,7 @@ class Estimate:
         cfg = self._baseline_cfg
         recon_path = cfg.output_path / "reconstruction"
         recon_path.mkdir(parents=True, exist_ok=True)
-        delete_files_in_folder(recon_path)
+        shutil.rmtree(recon_path)
 
         reconstruction = pycolmap.Reconstruction()
         # Adds cameras and rig to the reconstruction
