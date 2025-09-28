@@ -10,12 +10,15 @@ import pycolmap.cost_functions
 
 from .. import logger
 from ..structs.estimate import Estimate
+from ..utils.aria import (
+    get_t_imu_camera_from_json,
+    initialize_reconstruction_from_calibration_file,
+)
 from ..utils.control_point import (
     construct_control_points_from_json,
     get_cps_for_initial_alignment,
     run_control_point_triangulation_from_json,
 )
-from ..utils.aria import get_t_imu_camera_from_json, initialize_reconstruction_from_calibration_file
 
 
 def update_sim3d_scale(variables: dict) -> None:
@@ -184,7 +187,9 @@ def run(
         ```
     """
     est = Estimate()
-    est.load_from_file(estimate, invert_poses=False, reference_sensor=reference_sensor)
+    est.load_from_file(
+        estimate, invert_poses=False, reference_sensor=reference_sensor
+    )
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")
         return False
@@ -192,7 +197,7 @@ def run(
     reconstruction = initialize_reconstruction_from_calibration_file(
         device_calibration_json
     )
-    
+
     if reference_sensor == "imu":
         rig_from_sensor = get_t_imu_camera_from_json(
             device_calibration_json, camera_label="cam0"
@@ -201,12 +206,12 @@ def run(
     else:
         sensor_from_rig = pycolmap.Rigid3d()
 
-    reconstruction_path = est.create_baseline_reconstruction(
+    reconstruction_path = est.add_estimate_poses_to_reconstruction(
+        reconstruction,
         cp_json_file,
         sensor_from_rig,
         output_path,
     )
-    reconstruction_path = est.reconstruction_path
 
     aligned_transformed_folder = output_path / "aligned_transformed"
     aligned_transformed_folder.mkdir(parents=True, exist_ok=True)

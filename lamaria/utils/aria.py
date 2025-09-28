@@ -32,7 +32,7 @@ def initialize_reconstruction_from_calibration_file(
         pycolmap.Reconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
-    
+
     for i, (key, _) in enumerate(ARIA_CAMERAS):
         cam = camera_colmap_from_json(
             calibration_file=calibration_file,
@@ -57,7 +57,7 @@ def initialize_reconstruction_from_calibration_file(
     rig.add_sensor(sensor1, sensor_from_rig)
 
     reconstruction.add_rig(rig)
-    
+
     return reconstruction
 
 
