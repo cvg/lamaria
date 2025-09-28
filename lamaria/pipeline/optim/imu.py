@@ -4,13 +4,13 @@ import pycolmap
 from tqdm import tqdm
 
 from ...config.options import OptIMUOptions
-from ...structs.lamaria_reconstruction import LamariaReconstruction
+from ...structs.vi_reconstruction import VIReconstruction
 from .session import SingleSeqSession
 
 
 def preintegrate_imu_measurements(
     options: OptIMUOptions,
-    data: LamariaReconstruction,
+    data: VIReconstruction,
 ) -> dict[int, pycolmap.PreintegratedImuMeasurement]:
     preintegrated_measurements = {}
 
@@ -52,7 +52,7 @@ def preintegrate_imu_measurements(
 
 
 def initialize_imu_states(
-    data: LamariaReconstruction,
+    data: VIReconstruction,
 ) -> dict[int, pycolmap.ImuState]:
     imu_states = {}
 
