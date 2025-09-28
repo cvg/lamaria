@@ -32,20 +32,20 @@ def run_estimate_to_lamaria(
     estimate file to a VIReconstruction.
     """
     if colmap_model_path.exists():
-        lamaria_recon = VIReconstruction.read(colmap_model_path)
-        return lamaria_recon
+        vi_recon = VIReconstruction.read(colmap_model_path)
+        return vi_recon
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
 
-    lamaria_recon = EstimateToLamaria.convert(
+    vi_recon = EstimateToLamaria.convert(
         options,
         vrs,
         images_path,
         estimate,
     )
-    lamaria_recon.write(colmap_model_path)
+    vi_recon.write(colmap_model_path)
 
-    return lamaria_recon
+    return vi_recon
 
 
 def run_mps_to_lamaria(
@@ -57,20 +57,20 @@ def run_mps_to_lamaria(
 ) -> VIReconstruction:
     """Function to convert MPS estimate to a VIReconstruction."""
     if colmap_model_path.exists():
-        lamaria_recon = VIReconstruction.read(colmap_model_path)
-        return lamaria_recon
+        vi_recon = VIReconstruction.read(colmap_model_path)
+        return vi_recon
 
     colmap_model_path.mkdir(parents=True, exist_ok=True)
 
-    lamaria_recon = EstimateToLamaria.convert(
+    vi_recon = EstimateToLamaria.convert(
         options,
         vrs,
         images_path,
         mps_folder,
     )
-    lamaria_recon.write(colmap_model_path)
+    vi_recon.write(colmap_model_path)
 
-    return lamaria_recon
+    return vi_recon
 
 
 def run_keyframe_selection(
@@ -86,21 +86,21 @@ def run_keyframe_selection(
         input_recon = input
 
     if kf_model_path.exists():
-        kf_lamaria_recon = VIReconstruction.read(kf_model_path)
-        return kf_lamaria_recon
+        kf_vi_recon = VIReconstruction.read(kf_model_path)
+        return kf_vi_recon
 
     kf_model_path.mkdir(parents=True, exist_ok=True)
 
-    kf_lamaria_recon = KeyframeSelector.run(
+    kf_vi_recon = KeyframeSelector.run(
         options,
         input_recon,
         images_path,
         keyframes_path,
     )
 
-    kf_lamaria_recon.write(kf_model_path)
+    kf_vi_recon.write(kf_model_path)
 
-    return kf_lamaria_recon
+    return kf_vi_recon
 
 
 def run_triangulation(
@@ -117,8 +117,8 @@ def run_triangulation(
     assert input.exists(), f"input reconstruction path {input} does not exist"
 
     if tri_model_path.exists():
-        tri_lamaria_recon = VIReconstruction.read(tri_model_path)
-        return tri_lamaria_recon
+        tri_vi_recon = VIReconstruction.read(tri_model_path)
+        return tri_vi_recon
 
     triangulated_model_path = triangulate(
         options,
@@ -129,16 +129,16 @@ def run_triangulation(
         tri_model_path,
     )
 
-    input_lamaria_recon = VIReconstruction.read(input)
+    input_vi_recon = VIReconstruction.read(input)
     tri_recon = pycolmap.Reconstruction(triangulated_model_path)
 
-    tri_lamaria_recon = VIReconstruction()
-    tri_lamaria_recon.reconstruction = tri_recon
-    tri_lamaria_recon.timestamps = input_lamaria_recon.timestamps
-    tri_lamaria_recon.imu_measurements = input_lamaria_recon.imu_measurements
-    tri_lamaria_recon.write(triangulated_model_path)
+    tri_vi_recon = VIReconstruction()
+    tri_vi_recon.reconstruction = tri_recon
+    tri_vi_recon.timestamps = input_vi_recon.timestamps
+    tri_vi_recon.imu_measurements = input_vi_recon.imu_measurements
+    tri_vi_recon.write(triangulated_model_path)
 
-    return tri_lamaria_recon
+    return tri_vi_recon
 
 
 def run_optimization(
@@ -162,21 +162,21 @@ def run_optimization(
     db_dst = optim_model_path / "database.db"
     shutil.copy(db_path, db_dst)
 
-    init_lamaria_recon = VIReconstruction.read(input)
+    init_vi_recon = VIReconstruction.read(input)
     session = SingleSeqSession(
         vi_options.imu,
-        init_lamaria_recon,
+        init_vi_recon,
     )
 
     optimized_recon = VIOptimizer.optimize(
         vi_options, triangulator_options, session, db_dst
     )
 
-    optim_lamaria_recon = VIReconstruction()
-    optim_lamaria_recon.reconstruction = optimized_recon
-    optim_lamaria_recon.timestamps = init_lamaria_recon.timestamps
-    optim_lamaria_recon.imu_measurements = init_lamaria_recon.imu_measurements
-    optim_lamaria_recon.write(optim_model_path)
+    optim_vi_recon = VIReconstruction()
+    optim_vi_recon.reconstruction = optimized_recon
+    optim_vi_recon.timestamps = init_vi_recon.timestamps
+    optim_vi_recon.imu_measurements = init_vi_recon.imu_measurements
+    optim_vi_recon.write(optim_model_path)
 
 
 def run_pipeline(
