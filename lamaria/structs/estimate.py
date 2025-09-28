@@ -46,7 +46,7 @@ class Estimate:
         self,
         path: str | Path,
         invert_poses: bool = True,
-        reference_sensor: str = "imu"
+        reference_sensor: str = "imu",
     ) -> None:
         """Parse the file, validate format, populate timestamps & poses."""
         self.clear()
@@ -64,8 +64,9 @@ class Estimate:
         if not state:
             raise RuntimeError("Failed to parse estimate file.")
 
-    def create_baseline_reconstruction(
+    def add_estimate_poses_to_reconstruction(
         self,
+        reconstruction: pycolmap.Reconstruction,
         cp_json_file: Path,
         sensor_from_rig: pycolmap.Rigid3d,
         output_path: Path,
@@ -81,13 +82,11 @@ class Estimate:
         shutil.rmtree(recon_path)
 
         reconstruction = self._add_images_to_reconstruction(
-            reconstruction,
-            cp_json_file,
-            sensor_from_rig
+            reconstruction, cp_json_file, sensor_from_rig
         )
 
         reconstruction.write(recon_path.as_posix())
-        
+
         return recon_path
 
     @property
@@ -185,7 +184,6 @@ class Estimate:
         cp_json_file: Path,
         sensor_from_rig: pycolmap.Rigid3d,
     ) -> pycolmap.Reconstruction:
-        
         pose_data = self.as_tuples()
 
         with open(cp_json_file) as f:
