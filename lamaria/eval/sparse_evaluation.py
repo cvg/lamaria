@@ -15,6 +15,7 @@ from ..utils.control_point import (
     get_cps_for_initial_alignment,
     run_control_point_triangulation_from_json,
 )
+from ..utils.aria import get_t_imu_camera_from_json, initialize_reconstruction_from_calibration_file
 
 
 def update_sim3d_scale(variables: dict) -> None:
@@ -182,13 +183,29 @@ def run(
         timestamp tx ty tz qx qy qz qw
         ```
     """
-    est = Estimate(invert_poses=False, reference_sensor=reference_sensor)
-    est.load_from_file(estimate)
+    est = Estimate()
+    est.load_from_file(estimate, invert_poses=False, reference_sensor=reference_sensor)
     if not est.is_loaded():
         logger.error("Estimate could not be loaded")
         return False
 
-    _ = est.create_baseline_reconstruction()
+    reconstruction = initialize_reconstruction_from_calibration_file(
+        device_calibration_json
+    )
+    
+    if reference_sensor == "imu":
+        rig_from_sensor = get_t_imu_camera_from_json(
+            device_calibration_json, camera_label="cam0"
+        )
+        sensor_from_rig = rig_from_sensor.inverse()
+    else:
+        sensor_from_rig = pycolmap.Rigid3d()
+
+    reconstruction_path = est.create_baseline_reconstruction(
+        cp_json_file,
+        sensor_from_rig,
+        output_path,
+    )
     reconstruction_path = est.reconstruction_path
 
     aligned_transformed_folder = output_path / "aligned_transformed"
