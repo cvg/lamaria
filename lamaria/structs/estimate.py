@@ -178,6 +178,8 @@ class Estimate:
         self._timestamps = ts_list
         self._poses = pose_list
 
+        return True
+
     def _add_images_to_reconstruction(
         self,
         reconstruction: pycolmap.Reconstruction,
