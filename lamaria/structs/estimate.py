@@ -71,7 +71,7 @@ class Estimate:
         self._parse(lines)  # raises error if format is invalid
         return self
 
-    def configure_baseline_cfg(
+    def setup_baseline_cfg(
         self,
         cp_json_file: str | Path,
         device_calibration_json: str | Path,
@@ -99,7 +99,7 @@ class Estimate:
     def create_baseline_reconstruction(self) -> pycolmap.Reconstruction:
         """
         Build a COLMAP reconstruction from this Estimate and the
-        parameters given via configure_baseline_cfg(). Writes to:
+        parameters given via setup_baseline_cfg(). Writes to:
         output_path / "reconstruction"
         Returns pycolmap.Reconstruction.
         """
@@ -107,7 +107,7 @@ class Estimate:
         if self._baseline_cfg is None:
             raise RuntimeError(
                 "Baseline not configured. "
-                "Call configure_baseline_cfg(...) first."
+                "Call setup_baseline_cfg(...) first."
             )
 
         cfg = self._baseline_cfg
