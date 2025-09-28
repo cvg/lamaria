@@ -14,7 +14,7 @@ from ..utils.aria import (
     get_t_imu_camera_from_json,
     initialize_reconstruction_from_calibration_file,
 )
-from ..utils.control_point import (
+from ..structs.control_point import (
     construct_control_points_from_json,
     get_cps_for_initial_alignment,
     run_control_point_triangulation_from_json,
