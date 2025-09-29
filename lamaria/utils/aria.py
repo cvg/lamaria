@@ -37,16 +37,8 @@ def initialize_reconstruction_from_calibration_file(
 
     imu = pycolmap.Camera(
         camera_id=1,
-        model="RAD_TAN_THIN_PRISM_FISHEYE",
-        width=640,
-        height=480,
-        params=[
-            241.604,
-            241.604,
-            322.895,
-            240.444,
-        ]
-        + [0.0] * 12,
+        model="SIMPLE_PINHOLE",
+        params=[0, 0, 0]
     )
     reconstruction.add_camera(imu)
 
