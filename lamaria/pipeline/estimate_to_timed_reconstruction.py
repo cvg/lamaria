@@ -4,11 +4,11 @@ from pathlib import Path
 
 import pycolmap
 
-from ...structs.timed_reconstruction import TimedReconstruction
-from ...structs.trajectory import (
+from ..structs.timed_reconstruction import TimedReconstruction
+from ..structs.trajectory import (
     Trajectory,
 )
-from ...utils.types import InitReconstruction
+from ..utils.types import InitReconstruction
 
 
 def _image_names_from_folder(

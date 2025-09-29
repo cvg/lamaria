@@ -7,9 +7,9 @@ from pathlib import Path
 import numpy as np
 import pycolmap
 
-from ...config.options import KeyframeSelectorOptions
-from ...structs.timed_reconstruction import TimedReconstruction
-from ...utils.aria import get_magnitude_from_transform
+from ..config.options import KeyframeSelectorOptions
+from ..structs.timed_reconstruction import TimedReconstruction
+from ..utils.aria import get_magnitude_from_transform
 
 
 class KeyframeSelector:

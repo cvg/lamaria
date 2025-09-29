@@ -11,8 +11,8 @@ from hloc import (
     triangulation,
 )
 
-from ... import logger
-from ...config.options import TriangulatorOptions
+from .. import logger
+from ..config.options import TriangulatorOptions
 
 
 def get_colmap_triangulation_options(
