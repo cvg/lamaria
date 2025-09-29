@@ -174,9 +174,8 @@ def run_control_point_triangulation(
     - ``inlier_ratio``: float
     - ``inlier_detections``: list of observations used for triangulation
     Args:
-        reconstruction_path (Path): Path to the reconstruction folder
-        cp_json_file (Path): Path to the sparse GT JSON file
-        control_points (dict): Control points dictionary to be updated
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction.
+        control_points (ControlPoints): The control points dictionary.
     """
 
     image_names_to_ids = {
