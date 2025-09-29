@@ -1,10 +1,11 @@
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 import numpy as np
 import pyceres
 import pycolmap
+import pycolmap.cost_functions
 
 from .. import logger
 from .control_point import ControlPoint
@@ -210,5 +211,44 @@ class SparseEvalResult:
             cp_summary=cp_summary,
         )
 
+    @classmethod
+    def load_from_npy(cls, path: Path) -> "SparseEvalResult":
+        if not path.exists():
+            logger.error(f"Result file not found: {path}")
+            return None
+        
+        data = np.load(path, allow_pickle=True).item()
+        alignment_data = data["alignment"]
+
+        opt = alignment_data["optimized_sim3d"]
+        if isinstance(opt, pycolmap.Sim3d):
+            sim3d = opt
+
+        alignment = AlignmentResult(
+            optimized_sim3d=sim3d,
+            points={
+                int(tag_id): AlignedPoint(
+                    triangulated=np.asarray(point["triangulated"])
+                    if point["triangulated"] is not None
+                    else None,
+                    topo=np.asarray(point["topo"]),
+                    transformed=np.asarray(point["transformed"])
+                    if point["transformed"] is not None
+                    else None,
+                    error_3d=np.asarray(point["error_3d"])
+                    if point["error_3d"] is not None
+                    else None,
+                )
+                for tag_id, point in alignment_data["points"].items()
+            },
+        )
+        cp_summary = data.get("cp_summary", None)
+
+        return cls(
+            alignment=alignment,
+            cp_summary=cp_summary,
+        )
+    
     def save_as_npy(self, path: Path) -> None:
-        np.save(path, self.__dict__)
+        path.parent.mkdir(parents=True, exist_ok=True)  # just in case
+        np.save(path, asdict(self)) 

@@ -64,6 +64,8 @@ class Trajectory:
         state = self._parse(lines)
         if not state:
             raise RuntimeError("Failed to parse estimate file.")
+        
+        return self
 
     def add_estimate_poses_to_reconstruction(
         self,
@@ -79,7 +81,6 @@ class Trajectory:
 
         recon_path = output_path / "reconstruction"
         recon_path.mkdir(parents=True, exist_ok=True)
-        shutil.rmtree(recon_path)
 
         reconstruction = self._add_images_to_reconstruction(
             reconstruction, timestamp_to_images
