@@ -33,9 +33,6 @@ class MPSOptions:
 
 @dataclass(slots=True)
 class SensorOptions:
-    left_cam_stream_id: str = "1201-1"
-    right_cam_stream_id: str = "1201-2"
-    right_imu_stream_id: str = "1202-1"
     camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
     has_slam_drops: bool = (
         False  # check vrs json metadata file for each sequence
