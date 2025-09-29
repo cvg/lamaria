@@ -13,7 +13,7 @@ from projectaria_tools.core.stream_id import StreamId
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
-from ...utils.constants import (
+from .constants import (
     ARIA_CAMERAS,
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,

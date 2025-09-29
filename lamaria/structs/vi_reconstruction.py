@@ -34,7 +34,7 @@ class VIReconstruction(TimedReconstruction):
 
     def write(self, output_folder: Path) -> None:
         # Write base data first
-        super().write_base(output_folder)
+        super().write(output_folder)
 
         # Write IMU data
         rectified_imu_data_npy = output_folder / "rectified_imu_data.npy"
