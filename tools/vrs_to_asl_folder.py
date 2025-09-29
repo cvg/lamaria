@@ -5,6 +5,7 @@ from pathlib import Path
 
 from projectaria_tools.core import data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core.stream_id import StreamId
 from tqdm import tqdm
 
 from lamaria import logger
@@ -135,7 +136,7 @@ def write_image_csv(image_timestamps, cam_folder):
 
 def write_imu_data_to_csv(vrs_provider, csv_file):
     imu_timestamps = vrs_provider.get_timestamps_ns(
-        RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
+        StreamId(RIGHT_IMU_STREAM_ID), TimeDomain.DEVICE_TIME
     )
 
     last_timestamp = None
@@ -158,7 +159,7 @@ def write_imu_data_to_csv(vrs_provider, csv_file):
         writer = csv.writer(f)
         for timestamp in tqdm(imu_timestamps, desc="Appending IMU data to CSV"):
             imu_data = vrs_provider.get_imu_data_by_time_ns(
-                RIGHT_IMU_STREAM_ID,
+                StreamId(RIGHT_IMU_STREAM_ID),
                 timestamp,
                 TimeDomain.DEVICE_TIME,
                 TimeQueryOptions.CLOSEST,
@@ -193,7 +194,7 @@ def form_aria_asl_folder(
 
     # Get all image timestamps (in ns)
     image_timestamps = vrs_provider.get_timestamps_ns(
-        LEFT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+        StreamId(LEFT_CAMERA_STREAM_ID), TimeDomain.DEVICE_TIME
     )
     assert len(image_timestamps) > 0, "No timestamps found"
 
@@ -201,7 +202,7 @@ def form_aria_asl_folder(
     matched_timestamps = None
     if has_slam_drops:
         right_image_timestamps = vrs_provider.get_timestamps_ns(
-            RIGHT_CAMERA_STREAM_ID, TimeDomain.DEVICE_TIME
+            StreamId(RIGHT_CAMERA_STREAM_ID), TimeDomain.DEVICE_TIME
         )
         assert len(right_image_timestamps) > 0, (
             "No right camera image timestamps found"
