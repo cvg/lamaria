@@ -40,8 +40,7 @@ def run(
         timestamp tx ty tz qx qy qz qw
         ```
     """
-    traj = Trajectory()
-    traj.load_from_file(
+    traj = Trajectory.load_from_file(
         estimate, invert_poses=False, corresponding_sensor=corresponding_sensor
     )
     if not traj.is_loaded():
