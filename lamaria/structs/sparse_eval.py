@@ -194,20 +194,17 @@ class AlignmentResult:
 
 @dataclass(slots=True)
 class SparseEvalResult:
-    robust_sim3d: pycolmap.Sim3d
     alignment: AlignmentResult
     cp_summary: dict | None = None
 
     @staticmethod
     def from_variables(
-        robust_sim3d: pycolmap.Sim3d,
         variables: SparseEvalVariables,
     ) -> "SparseEvalResult":
         alignment = AlignmentResult.calculate(variables)
         cp_summary = variables.get_cp_summary()
 
         return SparseEvalResult(
-            robust_sim3d=copy.deepcopy(robust_sim3d),
             alignment=alignment,
             cp_summary=cp_summary,
         )
