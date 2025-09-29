@@ -1,4 +1,3 @@
-from pathlib import Path
 
 import pyceres
 import pycolmap
@@ -15,28 +14,7 @@ from ..structs.sparse_eval import (
 )
 
 
-def save_transformed_reconstruction(
-    reconstruction_path: Path,
-    sim3d: pycolmap.Sim3d,
-    output_folder: Path,
-) -> None:
-    """Apply a Sim3d transformation to a reconstruction and save it.
-
-    Args:
-        reconstruction_path (Path): Path to the input reconstruction.
-        sim3d (pycolmap.Sim3d): The similarity transformation to apply.
-        output_folder (Path): Directory where the transformed reconstruction
-            will be saved.
-    """
-    output_folder.mkdir(parents=True, exist_ok=True)
-    reconstruction = pycolmap.Reconstruction(reconstruction_path)
-    reconstruction.transform(sim3d)
-    reconstruction.write(output_folder)
-
-    return output_folder
-
-
-def estimate_robust_sim3d_from_control_points(
+def estimate_initial_alignment_from_control_points(
     control_points: ControlPoints,
 ) -> pycolmap.Sim3d | None:
     """Estimate a robust Sim3d from control points.
@@ -68,15 +46,14 @@ def estimate_robust_sim3d_from_control_points(
 
 
 def evaluate_wrt_control_points(
-    reconstruction_path: Path,
+    reconstruction: pycolmap.Reconstruction,
     control_points: ControlPoints,
-    output_path: Path,
-) -> Path:
+) -> SparseEvalResult | None:
     """
     Evaluate the trajectory with respect to control points.
 
     Args:
-        reconstruction_path (Path): Path to the input reconstruction,
+        reconstruction (pycolmap.Reconstruction): Reconstruction object
         which contains the estimated poses.
         control_points (ControlPoints): Control points dictionary.
         output_path (Path): Directory where results will be saved.
@@ -85,7 +62,9 @@ def evaluate_wrt_control_points(
         sparse_npy_path (Path): Path to the saved SparseEvalResult .npy file.
     """
 
-    robust_sim3d = estimate_robust_sim3d_from_control_points(control_points)
+    robust_sim3d = estimate_initial_alignment_from_control_points(
+        control_points
+    )
 
     if robust_sim3d is None:
         logger.error("Robust Sim3d estimation failed")
@@ -96,7 +75,6 @@ def evaluate_wrt_control_points(
         robust_sim3d,
     )
 
-    reconstruction = pycolmap.Reconstruction(reconstruction_path)
     problem, solver_options, summary = get_problem_for_sparse_alignment(
         reconstruction, variables
     )
@@ -109,14 +87,5 @@ def evaluate_wrt_control_points(
         variables,
     )
 
-    _ = save_transformed_reconstruction(
-        reconstruction_path,
-        result.alignment.optimized_sim3d,
-        output_path / "aligned",
-    )
-
-    result_path = output_path / "sparse_evaluation.npy"
-    result.save_as_npy(result_path)
-
     logger.info("Sparse evaluation completed successfully!")
-    return result_path
+    return result

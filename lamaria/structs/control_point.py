@@ -10,8 +10,17 @@ from .. import logger
 from ..utils.constants import (
     CUSTOM_ORIGIN_COORDINATES,
 )
+from ..utils.timestamps import get_timestamp_to_images
 
 ControlPoints = dict[int, "ControlPoint"]
+
+
+@dataclass(slots=True)
+class ControlPointSummary:
+    name: str  # geo_id
+    triangulated: np.ndarray
+    topo: np.ndarray
+    covariance: np.ndarray
 
 
 @dataclass(slots=True)
@@ -19,12 +28,14 @@ class ControlPoint:
     name: str  # geo_id
     topo: np.ndarray
     covariance: np.ndarray
+    image_name_to_detection: dict[str, np.ndarray] | None = field(
+        default_factory=dict
+    )  # image_name to [x, y] detection
 
     triangulated: np.ndarray | None = None  # None if triangulation fails
     inlier_ratio: float = 0.0
-    image_id_and_point2d: list[tuple[int, np.ndarray]] = field(
-        default_factory=list
-    )
+    # inlier list of (image_id, [x, y]) tuples
+    inlier_detections: list[(int, np.ndarray)] = field(default_factory=list)
 
     @staticmethod
     def from_measurement(
@@ -46,9 +57,7 @@ class ControlPoint:
         )
         cov = np.diag(np.square(np.asarray(u, dtype=np.float64)))
 
-        return ControlPoint(
-            name=name, topo=topo, covariance=cov
-        )
+        return ControlPoint(name=name, topo=topo, covariance=cov)
 
     def has_height(self) -> bool:
         return bool(self.topo[2] != 0)
@@ -56,48 +65,64 @@ class ControlPoint:
     def is_triangulated(self) -> bool:
         return self.triangulated is not None
 
-    def summary(self) -> dict:
-        return {
-            "name": self.name,
-            "topo": self.topo.tolist(),
-            "covariance": self.covariance.tolist(),
-        }
+    def summary(self) -> ControlPointSummary:
+        return ControlPointSummary(
+            name=self.name,
+            triangulated=self.triangulated.tolist()
+            if self.triangulated is not None
+            else None,
+            topo=self.topo.tolist(),
+            covariance=self.covariance.tolist(),
+        )
 
 
-def get_control_points_for_evaluation(
-    reconstruction_path: Path,
+def load_cp_json(
     cp_json_file: Path,
-) -> ControlPoints:
-    """Load control points from JSON and run triangulation."""
-    control_points = construct_control_points_from_json(
-        cp_json_file,
-    )
-    run_control_point_triangulation_from_json(
-        reconstruction_path, cp_json_file, control_points
-    )
-    return control_points
-
-
-def construct_control_points_from_json(
-    cp_json_file: Path,
-) -> ControlPoints:
-    """
-    Construct ControlPoints dict from a JSON file.
+    skip_detections: bool = False,
+) -> tuple[ControlPoints, dict]:
+    """Load control points and timestamp→images mapping from a JSON file.
 
     Args:
-        cp_json_file (Path): Path to the sparse GT JSON file.
+        cp_json_file (Path): Path to the sparse ground-truth JSON file.
+        skip_detections (bool): If True, skip per-image detections and only
+            load control point measurement data.
+
+    Returns:
+        Tuple:
+            - control_points: Parsed control points collection.
+            - timestamp_to_images: Mapping from timestamps (ns) to image names.
+    """
+    with open(cp_json_file) as file:
+        cp_data = json.load(file)
+
+    control_points = construct_control_points(cp_data, skip_detections)
+    timestamp_to_images = get_timestamp_to_images(cp_data)
+
+    return control_points, timestamp_to_images
+
+
+def construct_control_points(
+    cp_data: dict,
+    skip_detections: bool = False,
+) -> ControlPoints:
+    """
+    Construct ControlPoints dict from JSON data.
+
+    Args:
+        cp_data (dict): Loaded JSON data containing control point information.
+        skip_detections (bool): If True, skip per-image detections and only
+            load control point measurement data.
 
     Returns:
         control_points (ControlPoints): Control points dictionary.
     """
-    with open(cp_json_file) as file:
-        cp_data = json.load(file)
 
     control_points: ControlPoints = {}
     for geo_id, data in cp_data["control_points"].items():
         tag_ids = data["tag_id"]
         measurement = data["measurement"]
         unc = data["uncertainty"]
+        images_observing_cp = data["image_names"]
 
         for tag_id in tag_ids:
             control_points[tag_id] = ControlPoint.from_measurement(
@@ -106,6 +131,13 @@ def construct_control_points_from_json(
                 unc,
                 CUSTOM_ORIGIN_COORDINATES,
             )
+
+            if not skip_detections:
+                for image_name in images_observing_cp:
+                    detection = cp_data["images"][image_name]["detection"]
+                    control_points[tag_id].image_name_to_detection[
+                        image_name
+                    ] = np.array(detection)
 
     return control_points
 
@@ -130,41 +162,32 @@ def transform_triangulated_control_points(
     return control_points
 
 
-def run_control_point_triangulation_from_json(
-    reconstruction_path: Path,
-    cp_json_file: Path,
+def run_control_point_triangulation(
+    reconstruction: pycolmap.Reconstruction,
     control_points: ControlPoints,
 ) -> None:
     """
-    Triangulate control points from JSON file and add to control_points dict.
+    Triangulate control points and add to control_points dict.
     Updates `control_points` in place to add:
 
     - ``triangulated``: np.ndarray(3,) or None if triangulation fails
     - ``inlier_ratio``: float
-    - ``image_id_and_point2d``: list of (image_id, [x, y]) tuples
-    of observations used for triangulation
+    - ``inlier_detections``: list of observations used for triangulation
     Args:
-        reconstruction_path (Path): Path to the reconstruction folder
-        cp_json_file (Path): Path to the sparse GT JSON file
-        control_points (dict): Control points dictionary to be updated
+        reconstruction (pycolmap.Reconstruction): The COLMAP reconstruction.
+        control_points (ControlPoints): The control points dictionary.
     """
-    rec = pycolmap.Reconstruction(reconstruction_path)
 
     image_names_to_ids = {
-        image.name: image_id for image_id, image in rec.images.items()
+        image.name: image_id
+        for image_id, image in reconstruction.images.items()
     }
-
-    with open(cp_json_file) as file:
-        data = json.load(file)
-
-    image_data = data["images"]
-    control_point_data = data["control_points"]
 
     for _, cp in tqdm(
         control_points.items(), desc="Triangulating control points"
     ):
         geo_id = cp.name
-        images_observing_cp = control_point_data[geo_id]["image_names"]
+        images_observing_cp = list(cp.image_name_to_detection.keys())
 
         pixel_points = []
         cam_from_worlds = []
@@ -176,18 +199,18 @@ def run_control_point_triangulation_from_json(
             if image_name not in image_names_to_ids:
                 continue
             id = image_names_to_ids[image_name]
-            image = rec.images[id]
-            detection = image_data[image_name]["detection"]
+            image = reconstruction.images[id]
+            detection = cp.image_name_to_detection[image_name]
             pixel_points.append(detection)
             cam_from_worlds.append(image.cam_from_world())
-            cameras.append(rec.cameras[image.camera_id])
+            cameras.append(reconstruction.cameras[image.camera_id])
             image_ids_and_centers.append((id, detection))
 
         # HANDLING THE CASE WHERE NO IMAGES OBSERVE THE CONTROL POINT
         if pixel_points == []:
             cp.triangulated = None
             cp.inlier_ratio = 0.0
-            cp.image_id_and_point2d = []
+            cp.inlier_detections = []
             continue
 
         pixel_points = np.array(pixel_points)
@@ -208,7 +231,7 @@ def run_control_point_triangulation_from_json(
         if output is None:
             cp.triangulated = None
             cp.inlier_ratio = 0.0
-            cp.image_id_and_point2d = []
+            cp.inlier_detections = []
             continue
 
         cp.triangulated = output["xyz"]
@@ -217,7 +240,7 @@ def run_control_point_triangulation_from_json(
         image_ids_and_centers = [
             image_ids_and_centers[i] for i in range(len(inliers)) if inliers[i]
         ]
-        cp.image_id_and_point2d = image_ids_and_centers
+        cp.inlier_detections = image_ids_and_centers
 
 
 def get_cps_for_initial_alignment(control_points: ControlPoints):

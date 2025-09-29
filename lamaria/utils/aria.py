@@ -2,14 +2,15 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import TypeAlias
 
 import numpy as np
 import pycolmap
 from projectaria_tools.core import data_provider, mps
-from projectaria_tools.core.stream_id import StreamId
 from projectaria_tools.core.calibration import CameraCalibration, ImuCalibration
 from projectaria_tools.core.mps.utils import get_nearest_pose
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core.stream_id import StreamId
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
@@ -19,10 +20,12 @@ from .timestamps import find_closest_timestamp
 
 # ----- Reconstruction functions ----- #
 
+InitReconstruction: TypeAlias = pycolmap.Reconstruction
+
 
 def initialize_reconstruction_from_calibration_file(
     calibration_file: Path,
-) -> pycolmap.Reconstruction:
+) -> InitReconstruction:
     """Initialize a COLMAP reconstruction from Aria calibration
     json file found on website: https://lamaria.ethz.ch/slam_datasets
     Adds a dummy camera as an IMU along with two cameras.
@@ -31,15 +34,11 @@ def initialize_reconstruction_from_calibration_file(
         calibration_file (Path):
         Path to the Aria calibration json file
     Returns:
-        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+        InitReconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
 
-    imu = pycolmap.Camera(
-        camera_id=1,
-        model="SIMPLE_PINHOLE",
-        params=[0, 0, 0]
-    )
+    imu = pycolmap.Camera(camera_id=1, model="SIMPLE_PINHOLE", params=[0, 0, 0])
     reconstruction.add_camera(imu)
 
     rig = pycolmap.Rig(rig_id=1)
@@ -75,7 +74,7 @@ def initialize_reconstruction_from_calibration_file(
 
 def initialize_reconstruction_with_cameras(
     calibration_file: Path,
-) -> pycolmap.Reconstruction:
+) -> InitReconstruction:
     """Initialize a COLMAP reconstruction from Aria calibration
     json file found on website: https://lamaria.ethz.ch/slam_datasets
     Adds only the cameras without any dummy IMU.
@@ -84,7 +83,7 @@ def initialize_reconstruction_with_cameras(
         calibration_file (Path):
         Path to the Aria calibration json file
     Returns:
-        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+        InitReconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
 

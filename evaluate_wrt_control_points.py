@@ -3,10 +3,12 @@ from pathlib import Path
 
 from lamaria import logger
 from lamaria.eval.sparse_evaluation import evaluate_wrt_control_points
-from lamaria.structs.control_point import get_control_points_for_evaluation
+from lamaria.structs.control_point import (
+    load_cp_json,
+    run_control_point_triangulation,
+)
 from lamaria.structs.trajectory import Trajectory
 from lamaria.utils.aria import initialize_reconstruction_from_calibration_file
-from lamaria.utils.timestamps import get_timestamp_to_images_from_json
 
 
 def run(
@@ -47,29 +49,28 @@ def run(
     init_reconstruction = initialize_reconstruction_from_calibration_file(
         device_calibration_json
     )
-    timestamp_to_images = get_timestamp_to_images_from_json(cp_json_file)
+    control_points, timestamp_to_images = load_cp_json(cp_json_file)
 
-    reconstruction_path = traj.add_estimate_poses_to_reconstruction(
-        init_reconstruction,
-        timestamp_to_images,
-        output_path,
+    reconstruction = traj.add_estimate_poses_to_reconstruction(
+        init_reconstruction, timestamp_to_images
     )
 
-    control_points = get_control_points_for_evaluation(
-        reconstruction_path, cp_json_file
-    )
-
-    sparse_npy_path = evaluate_wrt_control_points(
-        reconstruction_path,
+    run_control_point_triangulation(
+        reconstruction,
         control_points,
-        output_path,
     )
-    if not sparse_npy_path.exists():
-        logger.error("Sparse evaluation failed")
+
+    result = evaluate_wrt_control_points(
+        reconstruction,
+        control_points,
+    )
+
+    result_path = output_path / "sparse_eval_result.npy"
+    if result is None:
+        logger.error("Sparse evaluation failed.")
         return False
 
-    logger.info(f"Results saved to {sparse_npy_path}")
-    return True
+    result.save_as_npy(result_path)
 
     # TODO: Add metrics here?
 
