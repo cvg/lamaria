@@ -1,7 +1,7 @@
 --find-links https://cvg-data.inf.ethz.ch/lamaria/packages/pyceres/
 --find-links https://cvg-data.inf.ethz.ch/lamaria/packages/pycolmap/
 
-projectaria_tools
+projectaria-tools'[all]'
 omegaconf
 scipy
 pyceres==2.6 ; python_version >= "3.9" and python_version < "3.15"
