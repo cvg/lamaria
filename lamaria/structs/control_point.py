@@ -162,12 +162,12 @@ def transform_triangulated_control_points(
     return control_points
 
 
-def run_control_point_triangulation_from_json(
+def run_control_point_triangulation(
     reconstruction: pycolmap.Reconstruction,
     control_points: ControlPoints,
 ) -> None:
     """
-    Triangulate control points from JSON file and add to control_points dict.
+    Triangulate control points and add to control_points dict.
     Updates `control_points` in place to add:
 
     - ``triangulated``: np.ndarray(3,) or None if triangulation fails
