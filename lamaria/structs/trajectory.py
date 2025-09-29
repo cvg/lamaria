@@ -71,24 +71,16 @@ class Trajectory:
         self,
         reconstruction: pycolmap.Reconstruction,
         timestamp_to_images: dict,
-        output_path: Path,
-    ) -> Path:
+    ) -> pycolmap.Reconstruction:
         """
         Adds estimate poses as frames to input reconstruction.
         """
-
         self._ensure_loaded()
-
-        recon_path = output_path / "reconstruction"
-        recon_path.mkdir(parents=True, exist_ok=True)
-
         reconstruction = self._add_images_to_reconstruction(
             reconstruction, timestamp_to_images
         )
 
-        reconstruction.write(recon_path.as_posix())
-
-        return recon_path
+        return reconstruction
 
     def filter_from_indices(
         self,
