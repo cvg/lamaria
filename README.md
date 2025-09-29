@@ -16,7 +16,7 @@ This dataset offers 23 training sequences and 63 test sequences.
 
 In this repository, you can find scripts to conveniently download the dataset, evaluate SLAM results, perform data conversions, and run an example visual-inertial optimization pipeline.
 
-To learn more about the dataset, please visit our [main dataset page](https://lamaria.ethz.ch) or read our [paper]() 
+To learn more about the dataset, please visit our <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">main dataset website</a> or read our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -53,7 +53,7 @@ python -m pip install -e .
 ```
 
 ## Downloading the dataset
-Our dataset is fully hosted via the archive [here](https://cvg-data.inf.ethz.ch/lamaria/).
+Our dataset is fully hosted via the archive <a href="https://cvg-data.inf.ethz.ch/lamaria/" target="_blank" rel="noopener noreferrer">here</a>.
 
 ### Quickstart
 We provide a small script `quickstart.sh` that downloads one sequence from the archive. The standalone evaluations and example visual-inertial optimization can be run on the downloaded demo data.
@@ -83,7 +83,7 @@ python tools/download_lamaria.py --set training --type both
 ```
 **Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage, else** 💣.
 
-The training and test sequence information can be found in the [dataset page](https://lamaria.ethz.ch/slam_datasets).
+The training and test sequence information can be found in the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset page</a>.
 
 To download the raw data of a specific sequence (e.g., `R_01_easy`), run:
 
@@ -92,8 +92,7 @@ python tools/download_lamaria.py --sequences R_01_easy --type raw
 ```
 Ground truth files are available only for the training sequences.
 
-To learn more about the various data formats, calibration files and ground-truths, please visit our [dataset documentation](https://lamaria.ethz.ch/slam_documentation).
-
+To learn more about the various data formats, calibration files and ground-truths, please visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">dataset documentation</a>.
 
 ## Evaluation
 
