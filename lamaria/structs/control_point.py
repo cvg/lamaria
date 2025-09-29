@@ -35,9 +35,8 @@ class ControlPoint:
     triangulated: np.ndarray | None = None  # None if triangulation fails
     inlier_ratio: float = 0.0
     # inlier list of (image_id, [x, y]) tuples
-    inlier_detections: list[(int, np.ndarray)] = field(default_factory=list)  
+    inlier_detections: list[(int, np.ndarray)] = field(default_factory=list)
 
-    
     @staticmethod
     def from_measurement(
         name: str,
@@ -58,9 +57,7 @@ class ControlPoint:
         )
         cov = np.diag(np.square(np.asarray(u, dtype=np.float64)))
 
-        return ControlPoint(
-            name=name, topo=topo, covariance=cov
-        )
+        return ControlPoint(name=name, topo=topo, covariance=cov)
 
     def has_height(self) -> bool:
         return bool(self.topo[2] != 0)
@@ -134,11 +131,13 @@ def construct_control_points(
                 unc,
                 CUSTOM_ORIGIN_COORDINATES,
             )
-        
+
             if not skip_detections:
                 for image_name in images_observing_cp:
                     detection = cp_data["images"][image_name]["detection"]
-                    control_points[tag_id].image_name_to_detection[image_name] = np.array(detection)
+                    control_points[tag_id].image_name_to_detection[
+                        image_name
+                    ] = np.array(detection)
 
     return control_points
 
@@ -181,7 +180,8 @@ def run_control_point_triangulation_from_json(
     """
 
     image_names_to_ids = {
-        image.name: image_id for image_id, image in reconstruction.images.items()
+        image.name: image_id
+        for image_id, image in reconstruction.images.items()
     }
 
     for _, cp in tqdm(
