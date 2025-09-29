@@ -15,7 +15,7 @@ from ... import logger
 from ...config.options import TriangulatorOptions
 
 
-def set_colmap_triangulation_options(
+def get_colmap_triangulation_options(
     options: TriangulatorOptions,
 ) -> pycolmap.IncrementalPipelineOptions:
     colmap_options = pycolmap.IncrementalPipelineOptions()
@@ -89,15 +89,17 @@ def run(
     options: TriangulatorOptions,
     reference_model: Path,  # reconstruction path
     keyframes_path: Path,
-    hloc_path: Path,
-    pairs_path: Path,
-    triangulated_model_path: Path,
+    output_path: Path,
 ) -> Path:
     if not keyframes_path.exists():
         raise FileNotFoundError(f"keyframes not found at {keyframes_path}")
 
-    hloc_path.mkdir(parents=True, exist_ok=True)
+    output_path.mkdir(parents=True, exist_ok=True)
+    hloc_output_path = output_path / "hloc"
+    pairs_path = hloc_output_path / "pairs.txt"
+    triangulated_model_path = output_path / "model"
 
+    hloc_output_path.mkdir(parents=True, exist_ok=True)
     if not reference_model.exists():
         raise FileNotFoundError(
             f"reference_model not found at {reference_model}"
@@ -115,10 +117,10 @@ def run(
     )
 
     retrieval_path = extract_features.main(
-        retrieval_conf, image_dir=keyframes_path, export_dir=hloc_path
+        retrieval_conf, image_dir=keyframes_path, export_dir=hloc_output_path
     )
     features_path = extract_features.main(
-        feature_conf, image_dir=keyframes_path, export_dir=hloc_path
+        feature_conf, image_dir=keyframes_path, export_dir=hloc_output_path
     )
 
     pairs_from_retrieval.main(
@@ -130,10 +132,10 @@ def run(
         conf=matcher_conf,
         pairs=pairs_path,
         features=feature_conf["output"],
-        export_dir=hloc_path,
+        export_dir=hloc_output_path,
     )
 
-    colmap_opts = set_colmap_triangulation_options(options)
+    colmap_opts = get_colmap_triangulation_options(options)
 
     _ = triangulation.main(
         sfm_dir=triangulated_model_path,

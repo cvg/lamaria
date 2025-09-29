@@ -2,7 +2,6 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
-from typing import TypeAlias
 
 import numpy as np
 import pycolmap
@@ -15,12 +14,16 @@ from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
 from .. import logger
-from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
+from .constants import (
+    ARIA_CAMERAS,
+    LEFT_CAMERA_STREAM_ID,
+    RIGHT_CAMERA_STREAM_ID,
+    RIGHT_IMU_STREAM_ID,
+)
 from .timestamps import find_closest_timestamp
+from .types import InitReconstruction
 
 # ----- Reconstruction functions ----- #
-
-InitReconstruction: TypeAlias = pycolmap.Reconstruction
 
 
 def initialize_reconstruction_from_calibration_file(
@@ -455,7 +458,62 @@ def get_imu_data_from_vrs(
     return ms
 
 
+def get_imu_data_from_vrs_file(
+    vrs_file: Path,
+    mps_folder: Path | None = None,
+) -> pycolmap.ImuMeasurements:
+    vrs_provider = data_provider.create_vrs_data_provider(vrs_file.as_posix())
+    return get_imu_data_from_vrs(vrs_provider, mps_folder=mps_folder)
+
+
 # ----- VRS utils ----- #
+
+
+# TODO: merge this with initialize_reconstruction_from_calibration_file
+def initialize_reconstruction_from_vrs_file(
+    vrs_file: Path,
+) -> InitReconstruction:
+    """
+    Return a pycolmap.Reconstruction with only cameras and rigs populated.
+    """
+    # Initialize VRS data provider
+    vrs_provider = data_provider.create_vrs_data_provider(vrs_file.as_posix())
+
+    # build reconstruction
+    recon = pycolmap.Reconstruction()
+    device_calibration = vrs_provider.get_device_calibration()
+    imu_stream_label = vrs_provider.get_label_from_stream_id(
+        StreamId(RIGHT_IMU_STREAM_ID)
+    )
+    imu_calib = device_calibration.get_imu_calib(imu_stream_label)
+
+    rig = pycolmap.Rig(rig_id=1)
+
+    # DUMMY CAMERA FOR IMU, IMU ID is 1
+    imu = pycolmap.Camera(camera_id=1, model="SIMPLE_PINHOLE", params=[0, 0, 0])
+    recon.add_camera(imu)
+    rig.add_ref_sensor(imu.sensor_id)
+
+    for cam_id, sid in [
+        (2, StreamId(LEFT_CAMERA_STREAM_ID)),
+        (3, StreamId(RIGHT_CAMERA_STREAM_ID)),
+    ]:
+        stream_label = vrs_provider.get_label_from_stream_id(sid)
+        camera_calib = device_calibration.get_camera_calib(stream_label)
+        cam = camera_colmap_from_calib(camera_calib)
+        cam.camera_id = cam_id
+
+        t_imu_camera = get_t_imu_camera(
+            imu_calib,
+            camera_calib,
+        )
+        sensor_from_rig = t_imu_camera.inverse()
+
+        recon.add_camera(cam)
+        rig.add_sensor(cam.sensor_id, sensor_from_rig)
+
+    recon.add_rig(rig)
+    return recon
 
 
 def extract_images_from_vrs(
@@ -501,3 +559,48 @@ def extract_images_from_vrs(
                 msg += "\n" + out.stdout.decode("utf-8")
             raise subprocess.SubprocessError(msg)
         logger.info("Done!")
+
+
+def _image_names_from_folder(
+    folder: Path, wrt_to: Path, ext: str = ".jpg"
+) -> list[Path]:
+    if not folder.is_dir():
+        return []
+    images = sorted(n for n in folder.iterdir() if n.suffix == ext)
+    images = [n.relative_to(wrt_to) for n in images]
+    return images
+
+
+def extract_images_with_timestamps_from_vrs(
+    vrs_file, images_path
+) -> dict[int, tuple[Path, Path]]:
+    """
+    Return timestamps -> image names
+    """
+
+    # Initialize VRS data provider
+    vrs_provider = data_provider.create_vrs_data_provider(vrs_file.as_posix())
+    left_ts = sorted(
+        vrs_provider.get_timestamps_ns(
+            StreamId(LEFT_CAMERA_STREAM_ID), TimeDomain.DEVICE_TIME
+        )
+    )
+
+    # Extract images from VRS file
+    extract_images_from_vrs(
+        vrs_file=vrs_file,
+        image_folder=images_path,
+    )
+
+    # Get images
+    left_img_dir = images_path / "left"
+    right_img_dir = images_path / "right"
+    left_images = _image_names_from_folder(left_img_dir, left_img_dir)
+    right_images = _image_names_from_folder(right_img_dir, right_img_dir)
+    images = list(zip(left_images, right_images))
+
+    # Create a map
+    assert len(left_ts) == len(images), (
+        "timestamps should have the same length as images"
+    )
+    return dict(zip(left_ts, images))

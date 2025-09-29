@@ -16,60 +16,6 @@ def _structured_merge_to_obj(cls, section) -> object:
     return OmegaConf.to_object(merged)
 
 
-# General options
-@dataclass(slots=True)
-class MPSOptions:
-    use_online_calibration: bool = (
-        False  # set to True if using MPS online calibration result
-    )
-
-    @classmethod
-    def load(cls, cfg: OmegaConf | None = None) -> MPSOptions:
-        if cfg is None:
-            return cls()
-
-        return _structured_merge_to_obj(cls, cfg)
-
-
-@dataclass(slots=True)
-class SensorOptions:
-    camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
-    has_slam_drops: bool = (
-        False  # check vrs json metadata file for each sequence
-    )
-
-    @classmethod
-    def load(cls, cfg: OmegaConf | None = None) -> SensorOptions:
-        if cfg is None:
-            return cls()
-
-        obj: SensorOptions = _structured_merge_to_obj(cls, cfg)
-        return obj
-
-
-# Estimate to COLMAP options
-@dataclass(slots=True)
-class EstimateToVIReconOptions:
-    mps: MPSOptions = field(default_factory=MPSOptions)
-    sensor: SensorOptions = field(default_factory=SensorOptions)
-
-    @classmethod
-    def load(
-        cls,
-        cfg_mps: OmegaConf | None = None,
-        cfg_sensor: OmegaConf | None = None,
-    ) -> EstimateToVIReconOptions:
-        if cfg_mps is None or cfg_sensor is None:
-            return cls()
-
-        base = cls()
-        return replace(
-            base,
-            mps=MPSOptions.load(cfg_mps),
-            sensor=SensorOptions.load(cfg_sensor),
-        )
-
-
 # Keyframing options
 @dataclass(slots=True)
 class KeyframeSelectorOptions:
@@ -151,6 +97,7 @@ class VIOptimizerOptions:
     cam: OptCamOptions = field(default_factory=OptCamOptions)
     imu: OptIMUOptions = field(default_factory=OptIMUOptions)
     optim: OptOptions = field(default_factory=OptOptions)
+    use_mps_online_calibration: bool = False
 
     @classmethod
     def load(cls, cfg: OmegaConf | None = None) -> VIOptimizerOptions:
@@ -167,4 +114,7 @@ class VIOptimizerOptions:
             cam=cam,
             imu=imu,
             optim=optim,
+            use_mps_online_calibration=cfg.get(
+                "use_mps_online_calibration", False
+            ),
         )
