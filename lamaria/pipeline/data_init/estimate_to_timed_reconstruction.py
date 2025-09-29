@@ -1,5 +1,7 @@
 from bisect import bisect_left
+from copy import deepcopy
 from pathlib import Path
+
 import pycolmap
 
 from ...structs.timed_reconstruction import TimedReconstruction
@@ -8,12 +10,16 @@ from ...structs.trajectory import (
 )
 from ...utils.types import InitReconstruction
 
-def _image_names_from_folder(folder: Path, wrt_to: Path, ext: str = ".jpg") -> list[Path]:
+
+def _image_names_from_folder(
+    folder: Path, wrt_to: Path, ext: str = ".jpg"
+) -> list[Path]:
     if not folder.is_dir():
         return []
     images = sorted(n for n in folder.iterdir() if n.suffix == ext)
     images = [n.relative_to(wrt_to) for n in images]
     return images
+
 
 def _match_estimate_ts_to_images(
     timestamps_to_images: dict[int, tuple[Path, Path]],
@@ -55,24 +61,34 @@ def _match_estimate_ts_to_images(
     return dict(zip(matched_timestamps, matched_images))
 
 
-def convert_estimate_into_timed_reconstruction(init_reconstruction: InitReconstruction, estimate: Trajectory, timestamps_to_images: dict[int, tuple[Path, Path]]) -> TimedReconstruction:
-    '''
-    Populate images, frames and timestamps in an TimedReconstruction from a trajectory
-    '''
-    est_timestamps_to_images = _match_estimate_ts_to_images(timestamps_to_images, estimate.timestamps)
+def convert_estimate_into_timed_reconstruction(
+    init_reconstruction: InitReconstruction,
+    estimate: Trajectory,
+    timestamps_to_images: dict[int, tuple[Path, Path]],
+) -> TimedReconstruction:
+    """
+    Populate a TimedReconstruction from a trajectory
+    """
+    est_timestamps_to_images = _match_estimate_ts_to_images(
+        timestamps_to_images, estimate.timestamps
+    )
 
     assert estimate.corresponding_sensor == "imu"
-    timestamps = list(timestamps_to_images.keys())
-    assert len(estimate.poses) == len(timestamps), "The length of traj.poses and timestamps should be equal"
+    timestamps = list(est_timestamps_to_images.keys())
+    assert len(estimate.poses) == len(timestamps), (
+        "The length of traj.poses and timestamps should be equal"
+    )
 
-    recon = copy.deepcopy(init_recon)
+    recon = deepcopy(init_reconstruction)
     image_id = 1
     frame_id_to_timestamp = dict()
-    for frame_id, (pose, timestamp) in enumerate(zip(estimate.poses, timestamps)):
+    for frame_id, (pose, timestamp) in enumerate(
+        zip(estimate.poses, timestamps)
+    ):
         frame = pycolmap.Frame()
         frame.rig_id = 1
         frame.frame_id = frame_id
-        frame.rig_from_world = pose # as it corresponds to imu
+        frame.rig_from_world = pose  # as it corresponds to imu
 
         image_names = timestamps_to_images(timestamp)
         images_to_add = []
@@ -92,5 +108,6 @@ def convert_estimate_into_timed_reconstruction(init_reconstruction: InitReconstr
             recon.add_image(im)
         frame_id_to_timestamp[frame_id] = timestamp
 
-    return TimedReconstruction(reconstruction=recon, timestamps=frame_id_to_timestamp)
-
+    return TimedReconstruction(
+        reconstruction=recon, timestamps=frame_id_to_timestamp
+    )

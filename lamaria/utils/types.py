@@ -1,5 +1,5 @@
-import pycolmap
 from typing import TypeAlias
 
-InitReconstruction: TypeAlias = pycolmap.Reconstruction
+import pycolmap
 
+InitReconstruction: TypeAlias = pycolmap.Reconstruction

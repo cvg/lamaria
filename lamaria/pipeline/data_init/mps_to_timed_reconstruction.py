@@ -1,8 +1,6 @@
-from bisect import bisect_left
 from dataclasses import dataclass
 from pathlib import Path
 
-import projectaria_tools.core.mps as mps
 import pycolmap
 from projectaria_tools.core import data_provider
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
@@ -27,6 +25,7 @@ from ...utils.timestamps import (
     get_matched_timestamps,
 )
 
+
 # TODO: remove this
 @dataclass
 class PerFrameData:
@@ -41,7 +40,9 @@ class MPSToTimedRecon:
     # TODO: convert this class into functions
     """Converts MPS data to COLMAP format."""
 
-    def __init__(self, use_online_calibration: bool=False, has_slam_drops: bool = False):
+    def __init__(
+        self, use_online_calibration: bool = False, has_slam_drops: bool = False
+    ):
         self.use_online_calibration = use_online_calibration
         self.has_slam_drops = has_slam_drops
 
@@ -371,4 +372,3 @@ class MPSToTimedRecon:
             self.data.reconstruction.add_frame(frame)
             for im in images_to_add:
                 self.data.reconstruction.add_image(im)
-
