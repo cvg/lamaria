@@ -89,7 +89,7 @@ def evaluate_wrt_control_points(
 
     if robust_sim3d is None:
         logger.error("Robust Sim3d estimation failed")
-        return False
+        return None
 
     variables = SparseEvalVariables.create_from_inputs(
         control_points,
@@ -118,5 +118,5 @@ def evaluate_wrt_control_points(
     result_path = output_path / "sparse_evaluation.npy"
     result.save_as_npy(result_path)
 
-    logger.info("Sparse evaluation completed successfully")
-    return True
+    logger.info("Sparse evaluation completed successfully!")
+    return result_path
