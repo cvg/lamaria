@@ -45,7 +45,9 @@ class Trajectory:
     invert_poses: bool = True
     corresponding_sensor: str = "imu"
     _timestamps: list[int] = field(default_factory=list[int])
-    _poses: list[pycolmap.Rigid3d] = field(default_factory=list[pycolmap.Rigid3d])
+    _poses: list[pycolmap.Rigid3d] = field(
+        default_factory=list[pycolmap.Rigid3d]
+    )
 
     @classmethod
     def load_from_file(
