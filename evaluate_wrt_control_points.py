@@ -64,13 +64,15 @@ def run(
         reconstruction,
         control_points,
     )
-
-    result_path = output_path / "sparse_eval_result.npy"
+    
     if result is None:
         logger.error("Sparse evaluation failed.")
         return False
-
+    
+    result_path = output_path / "sparse_eval_result.npy"
     result.save_as_npy(result_path)
+
+
 
     # TODO: Add metrics here?
 
