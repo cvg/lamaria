@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -42,11 +42,10 @@ class Trajectory:
         the trajectory is represented ("imu" or "cam0").
     """
 
-    def __init__(self) -> None:
-        self.invert_poses: bool = True
-        self.corresponding_sensor: str = "imu"
-        self._timestamps: list[int] = []
-        self._poses: list[pycolmap.Rigid3d] = []
+    invert_poses: bool = True
+    corresponding_sensor: str = "imu"
+    _timestamps: list[int] = field(default_factory=list[int])
+    _poses: list[pycolmap.Rigid3d] = field(default_factory=list[pycolmap.Rigid3d])
 
     @classmethod
     def load_from_file(

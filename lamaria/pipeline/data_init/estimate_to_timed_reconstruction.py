@@ -90,7 +90,7 @@ def convert_estimate_into_timed_reconstruction(
         frame.frame_id = frame_id
         frame.rig_from_world = pose  # as it corresponds to imu
 
-        image_names = timestamps_to_images(timestamp)
+        image_names = timestamps_to_images[timestamp]
         images_to_add = []
         for cam_id, img_path in [(2, image_names[0]), (3, image_names[1])]:
             im = pycolmap.Image(
