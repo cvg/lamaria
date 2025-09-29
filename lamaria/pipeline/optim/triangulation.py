@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import pycolmap
+
 from hloc import (
     extract_features,
     match_features,

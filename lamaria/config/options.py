@@ -16,42 +16,6 @@ def _structured_merge_to_obj(cls, section) -> object:
     return OmegaConf.to_object(merged)
 
 
-@dataclass(slots=True)
-class SensorOptions:
-    camera_model: str = "RAD_TAN_THIN_PRISM_FISHEYE"
-    has_slam_drops: bool = (
-        False  # check vrs json metadata file for each sequence
-    )
-
-    @classmethod
-    def load(cls, cfg: OmegaConf | None = None) -> SensorOptions:
-        if cfg is None:
-            return cls()
-
-        obj: SensorOptions = _structured_merge_to_obj(cls, cfg)
-        return obj
-
-
-# Estimate to COLMAP options
-@dataclass(slots=True)
-class EstimateToTimedReconOptions:
-    sensor: SensorOptions = field(default_factory=SensorOptions)
-
-    @classmethod
-    def load(
-        cls,
-        cfg_sensor: OmegaConf | None = None,
-    ) -> EstimateToTimedReconOptions:
-        if cfg_sensor is None:
-            return cls()
-
-        base = cls()
-        return replace(
-            base,
-            sensor=SensorOptions.load(cfg_sensor),
-        )
-
-
 # Keyframing options
 @dataclass(slots=True)
 class KeyframeSelectorOptions:
@@ -150,5 +114,7 @@ class VIOptimizerOptions:
             cam=cam,
             imu=imu,
             optim=optim,
-            use_mps_online_calibration=cfg.use_mps_online_calibration,
+            use_mps_online_calibration=cfg.get(
+                "use_mps_online_calibration", False
+            ),
         )

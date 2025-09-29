@@ -1,8 +1,4 @@
 # Default configuration for run_pipeline.py
-sensor:
-  camera_model: RAD_TAN_THIN_PRISM_FISHEYE
-  has_slam_drops: false
-
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
@@ -48,4 +44,5 @@ optimization:
     acc_infl: 1.0
     integration_noise_density: 0.05
 
-  use_mps_online_calibration: false # relevant only when mps folder is used
+use_mps_online_calibration: false # relevant only when mps folder is used
+has_slam_drops: false

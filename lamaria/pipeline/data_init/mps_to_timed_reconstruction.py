@@ -9,11 +9,7 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
-from ...config.options import EstimateToTimedReconOptions
 from ...structs.timed_reconstruction import TimedReconstruction
-from ...structs.trajectory import (
-    Trajectory,
-)
 from ...utils.aria import (
     camera_colmap_from_calib,
     extract_images_from_vrs,
@@ -31,7 +27,7 @@ from ...utils.timestamps import (
     get_matched_timestamps,
 )
 
-
+# TODO: remove this
 @dataclass
 class PerFrameData:
     left_ts: int
@@ -41,38 +37,29 @@ class PerFrameData:
     rig_from_world: pycolmap.Rigid3d
 
 
-class EstimateToTimedRecon:
-    """Converts estimate or MPS data to COLMAP format."""
+class MPSToTimedRecon:
+    # TODO: convert this class into functions
+    """Converts MPS data to COLMAP format."""
 
-    def __init__(self, options: EstimateToTimedReconOptions):
-        self.options = options
-        self.data: TimedReconstruction = TimedReconstruction()
+    def __init__(self, use_online_calibration: bool=False, has_slam_drops: bool = False):
+        self.use_online_calibration = use_online_calibration
+        self.has_slam_drops = has_slam_drops
+
         self._vrs_provider = None
         self._mps_data_provider = None
         self._per_frame_data: dict[int, PerFrameData] = {}
 
-    @staticmethod
-    def convert(
-        options: EstimateToTimedReconOptions,
-        vrs: Path,
-        images_path: Path,
-        estimate: Path | None = None,
-        mps_folder: Path | None = None,
-    ) -> TimedReconstruction:
-        """Entry point to run estimate/MPS to colmap conversion."""
-        to_colmap = EstimateToTimedRecon(options)
-        return to_colmap.process(vrs, images_path, estimate, mps_folder)
+        self.data: TimedReconstruction = TimedReconstruction()
 
-    def process(
+    def convert(
         self,
         vrs: Path,
         images_path: Path,
-        estimate: Path | None = None,
-        mps_folder: Path | None = None,
+        mps_folder: Path,
     ) -> TimedReconstruction:
-        self._init_data(vrs, images_path, estimate, mps_folder)
+        self._init_data(vrs, images_path, mps_folder)
 
-        if self.options.mps.use_online_calibration:
+        if self.use_online_calibration:
             self._add_online_sensors()
             self._add_online_frames()
         else:
@@ -89,8 +76,7 @@ class EstimateToTimedRecon:
         self,
         vrs: Path,
         image_folder: Path,
-        estimate: Path | None = None,
-        mps_folder: Path | None = None,
+        mps_folder: Path,
     ) -> None:
         """Initializes data providers and extracts images, timestamps
         and builds per-frame data object.
@@ -107,13 +93,6 @@ class EstimateToTimedRecon:
         self._right_cam_sid = StreamId(RIGHT_CAMERA_STREAM_ID)
         self._right_imu_sid = StreamId(RIGHT_IMU_STREAM_ID)
 
-        # Initialize MPS data provider if needed
-        if mps_folder is not None:
-            data_paths = mps.MpsDataPathsProvider(
-                mps_folder.as_posix()
-            ).get_data_paths()
-            self._mps_data_provider = mps.MpsDataProvider(data_paths)
-
         # Extract images from VRS file
         extract_images_from_vrs(
             vrs_file=vrs,
@@ -123,29 +102,15 @@ class EstimateToTimedRecon:
         images = self._get_images(image_folder)
 
         # Get timestamps and build per-frame data
-        if estimate is None:
-            timestamps = self._get_mps_timestamps()
-            closed_loop_data = get_closed_loop_data_from_mps(mps_folder)
-            pose_timestamps = [left for left, _ in timestamps]
-            mps_poses = get_mps_poses_for_timestamps(
-                closed_loop_data, pose_timestamps
-            )
-            self._per_frame_data = self._build_per_frame_data_from_mps(
-                images, timestamps, mps_poses
-            )
-        else:
-            traj = Trajectory.load_from_file(estimate, invert_poses=True)
-
-            timestamps = traj.timestamps
-            if len(images) != len(timestamps):
-                images, timestamps = self._match_estimate_ts_to_images(
-                    images, timestamps
-                )
-
-            rig_from_worlds = traj.poses
-            self._per_frame_data = self._build_per_frame_data_from_estimate(
-                images, timestamps, rig_from_worlds
-            )
+        timestamps = self._get_mps_timestamps()
+        closed_loop_data = get_closed_loop_data_from_mps(mps_folder)
+        pose_timestamps = [left for left, _ in timestamps]
+        mps_poses = get_mps_poses_for_timestamps(
+            closed_loop_data, pose_timestamps
+        )
+        self._per_frame_data = self._build_per_frame_data_from_mps(
+            images, timestamps, mps_poses
+        )
 
     def _build_per_frame_data_from_mps(
         self, images, timestamps, mps_poses
@@ -155,7 +120,7 @@ class EstimateToTimedRecon:
             self._right_imu_sid
         )
 
-        if not self.options.mps.use_online_calibration:
+        if not self.use_online_calibration:
             device_calibration = self._vrs_provider.get_device_calibration()
             imu_calib = device_calibration.get_imu_calib(imu_stream_label)
 
@@ -167,7 +132,7 @@ class EstimateToTimedRecon:
             if t_world_device is None:
                 continue
 
-            if self.options.mps.use_online_calibration:
+            if self.mps.use_online_calibration:
                 ocalib = self._mps_data_provider.get_online_calibration(
                     left_ts, TimeQueryOptions.CLOSEST
                 )
@@ -187,31 +152,6 @@ class EstimateToTimedRecon:
             pfd = PerFrameData(
                 left_ts=left_ts,
                 right_ts=right_ts,
-                left_img=left_img,
-                right_img=right_img,
-                rig_from_world=rig_from_world,
-            )
-            per_frame_data[frame_id] = pfd
-            frame_id += 1
-
-        return per_frame_data
-
-    def _build_per_frame_data_from_estimate(
-        self, images, timestamps, rig_from_worlds
-    ) -> dict[int, PerFrameData]:
-        per_frame_data: dict[int, PerFrameData] = {}
-        assert len(images) == len(timestamps) == len(rig_from_worlds), (
-            "Number of images, timestamps and poses must be equal"
-        )
-
-        frame_id = 1
-
-        for (left_img, right_img), ts, rig_from_world in zip(
-            images, timestamps, rig_from_worlds
-        ):
-            pfd = PerFrameData(
-                left_ts=ts,
-                right_ts=ts,
                 left_img=left_img,
                 right_img=right_img,
                 rig_from_world=rig_from_world,
@@ -248,7 +188,7 @@ class EstimateToTimedRecon:
     def _get_mps_timestamps(self, max_diff=1e6) -> list[tuple[int, int]]:
         L = self._ts_from_vrs(self._left_cam_sid)
         R = self._ts_from_vrs(self._right_cam_sid)
-        if not self.options.sensor.has_slam_drops:
+        if not self.has_slam_drops:
             assert len(L) == len(R), (
                 "Unequal number of left and right timestamps"
             )
@@ -262,46 +202,6 @@ class EstimateToTimedRecon:
             matched = get_matched_timestamps(L, R, max_diff)
 
         return matched
-
-    def _match_estimate_ts_to_images(
-        self,
-        images: list[tuple[Path, Path]],
-        est_timestamps: list[int],
-        max_diff: int = 1000000,  # 1 ms
-    ) -> tuple[list[tuple[Path, Path]], list[int]]:
-        left_ts = self._ts_from_vrs(self._left_cam_sid)
-        assert len(images) == len(left_ts), (
-            "Number of images and left timestamps must be equal"
-        )
-
-        order = sorted(range(len(left_ts)), key=lambda i: left_ts[i])
-        left_ts = [left_ts[i] for i in order]
-        images = [images[i] for i in order]
-
-        matched_images: list[tuple[Path, Path]] = []
-        matched_timestamps: list[int] = []
-
-        # estimate timestamps will be in nanoseconds like vrs timestamps
-        for est in est_timestamps:
-            idx = bisect_left(left_ts, est)
-
-            cand_idxs = []
-            if idx > 0:
-                cand_idxs.append(idx - 1)
-            if idx < len(left_ts):
-                cand_idxs.append(idx)
-
-            if not cand_idxs:
-                continue
-
-            best = min(cand_idxs, key=lambda j: abs(left_ts[j] - est))
-            if (max_diff is not None) and (abs(left_ts[best] - est) > max_diff):
-                continue
-
-            matched_images.append(images[best])
-            matched_timestamps.append(left_ts[best])
-
-        return matched_images, matched_timestamps
 
     def _add_device_sensors(self) -> None:
         """Adds a new rig with device calibrated sensors.
@@ -471,3 +371,4 @@ class EstimateToTimedRecon:
             self.data.reconstruction.add_frame(frame)
             for im in images_to_add:
                 self.data.reconstruction.add_image(im)
+

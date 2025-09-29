@@ -5,26 +5,32 @@ from pathlib import Path
 import pycolmap
 
 from lamaria.config.options import (
-    EstimateToTimedReconOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
 )
 from lamaria.config.pipeline import PipelineOptions
-from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
-from lamaria.pipeline.keyframing.to_vi_reconstruction import (
-    EstimateToTimedRecon,
+from lamaria.pipeline.data_init.estimate_to_timed_reconstruction import (
+    convert_estimate_into_timed_reconstruction,
 )
+from lamaria.pipeline.data_init.mps_to_timed_reconstruction import (
+    MPSToTimedRecon,
+)
+from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
 from lamaria.structs.timed_reconstruction import TimedReconstruction
+from lamaria.structs.trajectory import Trajectory
 from lamaria.structs.vi_reconstruction import VIReconstruction
-from lamaria.utils.aria import get_imu_data_from_vrs_file
+from lamaria.utils.aria import (
+    extract_images_with_timestamps_from_vrs,
+    get_imu_data_from_vrs_file,
+    initialize_reconstruction_from_vrs_file,
+)
 
 
-def run_estimate_to_vi_recon(
-    options: EstimateToTimedReconOptions,
+def run_estimate_to_timed_recon(
     vrs: Path,
     images_path: Path,
     estimate: Path,
@@ -32,29 +38,34 @@ def run_estimate_to_vi_recon(
     """Function to convert a general input
     estimate file to a TimedReconstruction.
     """
-    vi_recon = EstimateToTimedRecon.convert(
-        options,
-        vrs,
-        images_path,
-        estimate,
+    traj = Trajectory.load_from_file(estimate)
+    init_recon = initialize_reconstruction_from_vrs_file(vrs)
+    timestamps_to_images = extract_images_with_timestamps_from_vrs(
+        vrs, images_path
     )
-    return vi_recon
+    timed_recon = convert_estimate_into_timed_reconstruction(
+        init_recon, traj, timestamps_to_images
+    )
+    return timed_recon
 
 
-def run_mps_to_vi_recon(
-    options: EstimateToTimedReconOptions,
+def run_mps_to_timed_recon(
     vrs: Path,
     images_path: Path,
     mps_folder: Path,
+    use_online_calibration: bool = False,
+    has_slam_drops: bool = False,
 ) -> TimedReconstruction:
     """Function to convert MPS estimate to a TimedReconstruction."""
-    vi_recon = EstimateToTimedRecon.convert(
-        options,
+    timed_recon = MPSToTimedRecon(
+        use_online_calibration=use_online_calibration,
+        has_slam_drops=has_slam_drops,
+    ).convert(
         vrs,
         images_path,
         mps_folder,
     )
-    return vi_recon
+    return timed_recon
 
 
 def run_keyframe_selection(
@@ -133,8 +144,7 @@ def run_pipeline(
                 "Estimate path must be provided if not using MPS"
             )
 
-            recon = run_estimate_to_vi_recon(
-                options.estimate_to_colmap_options,
+            recon = run_estimate_to_timed_recon(
                 vrs,
                 output_path / "images",
                 estimate,
@@ -145,11 +155,12 @@ def run_pipeline(
                 "MPS folder path must be provided if using MPS"
             )
 
-            recon = run_mps_to_vi_recon(
-                options.estimate_to_colmap_options,
+            recon = run_mps_to_timed_recon(
                 vrs,
                 output_path / "images",
                 mps_folder,
+                use_online_calibration=options.use_mps_online_calibration,
+                has_slam_drops=options.has_slam_drops,
             )
             recon.write(init_recon_path)
 

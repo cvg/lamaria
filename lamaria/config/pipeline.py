@@ -1,26 +1,30 @@
 from collections.abc import Sequence
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from omegaconf import DictConfig, OmegaConf
 
 from .options import (
-    EstimateToTimedReconOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
 )
 
 
+@dataclass
 class PipelineOptions:
-    def __init__(self) -> None:
-        self._estimate_to_colmap_options: EstimateToTimedReconOptions = (
-            EstimateToTimedReconOptions()
-        )
-        self._keyframing_options: KeyframeSelectorOptions = (
-            KeyframeSelectorOptions()
-        )
-        self._triangulator_options: TriangulatorOptions = TriangulatorOptions()
-        self._vi_optimizer_options: VIOptimizerOptions = VIOptimizerOptions()
+    _keyframing_options: KeyframeSelectorOptions = field(
+        default_factory=KeyframeSelectorOptions
+    )
+    _triangulator_options: TriangulatorOptions = field(
+        default_factory=TriangulatorOptions
+    )
+    _vi_optimizer_options: VIOptimizerOptions = field(
+        default_factory=VIOptimizerOptions
+    )
+
+    use_mps_online_calibration: bool = False
+    has_slam_drops: bool = False
 
     def load(
         self,
@@ -39,20 +43,14 @@ class PipelineOptions:
 
     def _update_from_cfg(self, cfg: DictConfig) -> None:
         """Update object attributes from a config."""
-        self._estimate_to_colmap_options = EstimateToTimedReconOptions.load(
-            cfg.sensor,
-        )
         self._keyframing_options = KeyframeSelectorOptions.load(cfg.keyframing)
         self._triangulator_options = TriangulatorOptions.load(cfg.triangulation)
         self._vi_optimizer_options = VIOptimizerOptions.load(cfg.optimization)
 
-        out = cfg.get("output_path", None)
-        self._output_path = Path(out) if out is not None else Path("/output/")
-
-    # Properties for estimate to COLMAP
-    @property
-    def estimate_to_colmap_options(self) -> EstimateToTimedReconOptions:
-        return self._estimate_to_colmap_options
+        self.use_mps_online_calibration = cfg.get(
+            "use_mps_online_calibration", False
+        )
+        self.has_slam_drops = cfg.get("has_slam_drops", False)
 
     # Properties for keyframing
     @property
@@ -67,4 +65,7 @@ class PipelineOptions:
     # Properties for visual-inertial optimization
     @property
     def vi_optimizer_options(self) -> VIOptimizerOptions:
-        return self._vi_optimizer_options
+        return replace(
+            self._vi_optimizer_options,
+            use_mps_online_calibration=self.use_mps_online_calibration,
+        )
