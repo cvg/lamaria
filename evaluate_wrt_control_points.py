@@ -2,19 +2,12 @@ import argparse
 from pathlib import Path
 
 from lamaria import logger
-from lamaria.eval.sparse_evaluation import (
-    evaluate_wrt_control_points
-)
-from lamaria.structs.control_point import (
-    get_control_points_for_evaluation
-)
+from lamaria.eval.sparse_evaluation import evaluate_wrt_control_points
+from lamaria.structs.control_point import get_control_points_for_evaluation
 from lamaria.structs.trajectory import Trajectory
-from lamaria.utils.aria import (
-    initialize_reconstruction_from_calibration_file
-)
-from lamaria.utils.timestamps import (
-    get_timestamp_to_images_from_json
-)
+from lamaria.utils.aria import initialize_reconstruction_from_calibration_file
+from lamaria.utils.timestamps import get_timestamp_to_images_from_json
+
 
 def run(
     estimate: Path,
@@ -49,9 +42,7 @@ def run(
     """
     traj = Trajectory()
     traj.load_from_file(
-        estimate,
-        invert_poses=False,
-        corresponding_sensor=corresponding_sensor
+        estimate, invert_poses=False, corresponding_sensor=corresponding_sensor
     )
     if not traj.is_loaded():
         logger.error("Estimate could not be loaded")
@@ -60,9 +51,7 @@ def run(
     init_reconstruction = initialize_reconstruction_from_calibration_file(
         device_calibration_json
     )
-    timestamp_to_images = get_timestamp_to_images_from_json(
-        cp_json_file
-    )
+    timestamp_to_images = get_timestamp_to_images_from_json(cp_json_file)
 
     reconstruction_path = traj.add_estimate_poses_to_reconstruction(
         init_reconstruction,
@@ -71,9 +60,7 @@ def run(
     )
 
     control_points = get_control_points_for_evaluation(
-        reconstruction_path,
-        cp_json_file,
-        cp_reproj_std
+        reconstruction_path, cp_json_file, cp_reproj_std
     )
 
     sparse_npy_path = evaluate_wrt_control_points(
@@ -85,7 +72,7 @@ def run(
     if not sparse_npy_path.exists():
         logger.error("Sparse evaluation failed")
         return False
-    
+
     logger.info(f"Results saved to {sparse_npy_path}")
     return True
 
