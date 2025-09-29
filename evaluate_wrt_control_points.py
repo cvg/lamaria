@@ -3,7 +3,10 @@ from pathlib import Path
 
 from lamaria import logger
 from lamaria.eval.sparse_evaluation import evaluate_wrt_control_points
-from lamaria.structs.control_point import load_cp_json, run_control_point_triangulation
+from lamaria.structs.control_point import (
+    load_cp_json,
+    run_control_point_triangulation,
+)
 from lamaria.structs.trajectory import Trajectory
 from lamaria.utils.aria import initialize_reconstruction_from_calibration_file
 
@@ -66,7 +69,7 @@ def run(
     if result is None:
         logger.error("Sparse evaluation failed.")
         return False
-    
+
     result.save_as_npy(result_path)
 
     # TODO: Add metrics here?

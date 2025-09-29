@@ -1,4 +1,3 @@
-from pathlib import Path
 
 import pyceres
 import pycolmap
@@ -63,7 +62,9 @@ def evaluate_wrt_control_points(
         sparse_npy_path (Path): Path to the saved SparseEvalResult .npy file.
     """
 
-    robust_sim3d = estimate_initial_alignment_from_control_points(control_points)
+    robust_sim3d = estimate_initial_alignment_from_control_points(
+        control_points
+    )
 
     if robust_sim3d is None:
         logger.error("Robust Sim3d estimation failed")
