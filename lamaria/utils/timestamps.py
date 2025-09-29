@@ -1,6 +1,7 @@
 import json
 from bisect import bisect_left
 from pathlib import Path
+
 import numpy as np
 
 from .constants import (
@@ -12,7 +13,7 @@ from .constants import (
 def matching_time_indices(
     stamps_1: np.ndarray,
     stamps_2: np.ndarray,
-    max_diff: float = 1e6 # 1 ms in ns
+    max_diff: float = 1e6,  # 1 ms in ns
 ) -> tuple[list, list]:
     """
     From evo package.

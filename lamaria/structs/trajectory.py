@@ -89,7 +89,7 @@ class Trajectory:
         reconstruction.write(recon_path.as_posix())
 
         return recon_path
-    
+
     def filter_from_indices(
         self,
         ids: np.ndarray,
@@ -101,24 +101,27 @@ class Trajectory:
         self._ensure_loaded()
         self._timestamps = [self._timestamps[i] for i in ids]
         self._poses = [self._poses[i] for i in ids]
-    
+
     def transform(self, tgt_from_src: pycolmap.Sim3d) -> None:
         """Apply a similarity transformation to all poses in the trajectory."""
         self._ensure_loaded()
-        _tmp_poses = self._poses.copy() if self.invert_poses \
-                else [p.inverse() for p in self._poses]
-        
+        _tmp_poses = (
+            self._poses.copy()
+            if self.invert_poses
+            else [p.inverse() for p in self._poses]
+        )
+
         # tmp_poses are in rig_from_world format
         for i, p in enumerate(_tmp_poses):
-            rig_from_new_world = pycolmap.Sim3d(
-                1, p.rotation, p.translation
-            ) * tgt_from_src.inverse()
+            rig_from_new_world = (
+                pycolmap.Sim3d(1, p.rotation, p.translation)
+                * tgt_from_src.inverse()
+            )
             new_p = pycolmap.Rigid3d(
                 rig_from_new_world.rotation,
-                rig_from_new_world.translation * tgt_from_src.scale
+                rig_from_new_world.translation * tgt_from_src.scale,
             )
-            self._poses[i] = new_p if self.invert_poses \
-                else new_p.inverse()
+            self._poses[i] = new_p if self.invert_poses else new_p.inverse()
 
     @property
     def timestamps(self) -> list[int]:
@@ -129,7 +132,7 @@ class Trajectory:
     def poses(self) -> list[pycolmap.Rigid3d]:
         self._ensure_loaded()
         return self._poses
-    
+
     @property
     def positions(self) -> np.ndarray:
         """Returns Nx3 numpy array of positions."""
@@ -138,7 +141,7 @@ class Trajectory:
             return np.array([p.translation for p in self._poses])
         else:
             return np.array([p.inverse().translation for p in self._poses])
-        
+
     @property
     def orientations(self) -> np.ndarray:
         """Returns Nx4 numpy array of quaternions (x, y, z, w)."""
@@ -318,7 +321,7 @@ def associate_trajectories(
     if not traj1.is_loaded() or not traj2.is_loaded():
         logger.error("Trajectories must be loaded before association.")
         return None, None
-    
+
     first_longer = len(traj1) >= len(traj2)
     longer_traj = traj1 if first_longer else traj2
     shorter_traj = traj2 if first_longer else traj1
@@ -331,7 +334,7 @@ def associate_trajectories(
     if num_matches == 0:
         logger.error("No matching timestamps found between trajectories.")
         return None, None
-    
+
     longer_traj.filter_from_indices(long_idx)
     shorter_traj.filter_from_indices(short_idx)
 
