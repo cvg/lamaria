@@ -25,7 +25,8 @@ Using **LaMAria**, you can:
 
 
 ## Installation
-This repository supports Python 3.9 through 3.13. Installing the package `lamaria` pulls the other dependencies.
+This repository supports Python 3.9 through 3.14. Installing the package `lamaria` pulls the other dependencies
+mentioned in `requirements.txt`.
 
 Create an environment:
 ```bash
