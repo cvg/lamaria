@@ -17,13 +17,33 @@ Using **LaMAria**, you can:
 - [Downloading the Dataset](#downloading-the-dataset)
 - [Evaluation](#evaluation)
   - [Evaluation w.r.t. Control Points](#evaluation-wrt-control-points)
-  - [Evaluation Against Pseudo-GT](#evaluation-against-pseudo-gt)
-  - [EVO Evaluation Against MPS](#evo-evaluation-against-mps)
+  - [Evaluation w.r.t. Pseudo-GT](#evaluation-wrt-pseudo-gt)
+  - [EVO Evaluation w.r.t. MPS](#evo-evaluation-wrt-mps)
 - [Data Conversion](#data-conversion)
 - [Example Visual-Inertial Optimization](#example-visual-inertial-optimization)
+- [BibTeX Citation](#bibtex-citation)
 
 
 ## Installation
+This repository supports Python 3.9 through 3.13. Installing the package `lamaria` pulls the other dependencies.
+
+Create an environment:
+```bash
+python3 -m venv lamaria_env
+source lamaria_env/bin/activate
+```
+
+Clone the repository:
+```bash
+git clone git@github.com:cvg/lamaria.git
+cd lamaria
+pip install -r requirements.txt
+```
+
+Install the package:
+```bash
+python -m pip install -e .
+```
 
 
 ## Downloading the dataset
@@ -46,3 +66,7 @@ Using **LaMAria**, you can:
 
 
 ## Example Visual-Inertial Optimization
+
+
+
+## BibTeX citation
