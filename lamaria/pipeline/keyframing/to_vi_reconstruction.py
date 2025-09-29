@@ -23,6 +23,11 @@ from ...utils.aria import (
     get_t_imu_camera,
     rigid3d_from_transform,
 )
+from ...utils.constants import (
+    LEFT_CAMERA_STREAM_ID,
+    RIGHT_CAMERA_STREAM_ID,
+    RIGHT_IMU_STREAM_ID,
+)
 from ...utils.timestamps import (
     get_matched_timestamps,
 )
@@ -45,9 +50,6 @@ class EstimateToVIRecon:
         self.data: VIReconstruction = VIReconstruction()
         self._vrs_provider = None
         self._mps_data_provider = None
-        self._left_cam_sid: StreamId | None = None
-        self._right_cam_sid: StreamId | None = None
-        self._right_imu_sid: StreamId | None = None
         self._per_frame_data: dict[int, PerFrameData] = {}
 
     @staticmethod
@@ -105,9 +107,9 @@ class EstimateToVIRecon:
         )
 
         # Initialize stream IDs
-        self._left_cam_sid = StreamId(self.options.sensor.left_cam_stream_id)
-        self._right_cam_sid = StreamId(self.options.sensor.right_cam_stream_id)
-        self._right_imu_sid = StreamId(self.options.sensor.right_imu_stream_id)
+        self._left_cam_sid = StreamId(LEFT_CAMERA_STREAM_ID)
+        self._right_cam_sid = StreamId(RIGHT_CAMERA_STREAM_ID)
+        self._right_imu_sid = StreamId(RIGHT_IMU_STREAM_ID)
 
         # Initialize MPS data provider if needed
         if mps_folder is not None:
