@@ -15,7 +15,6 @@ def run(
     device_calibration_json: Path,
     output_path: Path,
     corresponding_sensor: str = "imu",
-    cp_reproj_std=1.0,
 ) -> bool:
     """Run sparse evaluation for sequences that observe control points.
 
@@ -28,8 +27,6 @@ def run(
         evaluation results will be saved.
         corresponding_sensor (str): The reference sensor to use
         ("imu" or "cam0").
-        cp_reproj_std (float, optional): Control point reprojection standard
-            deviation. Defaults to 1.0.
 
     Returns:
         bool: True if the evaluation was successful, False otherwise.
@@ -59,7 +56,7 @@ def run(
     )
 
     control_points = get_control_points_for_evaluation(
-        reconstruction_path, cp_json_file, cp_reproj_std
+        reconstruction_path, cp_json_file
     )
 
     sparse_npy_path = evaluate_wrt_control_points(
@@ -114,12 +111,6 @@ if __name__ == "__main__":
         choices=["imu", "cam0"],
         help="The sensor in which the poses are expressed.",
     )
-    parser.add_argument(
-        "--cp_reproj_std",
-        type=float,
-        default=1.0,
-        help="Control point reprojection standard deviation",
-    )
     args = parser.parse_args()
 
     _ = run(
@@ -128,5 +119,4 @@ if __name__ == "__main__":
         args.device_calibration_json,
         args.output_path,
         args.corresponding_sensor,
-        args.cp_reproj_std,
     )
