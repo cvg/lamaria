@@ -9,16 +9,15 @@ from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
 from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
-from ...config.options import EstimateToVIReconOptions
+from ...config.options import EstimateToTimedReconOptions
 from ...structs.trajectory import (
     Trajectory,
 )
-from ...structs.vi_reconstruction import VIReconstruction
+from ...structs.timed_reconstruction import TimedReconstruction
 from ...utils.aria import (
     camera_colmap_from_calib,
     extract_images_from_vrs,
     get_closed_loop_data_from_mps,
-    get_imu_data_from_vrs,
     get_mps_poses_for_timestamps,
     get_t_imu_camera,
     rigid3d_from_transform,
@@ -42,26 +41,26 @@ class PerFrameData:
     rig_from_world: pycolmap.Rigid3d
 
 
-class EstimateToVIRecon:
+class EstimateToTimedRecon:
     """Converts estimate or MPS data to COLMAP format."""
 
-    def __init__(self, options: EstimateToVIReconOptions):
+    def __init__(self, options: EstimateToTimedReconOptions):
         self.options = options
-        self.data: VIReconstruction = VIReconstruction()
+        self.data: TimedReconstruction = TimedReconstruction()
         self._vrs_provider = None
         self._mps_data_provider = None
         self._per_frame_data: dict[int, PerFrameData] = {}
 
     @staticmethod
     def convert(
-        options: EstimateToVIReconOptions,
+        options: EstimateToTimedReconOptions,
         vrs: Path,
         images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
-    ) -> VIReconstruction:
+    ) -> TimedReconstruction:
         """Entry point to run estimate/MPS to colmap conversion."""
-        to_colmap = EstimateToVIRecon(options)
+        to_colmap = EstimateToTimedRecon(options)
         return to_colmap.process(vrs, images_path, estimate, mps_folder)
 
     def process(
@@ -70,7 +69,7 @@ class EstimateToVIRecon:
         images_path: Path,
         estimate: Path | None = None,
         mps_folder: Path | None = None,
-    ) -> VIReconstruction:
+    ) -> TimedReconstruction:
         self._init_data(vrs, images_path, estimate, mps_folder)
 
         if self.options.mps.use_online_calibration:
@@ -80,9 +79,6 @@ class EstimateToVIRecon:
             self._add_device_sensors()
             self._add_device_frames()
 
-        # IMU + timestamps
-        ms = self._get_rectified_imu_data(mps_folder)
-        self.data.imu_measurements = ms
         self.data.timestamps = {
             fid: pfd.left_ts for fid, pfd in self._per_frame_data.items()
         }
@@ -479,23 +475,3 @@ class EstimateToVIRecon:
             self.data.reconstruction.add_frame(frame)
             for im in images_to_add:
                 self.data.reconstruction.add_image(im)
-
-    def _get_rectified_imu_data(
-        self,
-        mps_folder: Path | None = None,
-    ) -> pycolmap.ImuMeasurements:
-        """Generates rectified IMU data from VRS file"""
-        if self.options.mps.use_online_calibration:
-            assert mps_folder is not None, (
-                "MPS folder path must be provided if using MPS"
-            )
-            ms = get_imu_data_from_vrs(
-                self._vrs_provider,
-                mps_folder,
-            )
-        else:
-            ms = get_imu_data_from_vrs(
-                self._vrs_provider,
-            )
-
-        return ms

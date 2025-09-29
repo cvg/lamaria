@@ -8,33 +8,33 @@ import numpy as np
 import pycolmap
 
 from ...config.options import KeyframeSelectorOptions
-from ...structs.vi_reconstruction import VIReconstruction
+from ...structs.timed_reconstruction import TimedReconstruction
 from ...utils.aria import get_magnitude_from_transform
 
 
 class KeyframeSelector:
-    """Class to perform keyframe selection on a VIReconstruction object."""
+    """Class to perform keyframe selection on a TimedReconstruction object."""
 
     def __init__(
         self,
         options: KeyframeSelectorOptions,
-        data: VIReconstruction,
+        data: TimedReconstruction,
     ):
         self.options = options
         self.init_data = data
         self.init_recons = data.reconstruction  # pycolmap.Reconstruction
         self.timestamps = data.timestamps  # frame id to timestamp mapping
 
-        self.keyframed_data = VIReconstruction()
+        self.keyframed_data = TimedReconstruction()
         self.keyframe_frame_ids: dict[int, int] = {}
 
     @staticmethod
     def run(
         options: KeyframeSelectorOptions,
-        data: VIReconstruction,
+        data: TimedReconstruction,
         images_path: Path,
         keyframes_path: Path,
-    ) -> VIReconstruction:
+    ) -> TimedReconstruction:
         """Entry point to run keyframing and
         copy keyframes into keyframe directory.
         """
@@ -215,7 +215,7 @@ class KeyframeSelector:
             for img in images_to_add:
                 self.keyframed_data.reconstruction.add_image(img)
 
-    def run_keyframing(self) -> VIReconstruction:
+    def run_keyframing(self) -> TimedReconstruction:
         """Function to run keyframing on lamaria reconstruction."""
         self._select_keyframes()
         if len(self.init_recons.rigs.keys()) == 1:  # device rig has been added
@@ -228,9 +228,6 @@ class KeyframeSelector:
             new_fid: self.timestamps[old_fid]
             for new_fid, old_fid in self.keyframe_frame_ids.items()
         }
-
-        self.keyframed_data.imu_measurements = self.init_data.imu_measurements
-
         return self.keyframed_data
 
     def copy_images_to_keyframes_dir(

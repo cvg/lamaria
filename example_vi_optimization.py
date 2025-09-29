@@ -5,7 +5,7 @@ from pathlib import Path
 import pycolmap
 
 from lamaria.config.options import (
-    EstimateToVIReconOptions,
+    EstimateToTimedReconOptions,
     KeyframeSelectorOptions,
     TriangulatorOptions,
     VIOptimizerOptions,
@@ -13,170 +13,97 @@ from lamaria.config.options import (
 from lamaria.config.pipeline import PipelineOptions
 from lamaria.pipeline.keyframing.keyframe_selection import KeyframeSelector
 from lamaria.pipeline.keyframing.to_vi_reconstruction import (
-    EstimateToVIRecon,
+    EstimateToTimedRecon,
 )
 from lamaria.pipeline.optim.session import SingleSeqSession
 from lamaria.pipeline.optim.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
+from lamaria.structs.timed_reconstruction import TimedReconstruction
 from lamaria.structs.vi_reconstruction import VIReconstruction
+from lamaria.utils.aria import get_imu_data_from_vrs_file
 
 
 def run_estimate_to_vi_recon(
-    options: EstimateToVIReconOptions,
+    options: EstimateToTimedReconOptions,
     vrs: Path,
     images_path: Path,
     estimate: Path,
-    colmap_model_path: Path,
-) -> VIReconstruction:
+) -> TimedReconstruction:
     """Function to convert a general input
-    estimate file to a VIReconstruction.
+    estimate file to a TimedReconstruction.
     """
-    if colmap_model_path.exists():
-        vi_recon = VIReconstruction.read(colmap_model_path)
-        return vi_recon
-
-    colmap_model_path.mkdir(parents=True, exist_ok=True)
-
-    vi_recon = EstimateToVIRecon.convert(
+    vi_recon = EstimateToTimedRecon.convert(
         options,
         vrs,
         images_path,
         estimate,
     )
-    vi_recon.write(colmap_model_path)
-
     return vi_recon
 
 
 def run_mps_to_vi_recon(
-    options: EstimateToVIReconOptions,
+    options: EstimateToTimedReconOptions,
     vrs: Path,
     images_path: Path,
     mps_folder: Path,
-    colmap_model_path: Path,
-) -> VIReconstruction:
-    """Function to convert MPS estimate to a VIReconstruction."""
-    if colmap_model_path.exists():
-        vi_recon = VIReconstruction.read(colmap_model_path)
-        return vi_recon
-
-    colmap_model_path.mkdir(parents=True, exist_ok=True)
-
-    vi_recon = EstimateToVIRecon.convert(
+) -> TimedReconstruction:
+    """Function to convert MPS estimate to a TimedReconstruction."""
+    vi_recon = EstimateToTimedRecon.convert(
         options,
         vrs,
         images_path,
         mps_folder,
     )
-    vi_recon.write(colmap_model_path)
-
     return vi_recon
 
 
 def run_keyframe_selection(
     options: KeyframeSelectorOptions,
-    input: Path | VIReconstruction,
+    input_recon: TimedReconstruction,
     images_path: Path,
     keyframes_path: Path,
-    kf_model_path: Path,
-) -> VIReconstruction:
-    if isinstance(input, Path):
-        input_recon = VIReconstruction.read(input)
-    else:
-        input_recon = input
-
-    if kf_model_path.exists():
-        kf_vi_recon = VIReconstruction.read(kf_model_path)
-        return kf_vi_recon
-
-    kf_model_path.mkdir(parents=True, exist_ok=True)
-
+) -> TimedReconstruction:
     kf_vi_recon = KeyframeSelector.run(
         options,
         input_recon,
         images_path,
         keyframes_path,
     )
-
-    kf_vi_recon.write(kf_model_path)
-
     return kf_vi_recon
 
 
 def run_triangulation(
     options: TriangulatorOptions,
-    input: Path,  # path to VIReconstruction
+    reference_model_path: Path,
     keyframes_path: Path,
-    hloc_path: Path,
-    pairs_file: Path,
-    tri_model_path: Path,
-) -> VIReconstruction:
-    if not isinstance(input, Path):
-        raise ValueError("Input must be a Path to the reconstruction")
-
-    assert input.exists(), f"input reconstruction path {input} does not exist"
-
-    if tri_model_path.exists():
-        tri_vi_recon = VIReconstruction.read(tri_model_path)
-        return tri_vi_recon
-
+    triangulation_path: Path,
+) -> pycolmap.Reconstruction:
     triangulated_model_path = triangulate(
         options,
-        input,
+        reference_model_path,
         keyframes_path,
-        hloc_path,
-        pairs_file,
-        tri_model_path,
+        triangulation_path,
     )
-
-    input_vi_recon = VIReconstruction.read(input)
-    tri_recon = pycolmap.Reconstruction(triangulated_model_path)
-
-    tri_vi_recon = VIReconstruction()
-    tri_vi_recon.reconstruction = tri_recon
-    tri_vi_recon.timestamps = input_vi_recon.timestamps
-    tri_vi_recon.imu_measurements = input_vi_recon.imu_measurements
-    tri_vi_recon.write(triangulated_model_path)
-
-    return tri_vi_recon
+    return pycolmap.Reconstruction(triangulated_model_path)
 
 
 def run_optimization(
     vi_options: VIOptimizerOptions,
     triangulator_options: TriangulatorOptions,
-    input: Path,  # path to VIReconstruction
-    optim_model_path: Path,
+    recon: VIReconstruction,
+    database_path: Path,
 ) -> VIReconstruction:
-    if not isinstance(input, Path):
-        raise ValueError("Input must be a Path to the reconstruction")
-
-    db_path = input / "database.db"
-    assert db_path.exists(), (
-        f"Database path {db_path} does not exist in input reconstruction"
-    )
-
-    if optim_model_path.exists():
-        shutil.rmtree(optim_model_path)
-
-    optim_model_path.mkdir(parents=True, exist_ok=True)
-    db_dst = optim_model_path / "database.db"
-    shutil.copy(db_path, db_dst)
-
-    init_vi_recon = VIReconstruction.read(input)
     session = SingleSeqSession(
         vi_options.imu,
-        init_vi_recon,
+        recon,
     )
 
     optimized_recon = VIOptimizer.optimize(
-        vi_options, triangulator_options, session, db_dst
+        vi_options, triangulator_options, session, database_path
     )
 
-    optim_vi_recon = VIReconstruction()
-    optim_vi_recon.reconstruction = optimized_recon
-    optim_vi_recon.timestamps = init_vi_recon.timestamps
-    optim_vi_recon.imu_measurements = init_vi_recon.imu_measurements
-    optim_vi_recon.write(optim_model_path)
+    optim_vi_recon = VIReconstruction(reconstruction = optimized_recon, timestamps = recon.timestamps, imu_measurements = recon.imu_measurements)
+    return optim_vi_recon
 
 
 def run_pipeline(
@@ -186,69 +113,98 @@ def run_pipeline(
     estimate: Path | None = None,
     mps_folder: Path | None = None,
 ):
-    # Setting output path for entire pipeline
-    options.output_path = output_path
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
+    recon = None
 
-    src = "estimate" if estimate is not None else "mps"
 
     # Estimate to Lamaria Reconstruction
-    est_options = options.estimate_to_colmap_options
-    if src == "estimate":
-        assert estimate.exists(), (
-            "Estimate path must be provided if not using MPS"
-        )
-
-        _ = run_estimate_to_vi_recon(
-            est_options,
-            vrs,
-            options.images_path,
-            estimate,
-            options.colmap_model_path,
-        )
+    src = "estimate" if estimate is not None else "mps"
+    image_path = output_path / "images"
+    init_recon_path = output_path / "initial_recon"
+    if init_recon_path.exists():
+        recon = TimedReconstruction.read(init_recon_path)
     else:
-        assert mps_folder.exists(), (
-            "MPS folder path must be provided if using MPS"
-        )
+        if src == "estimate":
+            assert estimate.exists(), (
+                "Estimate path must be provided if not using MPS"
+            )
 
-        _ = run_mps_to_vi_recon(
-            est_options,
-            vrs,
-            options.images_path,
-            mps_folder,
-            options.colmap_model_path,
-        )
+            recon = run_estimate_to_vi_recon(
+                options.estimate_to_colmap_options,
+                vrs,
+                output_path / "images",
+                estimate,
+            )
+
+        else:
+            assert mps_folder.exists(), (
+                "MPS folder path must be provided if using MPS"
+            )
+
+            recon = run_mps_to_vi_recon(
+                options.estimate_to_colmap_options,
+                vrs,
+                output_path / "images",
+                mps_folder,
+            )
+            recon.write(init_recon_path)
 
     # Keyframe Selection
-    kf_options = options.keyframing_options
-    _ = run_keyframe_selection(
-        kf_options,
-        options.colmap_model_path,
-        options.images_path,
-        options.keyframes_path,
-        options.kf_model_path,
-    )
+    keyframe_path = output_path / "keyframes"
+    keyframed_recon_path = output_path / "keyframed_recon"
+    if keyframed_recon_path.exists():
+        recon = TimedReconstruction.read(keyframed_recon_path)
+    else:
+        recon = run_keyframe_selection(
+            options.keyframing_options,
+            recon,
+            image_path,
+            keyframe_path,
+        )
+        recon.write(output_path / "keyframed_recon")
 
     # Triangulation
-    tri_options = options.triangulator_options
-    _ = run_triangulation(
-        tri_options,
-        options.kf_model_path,
-        options.keyframes_path,
-        options.hloc_path,
-        options.pairs_file,
-        options.tri_model_path,
-    )
+    triangulation_path = output_path / "triangulated"
+    tri_model_path = triangulation_path / "model"
+    database_path = tri_model_path / "database.db"
+    if tri_model_path.exists():
+        recon = TimedReconstruction.read(tri_model_path)
+    else:
+        pycolmap_recon = run_triangulation(
+            options.triangulator_options,
+            keyframed_recon_path,
+            keyframe_path,
+            triangulation_path,
+        )
+        recon = TimedReconstruction(reconstruction=pycolmap_recon, timestamps=recon.timestamps)
+        recon.write(tri_model_path)
 
     # Visual-Inertial Optimization
-    vi_options = options.vi_optimizer_options
-    _ = run_optimization(
-        vi_options,
-        tri_options,
-        options.tri_model_path,
-        options.optim_model_path,
+    optim_model_path = output_path / "optim_recon"
+    imu_measurements = None
+    if optim_model_path.exists():
+        imu_measurements = VIReconstruction.read(optim_model_path).imu_measurements
+        shutil.rmtree(optim_model_path)
+    optim_model_path.mkdir(parents=True, exist_ok=True)
+    # Load IMU data
+    if imu_measurements is None:
+        if options.vi_optimizer_options.use_mps_online_calibration:
+            assert mps_folder is not None, (
+                "MPS folder path must be provided if using MPS"
+            )
+        imu_measurements = get_imu_data_from_vrs_file(
+            vrs, mps_folder if options.vi_optimizer_options.use_mps_online_calibration else None
+        )
+    recon = VIReconstruction(reconstruction=recon.reconstruction, timestamps=recon.timestamps, imu_measurements=imu_measurements)
+    recon_optimized = run_optimization(
+        options.vi_optimizer_options,
+        options.triangulator_options,
+        recon,
+        database_path,
     )
+    recon_optimized.write(output_path / "optim_recon")
+    return recon_optimized
 
 
 if __name__ == "__main__":
