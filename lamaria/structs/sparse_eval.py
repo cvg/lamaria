@@ -106,7 +106,7 @@ def add_residuals_for_sparse_eval(
 
         point2d_cov = np.eye(2)
 
-        obs = cp.image_id_and_point2d
+        obs = cp.inlier_detections
         for image_id, point2d in obs:
             image = reconstruction.images[image_id]
             pose = image.cam_from_world()
