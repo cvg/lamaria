@@ -148,10 +148,10 @@ def add_residuals_for_sparse_eval(
     return problem
 
 
-
 @dataclass(slots=True)
 class SparseEvalResult:
     """Container for sparse evaluation results."""
+
     alignment: pycolmap.Sim3d
     cp_summary: dict[int, ControlPointSummary]
 
@@ -174,14 +174,14 @@ class SparseEvalResult:
             return None
 
         data = np.load(path, allow_pickle=True).item()
-        
+
         try:
             cp_summary = data["cp_summary"]
             alignment = data["alignment"]
         except KeyError as e:
             logger.error(f"Missing key in data: {e}")
             return None
-        
+
         return cls(cp_summary=cp_summary, alignment=alignment)
 
     def save_as_npy(self, path: Path) -> None:

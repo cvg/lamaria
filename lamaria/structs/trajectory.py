@@ -1,6 +1,6 @@
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
-from dataclasses import dataclass
 
 import numpy as np
 import pycolmap
@@ -24,6 +24,7 @@ def _round_ns(x: str | int | float) -> int:
     s = str(x)
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
 
+
 @dataclass(slots=True)
 class Trajectory:
     """
@@ -33,9 +34,9 @@ class Trajectory:
 
     By default, poses are calculated as rig_from_world
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
-    
+
     Attributes:
-        invert_poses (bool): Whether to invert poses to 
+        invert_poses (bool): Whether to invert poses to
         rig_from_world format.
         corresponding_sensor (str): The reference sensor to in which
         the trajectory is represented ("imu" or "cam0").

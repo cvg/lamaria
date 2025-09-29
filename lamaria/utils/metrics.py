@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pycolmap
 from scipy.interpolate import interp1d
@@ -32,15 +30,14 @@ def piecewise_linear_scoring():
     )
     return scoring
 
-def calculate_control_point_score(
-    result: SparseEvalResult
-) -> float:
-    """ Calculate CP score from SparseEvalResult object. """
+
+def calculate_control_point_score(result: SparseEvalResult) -> float:
+    """Calculate CP score from SparseEvalResult object."""
     error_2d = calculate_error(result)
     if any(e < 0 for e in error_2d):
         logger.error("Negative errors found, norm error cannot be negative.")
         return 0.0
-    
+
     errors = np.nan_to_num(error_2d, nan=1e6)  # Large error for NaNs
     scoring = piecewise_linear_scoring()
     scores = scoring(errors)
@@ -53,28 +50,26 @@ def calculate_control_point_score(
 
 def calculate_control_point_recall(
     result: SparseEvalResult,
-    threshold: float = 1.0 # meters
+    threshold: float = 1.0,  # meters
 ) -> float:
-    """ Calculate CP recall from SparseEvalResult object. """
+    """Calculate CP recall from SparseEvalResult object."""
     error_2d = calculate_error(result)
     if len(error_2d) == 0:
         return 0.0
-    
+
     if any(e < 0 for e in error_2d):
         logger.error("Negative errors found, norm error cannot be negative.")
         return 0.0
-    
+
     errors = np.nan_to_num(error_2d, nan=1e6)  # Large error for NaNs
     inliers = np.sum(errors <= threshold)
     recall = inliers / len(errors) * 100
     return recall
 
 
-def calculate_error(
-    result: SparseEvalResult
-) -> np.ndarray:
-    """ Calculate 2D errors from SparseEvalResult"""
-    sim3d = result.alignment # sim3d cannot be None here
+def calculate_error(result: SparseEvalResult) -> np.ndarray:
+    """Calculate 2D errors from SparseEvalResult"""
+    sim3d = result.alignment  # sim3d cannot be None here
     if not isinstance(sim3d, pycolmap.Sim3d):
         logger.error("No valid Sim3d found in SparseEvalResult")
         return np.array([])
@@ -90,5 +85,5 @@ def calculate_error(
         error_2d.append(e)
 
     assert len(error_2d) == len(result.cp_summary), "Error length mismatch"
-    
+
     return np.array(error_2d)
