@@ -31,7 +31,7 @@ def matching_time_indices(
     return matching_indices_1, matching_indices_2
 
 
-def get_timestamp_to_images_from_json(
+def get_timestamp_to_images(
     data: dict
 ):
     processed_ts_data = {}
