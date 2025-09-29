@@ -64,9 +64,8 @@ def run(
     )
 
     sparse_npy_path = evaluate_wrt_control_points(
-        traj,
-        control_points,
         reconstruction_path,
+        control_points,
         output_path,
     )
     if not sparse_npy_path.exists():
