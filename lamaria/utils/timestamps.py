@@ -34,6 +34,13 @@ def matching_time_indices(
 def get_timestamp_to_images(
     data: dict
 ):
+    """Loads timestamps to images mapping from JSON data.
+    Args:
+        data (dict): The JSON data containing timestamps information.
+    Returns:
+        dict: A dictionary mapping stream labels to their respective
+            timestamp-to-image mappings and sorted timestamp keys.
+    """
     processed_ts_data = {}
     for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
         ts_data = data["timestamps"][label]
