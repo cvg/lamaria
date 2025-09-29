@@ -64,7 +64,7 @@ def convert_trajectory_to_evo_posetrajectory(
 def evaluate_wrt_mps(
     est_traj: Trajectory,
     gt_traj: Trajectory,
-) -> None:
+) -> float | None:
     """
     Evaluate an estimated trajectory with respect to 
     MPS pGT. Alignment performed using Umeyama via evo package.
@@ -89,7 +89,7 @@ def evaluate_wrt_mps(
 
     if not valid_estimate(est_pose_traj, gt_pose_traj):
         logger.error("Estimated trajectory is too short compared to pGT.")
-        return False
+        return None
     
     gt_pose_traj_sync, est_pose_traj_sync = sync.associate_trajectories(
         gt_pose_traj, 
