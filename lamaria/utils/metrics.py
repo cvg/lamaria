@@ -1,33 +1,9 @@
-from pathlib import Path
-
 import numpy as np
 import pycolmap
 from scipy.interpolate import interp1d
 
-
-def get_sim3_from_sparse_evaluation(
-    sparse_evaluation_npy: Path,
-) -> pycolmap.Sim3d:
-    data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
-    sim3 = data_sparse["full_alignment"]["sim3"]
-    return sim3
-
-
-def get_all_tag_ids(sparse_evaluation_npy: Path) -> list[str]:
-    data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
-    tag_ids = sorted(list(data_sparse["control_points"].keys()))
-    return tag_ids
-
-
-def calculate_2d_alignment_errors(sparse_evaluation_npy: Path) -> list[float]:
-    data_sparse = np.load(sparse_evaluation_npy, allow_pickle=True).item()
-    tag_ids = get_all_tag_ids(sparse_evaluation_npy)
-    err_2d = [
-        np.linalg.norm(data_sparse["full_alignment"]["error_3d"][i][:2])
-        for i in tag_ids
-    ]
-
-    return err_2d
+from .. import logger
+from ..structs.sparse_eval import SparseEvalResult
 
 
 def piecewise_linear_scoring():
@@ -55,15 +31,14 @@ def piecewise_linear_scoring():
     return scoring
 
 
-def calculate_score_piecewise(errors):
-    if len(errors) == 0 or errors is None:
+def calculate_control_point_score(result: SparseEvalResult) -> float:
+    """Calculate CP score from SparseEvalResult object."""
+    error_2d = calculate_error(result)
+    if any(e < 0 for e in error_2d):
+        logger.error("Negative errors found, norm error cannot be negative.")
         return 0.0
 
-    if any(e < 0 for e in errors):
-        raise ValueError("Norm error cannot be negative.")
-
-    errors = np.nan_to_num(errors, nan=1000)  # 1km error for NaNs
-
+    errors = np.nan_to_num(error_2d, nan=1e6)  # Large error for NaNs
     scoring = piecewise_linear_scoring()
     scores = scoring(errors)
     score_sum = np.sum(scores)
@@ -73,17 +48,42 @@ def calculate_score_piecewise(errors):
     return S_j
 
 
-def calculate_score_from_alignment_data(sparse_evaluation_npy: Path) -> float:
-    tag_ids = get_all_tag_ids(sparse_evaluation_npy)
-    err_2d = calculate_2d_alignment_errors(sparse_evaluation_npy)
+def calculate_control_point_recall(
+    result: SparseEvalResult,
+    threshold: float = 1.0,  # meters
+) -> float:
+    """Calculate CP recall from SparseEvalResult object."""
+    error_2d = calculate_error(result)
+    if len(error_2d) == 0:
+        return 0.0
 
-    if len(err_2d) == 0:
-        raise ValueError("No valid control points found.")
+    if any(e < 0 for e in error_2d):
+        logger.error("Negative errors found, norm error cannot be negative.")
+        return 0.0
 
-    assert len(err_2d) == len(tag_ids), (
-        "Mismatch in number of 2D CPs and errors."
-    )
+    errors = np.nan_to_num(error_2d, nan=1e6)  # Large error for NaNs
+    inliers = np.sum(errors <= threshold)
+    recall = inliers / len(errors) * 100
+    return recall
 
-    S_2d = calculate_score_piecewise(err_2d)
 
-    return S_2d
+def calculate_error(result: SparseEvalResult) -> np.ndarray:
+    """Calculate 2D errors from SparseEvalResult"""
+    sim3d = result.alignment  # sim3d cannot be None here
+    if not isinstance(sim3d, pycolmap.Sim3d):
+        logger.error("No valid Sim3d found in SparseEvalResult")
+        return np.array([])
+
+    error_2d = []
+    for _, cp in result.cp_summary.items():
+        if not cp.is_triangulated():
+            error_2d.append(np.nan)
+            continue
+
+        transformed_point = sim3d * cp.triangulated
+        e = np.linalg.norm(transformed_point[:2] - cp.topo[:2])
+        error_2d.append(e)
+
+    assert len(error_2d) == len(result.cp_summary), "Error length mismatch"
+
+    return np.array(error_2d)

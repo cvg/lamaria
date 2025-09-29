@@ -8,7 +8,7 @@ import pycolmap
 import pycolmap.cost_functions
 
 from .. import logger
-from .control_point import ControlPoint
+from .control_point import ControlPoint, ControlPointSummary
 
 
 @dataclass(slots=True)
@@ -43,7 +43,7 @@ class SparseEvalVariables:
 
     def get_cp_summary(self) -> dict:
         """Get a brief summary of control points."""
-        summary = {}
+        summary: dict[int, ControlPointSummary] = {}
         for tag_id, cp in self.control_points.items():
             summary[tag_id] = cp.summary()
 
@@ -149,61 +149,17 @@ def add_residuals_for_sparse_eval(
 
 
 @dataclass(slots=True)
-class AlignedPoint:
-    triangulated: np.ndarray | None
-    topo: np.ndarray
-    transformed: np.ndarray | None = None
-    error_3d: np.ndarray | None = None
-
-
-@dataclass(slots=True)
-class AlignmentResult:
-    optimized_sim3d: pycolmap.Sim3d
-    points: dict[int, AlignedPoint]
-
-    @staticmethod
-    def calculate(
-        variables: SparseEvalVariables,
-    ) -> "AlignmentResult":
-        points = {}
-        sim3d = copy.deepcopy(variables.sim3d)
-
-        for tag_id, cp in variables.control_points.items():
-            tri = cp.triangulated
-            if tri is None:
-                points[tag_id] = AlignedPoint(
-                    triangulated=None,
-                    topo=cp.topo,
-                    transformed=None,
-                    error_3d=None,
-                )
-                continue
-
-            transformed = sim3d * tri
-            error_3d = transformed - cp.topo
-            points[tag_id] = AlignedPoint(
-                triangulated=tri,
-                topo=cp.topo,
-                transformed=transformed,
-                error_3d=error_3d,
-            )
-
-        return AlignmentResult(
-            optimized_sim3d=sim3d,
-            points=points,
-        )
-
-
-@dataclass(slots=True)
 class SparseEvalResult:
-    alignment: AlignmentResult
-    cp_summary: dict | None = None
+    """Container for sparse evaluation results."""
+
+    alignment: pycolmap.Sim3d
+    cp_summary: dict[int, ControlPointSummary]
 
     @staticmethod
     def from_variables(
         variables: SparseEvalVariables,
     ) -> "SparseEvalResult":
-        alignment = AlignmentResult.calculate(variables)
+        alignment = copy.deepcopy(variables.sim3d)
         cp_summary = variables.get_cp_summary()
 
         return SparseEvalResult(
@@ -218,36 +174,15 @@ class SparseEvalResult:
             return None
 
         data = np.load(path, allow_pickle=True).item()
-        alignment_data = data["alignment"]
 
-        opt = alignment_data["optimized_sim3d"]
-        if isinstance(opt, pycolmap.Sim3d):
-            sim3d = opt
+        try:
+            cp_summary = data["cp_summary"]
+            alignment = data["alignment"]
+        except KeyError as e:
+            logger.error(f"Missing key in data: {e}")
+            return None
 
-        alignment = AlignmentResult(
-            optimized_sim3d=sim3d,
-            points={
-                int(tag_id): AlignedPoint(
-                    triangulated=np.asarray(point["triangulated"])
-                    if point["triangulated"] is not None
-                    else None,
-                    topo=np.asarray(point["topo"]),
-                    transformed=np.asarray(point["transformed"])
-                    if point["transformed"] is not None
-                    else None,
-                    error_3d=np.asarray(point["error_3d"])
-                    if point["error_3d"] is not None
-                    else None,
-                )
-                for tag_id, point in alignment_data["points"].items()
-            },
-        )
-        cp_summary = data.get("cp_summary", None)
-
-        return cls(
-            alignment=alignment,
-            cp_summary=cp_summary,
-        )
+        return cls(cp_summary=cp_summary, alignment=alignment)
 
     def save_as_npy(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)  # just in case

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -24,6 +25,7 @@ def _round_ns(x: str | int | float) -> int:
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
 
 
+@dataclass(slots=True)
 class Trajectory:
     """
     Loads and stores traj data from 'estimate' text file with rows:
@@ -32,12 +34,17 @@ class Trajectory:
 
     By default, poses are calculated as rig_from_world
     (i.e., inverse of world_from_rig) to satisfy COLMAP format.
+
+    Attributes:
+        invert_poses (bool): Whether to invert poses to
+        rig_from_world format.
+        corresponding_sensor (str): The reference sensor to in which
+        the trajectory is represented ("imu" or "cam0").
     """
 
     def __init__(self) -> None:
-        self.invert_poses = None
-        self.corresponding_sensor = None
-        self.path: Path | None = None
+        self.invert_poses: bool = True
+        self.corresponding_sensor: str = "imu"
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
 
@@ -51,14 +58,14 @@ class Trajectory:
         """Parse the file, validate format, populate timestamps & poses."""
         self = cls()
         self.clear()
-        self.path = Path(path)
+        path = Path(path)
         self.invert_poses = invert_poses
         self.corresponding_sensor = corresponding_sensor
 
-        if not self.path.exists():
-            raise FileNotFoundError(f"Estimate file not found: {self.path}")
+        if not path.exists():
+            raise FileNotFoundError(f"Estimate file not found: {path}")
 
-        with open(self.path) as f:
+        with open(path) as f:
             lines = f.readlines()
 
         state = self._parse(lines)
@@ -130,6 +137,7 @@ class Trajectory:
         """Returns Nx3 numpy array of positions."""
         self._ensure_loaded()
         if not self.invert_poses:
+            # poses are in world_from_rig format
             return np.array([p.translation for p in self._poses])
         else:
             return np.array([p.inverse().translation for p in self._poses])
@@ -139,8 +147,10 @@ class Trajectory:
         """Returns Nx4 numpy array of quaternions (x, y, z, w)."""
         self._ensure_loaded()
         if not self.invert_poses:
+            # poses are in world_from_rig format
             return np.array([p.rotation.quat for p in self._poses])
         else:
+            # poses are in rig_from_world format
             return np.array([p.inverse().rotation.quat for p in self._poses])
 
     def as_tuples(self) -> list[tuple[int, pycolmap.Rigid3d]]:

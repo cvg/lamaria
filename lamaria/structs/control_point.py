@@ -18,9 +18,12 @@ ControlPoints = dict[int, "ControlPoint"]
 @dataclass(slots=True)
 class ControlPointSummary:
     name: str  # geo_id
-    triangulated: np.ndarray
     topo: np.ndarray
     covariance: np.ndarray
+    triangulated: np.ndarray | None = None
+
+    def is_triangulated(self) -> bool:
+        return self.triangulated is not None
 
 
 @dataclass(slots=True)
