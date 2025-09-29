@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pycolmap
 from projectaria_tools.core import data_provider, mps
+from projectaria_tools.core.stream_id import StreamId
 from projectaria_tools.core.calibration import CameraCalibration, ImuCalibration
 from projectaria_tools.core.mps.utils import get_nearest_pose
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
@@ -409,11 +410,11 @@ def get_imu_data_from_vrs(
     from MPS folder. Otherwise, use device calibration from VRS file."""
     imu_timestamps = sorted(
         vrs_provider.get_timestamps_ns(
-            RIGHT_IMU_STREAM_ID, TimeDomain.DEVICE_TIME
+            StreamId(RIGHT_IMU_STREAM_ID), TimeDomain.DEVICE_TIME
         )
     )
     imu_stream_label = vrs_provider.get_label_from_stream_id(
-        RIGHT_IMU_STREAM_ID
+        StreamId(RIGHT_IMU_STREAM_ID)
     )
 
     if mps_folder is not None:
@@ -443,7 +444,7 @@ def get_imu_data_from_vrs(
             calibration = online_imu_calibs[closest_ts]
 
         imu_data = vrs_provider.get_imu_data_by_time_ns(
-            RIGHT_IMU_STREAM_ID,
+            StreamId(RIGHT_IMU_STREAM_ID),
             timestamp,
             TimeDomain.DEVICE_TIME,
             TimeQueryOptions.CLOSEST,
