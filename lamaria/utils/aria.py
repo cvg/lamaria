@@ -78,7 +78,7 @@ def initialize_reconstruction_from_calibration_file(
 
 def initialize_reconstruction_with_cameras(
     calibration_file: Path,
-) -> pycolmap.Reconstruction:
+) -> InitReconstruction:
     """Initialize a COLMAP reconstruction from Aria calibration
     json file found on website: https://lamaria.ethz.ch/slam_datasets
     Adds only the cameras without any dummy IMU.
@@ -87,7 +87,7 @@ def initialize_reconstruction_with_cameras(
         calibration_file (Path):
         Path to the Aria calibration json file
     Returns:
-        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+        InitReconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
 
