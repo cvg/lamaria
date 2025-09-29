@@ -102,7 +102,11 @@ def run_optimization(
         vi_options, triangulator_options, session, database_path
     )
 
-    optim_vi_recon = VIReconstruction(reconstruction = optimized_recon, timestamps = recon.timestamps, imu_measurements = recon.imu_measurements)
+    optim_vi_recon = VIReconstruction(
+        reconstruction=optimized_recon,
+        timestamps=recon.timestamps,
+        imu_measurements=recon.imu_measurements,
+    )
     return optim_vi_recon
 
 
@@ -116,7 +120,6 @@ def run_pipeline(
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
     recon = None
-
 
     # Estimate to Lamaria Reconstruction
     src = "estimate" if estimate is not None else "mps"
@@ -177,14 +180,18 @@ def run_pipeline(
             keyframe_path,
             triangulation_path,
         )
-        recon = TimedReconstruction(reconstruction=pycolmap_recon, timestamps=recon.timestamps)
+        recon = TimedReconstruction(
+            reconstruction=pycolmap_recon, timestamps=recon.timestamps
+        )
         recon.write(tri_model_path)
 
     # Visual-Inertial Optimization
     optim_model_path = output_path / "optim_recon"
     imu_measurements = None
     if optim_model_path.exists():
-        imu_measurements = VIReconstruction.read(optim_model_path).imu_measurements
+        imu_measurements = VIReconstruction.read(
+            optim_model_path
+        ).imu_measurements
         shutil.rmtree(optim_model_path)
     optim_model_path.mkdir(parents=True, exist_ok=True)
     # Load IMU data
@@ -194,9 +201,16 @@ def run_pipeline(
                 "MPS folder path must be provided if using MPS"
             )
         imu_measurements = get_imu_data_from_vrs_file(
-            vrs, mps_folder if options.vi_optimizer_options.use_mps_online_calibration else None
+            vrs,
+            mps_folder
+            if options.vi_optimizer_options.use_mps_online_calibration
+            else None,
         )
-    recon = VIReconstruction(reconstruction=recon.reconstruction, timestamps=recon.timestamps, imu_measurements=imu_measurements)
+    recon = VIReconstruction(
+        reconstruction=recon.reconstruction,
+        timestamps=recon.timestamps,
+        imu_measurements=imu_measurements,
+    )
     recon_optimized = run_optimization(
         options.vi_optimizer_options,
         options.triangulator_options,

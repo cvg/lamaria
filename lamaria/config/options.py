@@ -150,5 +150,5 @@ class VIOptimizerOptions:
             cam=cam,
             imu=imu,
             optim=optim,
-            use_mps_online_calibration=cfg.use_mps_online_calibration
+            use_mps_online_calibration=cfg.use_mps_online_calibration,
         )

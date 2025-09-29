@@ -1,4 +1,3 @@
-
 import pyceres
 import pycolmap
 

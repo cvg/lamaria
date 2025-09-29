@@ -10,10 +10,10 @@ from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
 from ...config.options import EstimateToTimedReconOptions
+from ...structs.timed_reconstruction import TimedReconstruction
 from ...structs.trajectory import (
     Trajectory,
 )
-from ...structs.timed_reconstruction import TimedReconstruction
 from ...utils.aria import (
     camera_colmap_from_calib,
     extract_images_from_vrs,

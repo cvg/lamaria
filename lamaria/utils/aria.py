@@ -454,13 +454,12 @@ def get_imu_data_from_vrs(
 
     return ms
 
+
 def get_imu_data_from_vrs_file(
     vrs_file: Path,
     mps_folder: Path | None = None,
 ) -> pycolmap.ImuMeasurements:
-    vrs_provider = data_provider.create_vrs_data_provider(
-            vrs_file.as_posix()
-        )
+    vrs_provider = data_provider.create_vrs_data_provider(vrs_file.as_posix())
     return get_imu_data_from_vrs(vrs_provider, mps_folder=mps_folder)
 
 

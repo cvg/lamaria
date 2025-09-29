@@ -7,13 +7,17 @@ import pycolmap
 
 @dataclass
 class TimedReconstruction:
-    reconstruction: pycolmap.Reconstruction = field(default_factory=pycolmap.Reconstruction)
+    reconstruction: pycolmap.Reconstruction = field(
+        default_factory=pycolmap.Reconstruction
+    )
     timestamps: dict[int, int] = field(default_factory=dict)
 
     @classmethod
     def read(cls, input_folder: Path) -> "TimedReconstruction":
         """Load reconstruction and timestamps from disk."""
-        assert input_folder.exists(), f"Input folder {input_folder} does not exist"
+        assert input_folder.exists(), (
+            f"Input folder {input_folder} does not exist"
+        )
 
         reconstruction = pycolmap.Reconstruction(input_folder)
 
@@ -47,5 +51,3 @@ class TimedReconstruction:
             f.write("# FrameID Timestamp(ns)\n")
             for frame_id in frame_ids:
                 f.write(f"{frame_id} {self.timestamps[frame_id]}\n")
-
-

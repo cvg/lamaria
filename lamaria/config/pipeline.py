@@ -13,7 +13,7 @@ from .options import (
 
 class PipelineOptions:
     def __init__(self) -> None:
-        self._estimate_to_colmap_options: EstimateTimedReconOptions = (
+        self._estimate_to_colmap_options: EstimateToTimedReconOptions = (
             EstimateToTimedReconOptions()
         )
         self._keyframing_options: KeyframeSelectorOptions = (
