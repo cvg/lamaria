@@ -15,27 +15,6 @@ from ..structs.sparse_eval import (
 )
 
 
-def save_transformed_reconstruction(
-    reconstruction_path: Path,
-    sim3d: pycolmap.Sim3d,
-    output_folder: Path,
-) -> None:
-    """Apply a Sim3d transformation to a reconstruction and save it.
-
-    Args:
-        reconstruction_path (Path): Path to the input reconstruction.
-        sim3d (pycolmap.Sim3d): The similarity transformation to apply.
-        output_folder (Path): Directory where the transformed reconstruction
-            will be saved.
-    """
-    output_folder.mkdir(parents=True, exist_ok=True)
-    reconstruction = pycolmap.Reconstruction(reconstruction_path)
-    reconstruction.transform(sim3d)
-    reconstruction.write(output_folder)
-
-    return output_folder
-
-
 def estimate_initial_alignment_from_control_points(
     control_points: ControlPoints,
 ) -> pycolmap.Sim3d | None:
@@ -70,7 +49,7 @@ def estimate_initial_alignment_from_control_points(
 def evaluate_wrt_control_points(
     reconstruction: pycolmap.Reconstruction,
     control_points: ControlPoints,
-) -> Path:
+) -> SparseEvalResult | None:
     """
     Evaluate the trajectory with respect to control points.
 
