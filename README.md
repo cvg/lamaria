@@ -8,9 +8,9 @@ Using **LaMAria**, you can:
 - Benchmark against highly accurate sparse ground truths.
 
 <p align="center">
-  <img src="assets/teaser_final.png" alt="Overview of LaMAria" width="900">
+  <img src="assets/teaser_final.png" alt="Overview of LaMAria" width="900"/><br/>
+  <em>Figure 1: Overview of the LaMAria dataset and benchmark.</em>
 </p>
-<p align="center"><em>Figure 1: Overview of the LaMAria dataset and benchmark.</em></p>
 
 ## Table of Contents
 - [Installation](#installation)
