@@ -143,18 +143,15 @@ def run_pipeline(
             assert estimate.exists(), (
                 "Estimate path must be provided if not using MPS"
             )
-
             recon = run_estimate_to_timed_recon(
                 vrs,
                 output_path / "images",
                 estimate,
             )
-
         else:
             assert mps_folder.exists(), (
                 "MPS folder path must be provided if using MPS"
             )
-
             recon = run_mps_to_timed_recon(
                 vrs,
                 output_path / "images",
