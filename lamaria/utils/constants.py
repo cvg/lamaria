@@ -7,6 +7,7 @@ ARIA_CAMERAS: list = [
 # Aria camera constants
 LEFT_CAMERA_STREAM_ID = "1201-1"
 RIGHT_CAMERA_STREAM_ID = "1201-2"
+RGB_CAMERA_STREAM_ID = "214-1"
 LEFT_CAMERA_STREAM_LABEL = "camera-slam-left"
 RIGHT_CAMERA_STREAM_LABEL = "camera-slam-right"
 

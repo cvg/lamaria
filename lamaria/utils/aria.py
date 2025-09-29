@@ -19,6 +19,7 @@ from .constants import (
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
     RIGHT_IMU_STREAM_ID,
+    RGB_CAMERA_STREAM_ID,
 )
 from .timestamps import find_closest_timestamp
 from .types import InitReconstruction
@@ -528,9 +529,9 @@ def extract_images_from_vrs(
     extract_right: bool = True,
 ):
     for camera, stream_id in [
-        (left_subfolder_name, "1201-1"),
-        (right_subfolder_name, "1201-2"),
-        (rgb_subfolder_name, "214-1"),
+        (left_subfolder_name, LEFT_CAMERA_STREAM_ID),
+        (right_subfolder_name, RIGHT_CAMERA_STREAM_ID),
+        (rgb_subfolder_name, RGB_CAMERA_STREAM_ID),
     ]:
         if camera == rgb_subfolder_name and not extract_rgb:
             continue
