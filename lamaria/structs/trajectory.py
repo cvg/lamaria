@@ -1,5 +1,6 @@
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
+from dataclasses import dataclass
 
 import numpy as np
 import pycolmap
@@ -23,7 +24,7 @@ def _round_ns(x: str | int | float) -> int:
     s = str(x)
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
 
-
+@dataclass(slots=True)
 class Trajectory:
     """
     Loads and stores traj data from 'estimate' text file with rows:
@@ -41,8 +42,8 @@ class Trajectory:
     """
 
     def __init__(self) -> None:
-        self.invert_poses = None
-        self.corresponding_sensor = None
+        self.invert_poses: bool = True
+        self.corresponding_sensor: str = "imu"
         self._timestamps: list[int] = []
         self._poses: list[pycolmap.Rigid3d] = []
 
