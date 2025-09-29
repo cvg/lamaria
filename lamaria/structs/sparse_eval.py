@@ -1,9 +1,10 @@
-from dataclasses import dataclass, field
 import copy
-import pycolmap
-import pyceres
-import numpy as np
+from dataclasses import dataclass, field
 from pathlib import Path
+
+import numpy as np
+import pyceres
+import pycolmap
 
 from .. import logger
 from .control_point import ControlPoint
@@ -12,9 +13,12 @@ from .control_point import ControlPoint
 @dataclass(slots=True)
 class SparseEvalVariables:
     """Container for sparse evaluation optimization variables."""
-    control_points: dict[int, "ControlPoint"]       # tag_id to ControlPoint
+
+    control_points: dict[int, "ControlPoint"]  # tag_id to ControlPoint
     sim3d: pycolmap.Sim3d
-    log_scale: np.ndarray = field(default_factory=lambda: np.array(0.0, dtype=np.float64))
+    log_scale: np.ndarray = field(
+        default_factory=lambda: np.array(0.0, dtype=np.float64)
+    )
 
     @classmethod
     def create_from_inputs(
@@ -22,29 +26,28 @@ class SparseEvalVariables:
         control_points: dict,
         sim3d: pycolmap.Sim3d,
     ) -> "SparseEvalVariables":
-        
         scale = copy.deepcopy(sim3d.scale)
         v = cls(
             control_points=copy.deepcopy(control_points),
             sim3d=copy.deepcopy(sim3d),
             log_scale=np.array(np.log(scale), dtype=np.float64),
         )
-        
+
         return v
-    
+
     def update_sim3d_scale(self) -> None:
         """Propagate optimized log_scale back into sim3d.scale."""
         log_scale = copy.deepcopy(self.log_scale)
         self.sim3d.scale = np.exp(log_scale)
-    
+
     def get_cp_summary(self) -> dict:
         """Get a brief summary of control points."""
         summary = {}
         for tag_id, cp in self.control_points.items():
             summary[tag_id] = cp.summary()
-        
+
         return summary
-    
+
 
 def get_problem_for_sparse_alignment(
     reconstruction: pycolmap.Reconstruction,
@@ -99,9 +102,9 @@ def add_residuals_for_sparse_eval(
         if tri is None:
             logger.info(f"Control point {tag_id} not triangulated")
             continue
-        
+
         point2d_cov = np.eye(2) * pow(cp.cp_reproj_std, 2)
-        
+
         obs = cp.image_id_and_point2d
         for image_id, point2d in obs:
             image = reconstruction.images[image_id]
@@ -115,9 +118,7 @@ def add_residuals_for_sparse_eval(
                 point2d,
                 pose,
             )
-            problem.add_residual_block(
-                cost, loss, [tri, camera.params]
-            )
+            problem.add_residual_block(cost, loss, [tri, camera.params])
             problem.set_parameter_block_constant(camera.params)
 
         cost = pycolmap.cost_functions.Point3DAlignmentCost(
@@ -165,7 +166,7 @@ class AlignmentResult:
     ) -> "AlignmentResult":
         points = {}
         sim3d = copy.deepcopy(variables.sim3d)
-        
+
         for tag_id, cp in variables.control_points.items():
             tri = cp.triangulated
             if tri is None:
@@ -176,7 +177,7 @@ class AlignmentResult:
                     error_3d=None,
                 )
                 continue
-            
+
             transformed = sim3d * tri
             error_3d = transformed - cp.topo
             points[tag_id] = AlignedPoint(
@@ -208,8 +209,6 @@ class SparseEvalResult:
             alignment=alignment,
             cp_summary=cp_summary,
         )
-    
+
     def save_as_npy(self, path: Path) -> None:
         np.save(path, self.__dict__)
-    
-    

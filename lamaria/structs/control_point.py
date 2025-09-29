@@ -35,7 +35,6 @@ class ControlPoint:
         origin_xyz: tuple[float, float, float],
         cp_reproj_std: float = 1.0,
     ) -> "ControlPoint":
-        
         m = list(measurement_xyz)
         u = list(unc_xyz)
         if m[2] is None:
@@ -49,14 +48,16 @@ class ControlPoint:
         )
         cov = np.diag(np.square(np.asarray(u, dtype=np.float64)))
 
-        return ControlPoint(name=name, topo=topo, covariance=cov, cp_reproj_std=cp_reproj_std)
+        return ControlPoint(
+            name=name, topo=topo, covariance=cov, cp_reproj_std=cp_reproj_std
+        )
 
     def has_height(self) -> bool:
         return bool(self.topo[2] != 0)
 
     def is_triangulated(self) -> bool:
         return self.triangulated is not None
-    
+
     def summary(self) -> dict:
         return {
             "name": self.name,
@@ -71,7 +72,9 @@ def get_control_points_for_evaluation(
     cp_reproj_std: float = 1.0,
 ) -> ControlPoints:
     """Load control points from JSON and run triangulation."""
-    control_points = construct_control_points_from_json(cp_json_file, cp_reproj_std)
+    control_points = construct_control_points_from_json(
+        cp_json_file, cp_reproj_std
+    )
     run_control_point_triangulation_from_json(
         reconstruction_path, cp_json_file, control_points
     )

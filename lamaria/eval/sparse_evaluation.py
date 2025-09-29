@@ -1,21 +1,17 @@
-import argparse
-import copy
-import os
 from pathlib import Path
 
-import numpy as np
 import pyceres
 import pycolmap
 
 from .. import logger
 from ..structs.control_point import (
-    get_cps_for_initial_alignment,
     ControlPoints,
+    get_cps_for_initial_alignment,
 )
 from ..structs.sparse_eval import (
+    SparseEvalResult,
     SparseEvalVariables,
     get_problem_for_sparse_alignment,
-    SparseEvalResult,
 )
 
 
@@ -71,7 +67,6 @@ def estimate_robust_sim3d_from_control_points(
     return robust_sim3d
 
 
-
 def evaluate_wrt_control_points(
     reconstruction_path: Path,
     control_points: ControlPoints,
@@ -89,7 +84,7 @@ def evaluate_wrt_control_points(
     Returns:
         sparse_npy_path (Path): Path to the saved SparseEvalResult .npy file.
     """
-    
+
     robust_sim3d = estimate_robust_sim3d_from_control_points(control_points)
 
     if robust_sim3d is None:
@@ -117,7 +112,7 @@ def evaluate_wrt_control_points(
     _ = save_transformed_reconstruction(
         reconstruction_path,
         result.alignment.optimized_sim3d,
-        output_path / "aligned"
+        output_path / "aligned",
     )
 
     result_path = output_path / "sparse_evaluation.npy"

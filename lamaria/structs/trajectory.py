@@ -206,7 +206,7 @@ class Trajectory:
             frame = pycolmap.Frame()
             frame.rig_id = rig.rig_id
             frame.frame_id = i + 1
-            
+
             if self.invert_poses:
                 # poses are in imu/cam_from_world format
                 # if imu: imu_from_world

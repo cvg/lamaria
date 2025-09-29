@@ -63,10 +63,8 @@ def initialize_reconstruction_from_calibration_file(
         )
         cam.camera_id = i + 2  # start from 2 since 1 is imu
         reconstruction.add_camera(cam)
-        
-        sensor = pycolmap.sensor_t(
-            id=i + 2, type=pycolmap.SensorType.CAMERA
-        )
+
+        sensor = pycolmap.sensor_t(id=i + 2, type=pycolmap.SensorType.CAMERA)
         rig_from_sensor = get_t_imu_camera_from_calibration_file(
             calibration_file=calibration_file,
             camera_label=key,
