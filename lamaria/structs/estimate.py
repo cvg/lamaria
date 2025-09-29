@@ -24,9 +24,9 @@ def _round_ns(x: str | int | float) -> int:
     return int(Decimal(s).to_integral_value(rounding=ROUND_HALF_UP))
 
 
-class Estimate:
+class Trajectory:
     """
-    Loads and stores an 'estimate' text file with rows:
+    Loads and stores traj data from 'estimate' text file with rows:
       ts t_x t_y t_z q_x q_y q_z q_w
     Blank lines and lines starting with '#' are ignored.
 
