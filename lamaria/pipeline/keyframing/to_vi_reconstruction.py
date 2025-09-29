@@ -136,8 +136,7 @@ class EstimateToVIRecon:
                 images, timestamps, mps_poses
             )
         else:
-            traj = Trajectory()
-            traj.load_from_file(estimate, invert_poses=True)
+            traj = Trajectory.load_from_file(estimate, invert_poses=True)
 
             timestamps = traj.timestamps
             if len(images) != len(timestamps):
