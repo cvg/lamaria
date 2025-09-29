@@ -189,30 +189,26 @@ def download_file(
         )
 
 
-def main():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LaMAria dataset downloader")
-    parser.add_argument(
+    
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument(
         "--set",
-        choices=["training", "test", "specific"],
-        required=True,
-        help=(
-            "What to download: training sequences, "
-            "test sequences, or a specific list",
-        ),
+        choices=["training", "test"],
+        help="Download all sequences from this split",
+    )
+    group.add_argument(
+        "--sequences",
+        nargs="+",
+        help='Explicit sequence names (e.g. R_01_easy sequence_3_17). '
+            "If provided, --set is not needed.",
     )
     parser.add_argument(
         "--type",
         choices=["raw", "pinhole", "both"],
         required=True,
         help="Which data to fetch",
-    )
-    parser.add_argument(
-        "--sequences",
-        nargs="+",
-        help=(
-            "Sequence names (required for --set specific).\n"
-            "Example: R_01_easy sequence_3_17"
-        ),
     )
     parser.add_argument(
         "--out-dir",
@@ -230,21 +226,20 @@ def main():
     train_names, test_names = derive_splits(catalog)
     split_lookup = raw_split_map(catalog)  # seq -> 'training/' or 'test/'
 
-    if args.set == "training":
+    if args.sequences:
+        target_sequences = args.sequences
+        global_split = None
+    elif args.set == "training":
         target_sequences = train_names
         global_split = "training/"
     elif args.set == "test":
         target_sequences = test_names
         global_split = "test/"
     else:
-        if not args.sequences:
-            print(
-                "[error] --set specific requires --sequences", file=sys.stderr
-            )
-            sys.exit(2)
-        target_sequences = args.sequences
-        global_split = None  # per-sequence
-
+        # choose a sensible default if nothing specified
+        print("[info] No --set or --sequences provided; nothing to do.")
+        sys.exit(0)
+    
     # To fetch
     folders = PAYLOADS[args.type].copy()
     plan = []
@@ -301,7 +296,7 @@ def main():
 
     if not plan:
         print("[warn] Nothing to download with the given filters.")
-        return
+        sys.exit(0)
 
     print("\n[download] Starting downloads.")
     with requests.Session() as sess:
@@ -318,7 +313,3 @@ def main():
     print(
         "\n[done] All downloads attempted. Files stored under:", root.resolve()
     )
-
-
-if __name__ == "__main__":
-    main()
