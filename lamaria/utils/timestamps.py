@@ -1,6 +1,4 @@
-import json
 from bisect import bisect_left
-from pathlib import Path
 
 import numpy as np
 
@@ -31,9 +29,7 @@ def matching_time_indices(
     return matching_indices_1, matching_indices_2
 
 
-def get_timestamp_to_images(
-    data: dict
-):
+def get_timestamp_to_images(data: dict):
     """Loads timestamps to images mapping from JSON data.
     Args:
         data (dict): The JSON data containing timestamps information.
