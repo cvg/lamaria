@@ -2,6 +2,7 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import TypeAlias
 
 import numpy as np
 import pycolmap
@@ -16,10 +17,11 @@ from tqdm import tqdm
 from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .timestamps import find_closest_timestamp
-from .types import InitReconstruction
 
 
 # ----- Reconstruction functions ----- #
+
+InitReconstruction: TypeAlias = pycolmap.Reconstruction
 
 def initialize_reconstruction_from_calibration_file(
     calibration_file: Path,
