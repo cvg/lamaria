@@ -3,7 +3,7 @@ from pathlib import Path
 
 from lamaria import logger
 from lamaria.eval.sparse_evaluation import evaluate_wrt_control_points
-from lamaria.structs.control_point import load_cp_json
+from lamaria.structs.control_point import load_cp_json, run_control_point_triangulation
 from lamaria.structs.trajectory import Trajectory
 from lamaria.utils.aria import initialize_reconstruction_from_calibration_file
 
@@ -50,6 +50,11 @@ def run(
 
     reconstruction = traj.add_estimate_poses_to_reconstruction(
         init_reconstruction, timestamp_to_images
+    )
+
+    run_control_point_triangulation(
+        reconstruction,
+        control_points,
     )
 
     result = evaluate_wrt_control_points(
