@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 
 import pycolmap
@@ -48,6 +49,48 @@ def run(
         logger.error("No valid Sim3d found in SparseEvalResult")
         return False
 
-    _ = evaluate_wrt_pgt(est_traj, gt_traj, sim3d, output_path)
+    error_file = evaluate_wrt_pgt(est_traj, gt_traj, sim3d, output_path)
+    if not error_file.exists():
+        logger.error("pGT evaluation failed.")
+        return False
 
     # TODO: Add metic calc here?
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Evaluate an estimated trajectory with respect to pGT."
+        " Requires a SparseEvalResult .npy file."
+    )
+    parser.add_argument(
+        "--estimate",
+        type=Path,
+        required=True,
+        help="Path to the pose estimate file.",
+    )
+    parser.add_argument(
+        "--gt_estimate",
+        type=Path,
+        required=True,
+        help="Path to the pGT pose estimate file.",
+    )
+    parser.add_argument(
+        "--sparse_npy_path",
+        type=Path,
+        required=True,
+        help="Path to the .npy file containing SparseEvalResult data."
+        "Result of `evaluate_wrt_control_points`.",
+    )
+    parser.add_argument(
+        "--output_path",
+        type=Path,
+        required=True,
+        help="Path to save the evaluation results.",
+    )
+    args = parser.parse_args()
+    _ = run(
+        args.estimate,
+        args.gt_estimate,
+        args.sparse_npy_path,
+        args.output_path,
+    )
