@@ -10,7 +10,7 @@ def run(
     estimate: Path,
     gt_estimate: Path,
 ) -> bool:
-    """Evaluate an estimated trajectory with respect to 
+    """Evaluate an estimated trajectory with respect to
     MPS pGT. There are no control points involved when
     evaluating using this function. Resorting to evo
     package for the evaluation.
@@ -23,30 +23,25 @@ def run(
         bool: True if the evaluation was successful, False otherwise.
     """
 
-    est_traj = Trajectory.load_from_file(
-        estimate, invert_poses=False
-    )
+    est_traj = Trajectory.load_from_file(estimate, invert_poses=False)
     if not est_traj.is_loaded():
         logger.error("Estimate could not be loaded")
         return False
-    
-    gt_traj = Trajectory.load_from_file(
-        gt_estimate, invert_poses=False
-    )
+
+    gt_traj = Trajectory.load_from_file(gt_estimate, invert_poses=False)
     if not gt_traj.is_loaded():
         logger.error("Ground-truth estimate could not be loaded")
         return False
-    
-    result = evaluate_wrt_mps(
-        est_traj, gt_traj
-    )
+
+    result = evaluate_wrt_mps(est_traj, gt_traj)
 
     if result is None:
         logger.error("Evaluation w.r.t MPS failed")
         return False
-    
+
     logger.info(f"ATE RMSE: {result:.4f} m")
     return True
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

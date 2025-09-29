@@ -1,5 +1,4 @@
 import numpy as np
-
 from evo.core import metrics, sync
 from evo.core.trajectory import PoseTrajectory3D
 
@@ -12,7 +11,7 @@ def valid_estimate(
     gt_pose_traj: PoseTrajectory3D,
     min_duration_ratio: float = 0.5,
 ) -> bool:
-    """" Check if the estimated trajectory is at least 
+    """ Check if the estimated trajectory is at least
     half as long as the ground-truth trajectory in terms of
     timestamps overlap.
     Args:
@@ -21,21 +20,18 @@ def valid_estimate(
     Returns:
         bool: True if valid, False otherwise.
     """
-    
+
     est_timestamps = est_pose_traj.timestamps
     gt_timestamps = gt_pose_traj.timestamps
 
     gt_length = (gt_timestamps[-1] - gt_timestamps[0]) / 1e9
     est_length = (est_timestamps[-1] - est_timestamps[0]) / 1e9
 
-    if est_length < min_duration_ratio * gt_length:
-        return False
-    
-    return True
+    return not est_length < min_duration_ratio * gt_length
 
 
 def convert_trajectory_to_evo_posetrajectory(
-    traj: Trajectory
+    traj: Trajectory,
 ) -> PoseTrajectory3D:
     """Convert a Trajectory to an evo PoseTrajectory3D.
     Args:
@@ -47,9 +43,9 @@ def convert_trajectory_to_evo_posetrajectory(
     if not traj.invert_poses:
         poses = traj.poses
     else:
-        # store in COLMAP format (i.e., rig_from_world)
+        # stored in COLMAP format (i.e., rig_from_world)
         poses = [pose.inverse() for pose in traj.poses]
-    
+
     timestamps = traj.timestamps
     assert len(poses) == len(timestamps), "Poses and timestamps length mismatch"
 
@@ -66,7 +62,7 @@ def evaluate_wrt_mps(
     gt_traj: Trajectory,
 ) -> float | None:
     """
-    Evaluate an estimated trajectory with respect to 
+    Evaluate an estimated trajectory with respect to
     MPS pGT. Alignment performed using Umeyama via evo package.
     Important:
         This function assumes that invert_poses=False for both trajectories.
@@ -90,22 +86,19 @@ def evaluate_wrt_mps(
     if not valid_estimate(est_pose_traj, gt_pose_traj):
         logger.error("Estimated trajectory is too short compared to pGT.")
         return None
-    
+
     gt_pose_traj_sync, est_pose_traj_sync = sync.associate_trajectories(
-        gt_pose_traj, 
+        gt_pose_traj,
         est_pose_traj,
-        max_diff=1e6 # 1 ms in ns
+        max_diff=1e6,  # 1 ms in ns
     )
 
     try:
-        est_pose_traj_sync.align(
-            gt_pose_traj_sync,
-            correct_scale=True
-        )
+        est_pose_traj_sync.align(gt_pose_traj_sync, correct_scale=True)
     except Exception as e:
         logger.error(f"Alignment failed: {e}")
         return None
-    
+
     pose_relation = metrics.PoseRelation.translation_part
     trajectories = (gt_pose_traj_sync, est_pose_traj_sync)
     ate_metric = metrics.APE(pose_relation)
@@ -114,5 +107,4 @@ def evaluate_wrt_mps(
     ate_stats = ate_metric.get_all_statistics()
 
     return ate_stats["rmse"]
-    
 
