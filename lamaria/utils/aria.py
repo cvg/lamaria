@@ -13,13 +13,13 @@ from projectaria_tools.core.stream_id import StreamId
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
+from .. import logger
 from .constants import (
     ARIA_CAMERAS,
     LEFT_CAMERA_STREAM_ID,
     RIGHT_CAMERA_STREAM_ID,
     RIGHT_IMU_STREAM_ID,
 )
-from .. import logger
 from .timestamps import find_closest_timestamp
 from .types import InitReconstruction
 
