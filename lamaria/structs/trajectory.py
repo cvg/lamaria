@@ -1,4 +1,3 @@
-import shutil
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
@@ -64,7 +63,7 @@ class Trajectory:
         state = self._parse(lines)
         if not state:
             raise RuntimeError("Failed to parse estimate file.")
-        
+
         return self
 
     def add_estimate_poses_to_reconstruction(

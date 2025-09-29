@@ -73,7 +73,7 @@ def run(
 
     logger.info(f"Results saved to {sparse_npy_path}")
     return True
-    
+
     # TODO: Add metrics here?
 
 

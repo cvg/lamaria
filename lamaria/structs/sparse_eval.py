@@ -1,5 +1,5 @@
 import copy
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 import numpy as np
@@ -216,7 +216,7 @@ class SparseEvalResult:
         if not path.exists():
             logger.error(f"Result file not found: {path}")
             return None
-        
+
         data = np.load(path, allow_pickle=True).item()
         alignment_data = data["alignment"]
 
@@ -248,7 +248,7 @@ class SparseEvalResult:
             alignment=alignment,
             cp_summary=cp_summary,
         )
-    
+
     def save_as_npy(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)  # just in case
-        np.save(path, asdict(self)) 
+        np.save(path, asdict(self))
