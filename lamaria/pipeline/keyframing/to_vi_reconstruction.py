@@ -325,16 +325,8 @@ class EstimateToVIRecon:
         # DUMMY CAMERA FOR IMU, IMU ID is 1
         imu = pycolmap.Camera(
             camera_id=1,
-            model=self.options.sensor.camera_model,
-            width=640,
-            height=480,
-            params=[
-                241.604,
-                241.604,
-                322.895,
-                240.444,
-            ]
-            + [0.0] * 12,
+            model="SIMPLE_PINHOLE",
+            params=[0, 0, 0]
         )
         self.data.reconstruction.add_camera(imu)
         rig.add_ref_sensor(imu.sensor_id)
@@ -379,17 +371,9 @@ class EstimateToVIRecon:
 
             # DUMMY CAMERA FOR IMU
             imu = pycolmap.Camera(
-                camera_id=sensor_id,
-                model=self.options.sensor.camera_model,
-                width=640,
-                height=480,
-                params=[
-                    241.604,
-                    241.604,
-                    322.895,
-                    240.444,
-                ]
-                + [0.0] * 12,
+                camera_id=1,
+                model="SIMPLE_PINHOLE",
+                params=[0, 0, 0]
             )
             self.data.reconstruction.add_camera(imu)
             rig.add_ref_sensor(imu.sensor_id)
