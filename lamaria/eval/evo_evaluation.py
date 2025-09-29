@@ -107,4 +107,3 @@ def evaluate_wrt_mps(
     ate_stats = ate_metric.get_all_statistics()
 
     return ate_stats["rmse"]
-
