@@ -19,6 +19,7 @@ class ControlPoint:
     name: str  # geo_id
     topo: np.ndarray
     covariance: np.ndarray
+    cp_reproj_std: float = 1.0  # pixels
 
     triangulated: np.ndarray | None = None  # None if triangulation fails
     inlier_ratio: float = 0.0
@@ -32,7 +33,9 @@ class ControlPoint:
         measurement_xyz: list[float | None],
         unc_xyz: list[float | None],
         origin_xyz: tuple[float, float, float],
+        cp_reproj_std: float = 1.0,
     ) -> "ControlPoint":
+        
         m = list(measurement_xyz)
         u = list(unc_xyz)
         if m[2] is None:
@@ -46,17 +49,38 @@ class ControlPoint:
         )
         cov = np.diag(np.square(np.asarray(u, dtype=np.float64)))
 
-        return ControlPoint(name=name, topo=topo, covariance=cov)
+        return ControlPoint(name=name, topo=topo, covariance=cov, cp_reproj_std=cp_reproj_std)
 
     def has_height(self) -> bool:
         return bool(self.topo[2] != 0)
 
     def is_triangulated(self) -> bool:
         return self.triangulated is not None
+    
+    def summary(self) -> dict:
+        return {
+            "name": self.name,
+            "topo": self.topo.tolist(),
+            "covariance": self.covariance.tolist(),
+        }
+
+
+def get_control_points_for_evaluation(
+    reconstruction_path: Path,
+    cp_json_file: Path,
+    cp_reproj_std: float = 1.0,
+) -> ControlPoints:
+    """Load control points from JSON and run triangulation."""
+    control_points = construct_control_points_from_json(cp_json_file, cp_reproj_std)
+    run_control_point_triangulation_from_json(
+        reconstruction_path, cp_json_file, control_points
+    )
+    return control_points
 
 
 def construct_control_points_from_json(
     cp_json_file: Path,
+    cp_reproj_std: float = 1.0,
 ) -> ControlPoints:
     """
     Construct ControlPoints dict from a JSON file.
@@ -82,6 +106,7 @@ def construct_control_points_from_json(
                 measurement,
                 unc,
                 CUSTOM_ORIGIN_COORDINATES,
+                cp_reproj_std,
             )
 
     return control_points
