@@ -104,7 +104,7 @@ def add_residuals_for_sparse_eval(
             logger.info(f"Control point {tag_id} not triangulated")
             continue
 
-        point2d_cov = np.eye(2) * pow(cp.cp_reproj_std, 2)
+        point2d_cov = np.eye(2)
 
         obs = cp.image_id_and_point2d
         for image_id, point2d in obs:
