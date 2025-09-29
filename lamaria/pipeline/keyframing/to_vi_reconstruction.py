@@ -11,7 +11,7 @@ from projectaria_tools.core.stream_id import StreamId
 from ... import logger
 from ...config.options import EstimateToVIReconOptions
 from ...structs.estimate import (
-    Estimate,
+    Trajectory,
 )
 from ...structs.vi_reconstruction import VIReconstruction
 from ...utils.aria import (
@@ -136,16 +136,16 @@ class EstimateToVIRecon:
                 images, timestamps, mps_poses
             )
         else:
-            est = Estimate()
-            est.load_from_file(estimate, invert_poses=True)
+            traj = Trajectory()
+            traj.load_from_file(estimate, invert_poses=True)
 
-            timestamps = est.timestamps
+            timestamps = traj.timestamps
             if len(images) != len(timestamps):
                 images, timestamps = self._match_estimate_ts_to_images(
                     images, timestamps
                 )
 
-            rig_from_worlds = est.poses
+            rig_from_worlds = traj.poses
             self._per_frame_data = self._build_per_frame_data_from_estimate(
                 images, timestamps, rig_from_worlds
             )
