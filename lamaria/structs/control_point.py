@@ -83,14 +83,17 @@ def load_cp_json(
     cp_json_file: Path,
     skip_detections: bool = False,
 ) -> tuple[ControlPoints, dict]:
-    """Main control point loading function.
-    Loads control points from JSON as well as timestamp to images mapping.
+    """Load control points and timestamp→images mapping from a JSON file.
+
     Args:
-        cp_json_file (Path): Path to the sparse GT JSON file.
-        
+        cp_json_file (Path): Path to the sparse ground-truth JSON file.
+        skip_detections (bool): If True, skip per-image detections and only
+            load control point measurement data.
+
     Returns:
-        control_points (ControlPoints): Control points dictionary.
-        timestamp_to_images (dict): Mapping from timestamps to image names.
+        Tuple:
+            - control_points: Parsed control points collection.
+            - timestamp_to_images: Mapping from timestamps (ns) to image names.
     """
     with open(cp_json_file) as file:
         cp_data = json.load(file)
@@ -110,6 +113,8 @@ def construct_control_points(
 
     Args:
         cp_data (dict): Loaded JSON data containing control point information.
+        skip_detections (bool): If True, skip per-image detections and only
+            load control point measurement data.
 
     Returns:
         control_points (ControlPoints): Control points dictionary.
