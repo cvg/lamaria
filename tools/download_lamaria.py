@@ -191,7 +191,7 @@ def download_file(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LaMAria dataset downloader")
-    
+
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument(
         "--set",
@@ -201,8 +201,8 @@ if __name__ == "__main__":
     group.add_argument(
         "--sequences",
         nargs="+",
-        help='Explicit sequence names (e.g. R_01_easy sequence_3_17). '
-            "If provided, --set is not needed.",
+        help="Explicit sequence names (e.g. R_01_easy sequence_3_17). "
+        "If provided, --set is not needed.",
     )
     parser.add_argument(
         "--type",
@@ -239,7 +239,7 @@ if __name__ == "__main__":
         # choose a sensible default if nothing specified
         print("[info] No --set or --sequences provided; nothing to do.")
         sys.exit(0)
-    
+
     # To fetch
     folders = PAYLOADS[args.type].copy()
     plan = []
