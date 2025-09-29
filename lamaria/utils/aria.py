@@ -16,13 +16,14 @@ from tqdm import tqdm
 from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .timestamps import find_closest_timestamp
+from .types import InitReconstruction
+
 
 # ----- Reconstruction functions ----- #
 
-
 def initialize_reconstruction_from_calibration_file(
     calibration_file: Path,
-) -> pycolmap.Reconstruction:
+) -> InitReconstruction:
     """Initialize a COLMAP reconstruction from Aria calibration
     json file found on website: https://lamaria.ethz.ch/slam_datasets
     Adds a dummy camera as an IMU along with two cameras.
