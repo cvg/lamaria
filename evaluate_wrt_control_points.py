@@ -9,6 +9,7 @@ from lamaria.structs.control_point import (
 )
 from lamaria.structs.trajectory import Trajectory
 from lamaria.utils.aria import initialize_reconstruction_from_calibration_file
+from lamaria.utils.metrics import calculate_control_point_score, calculate_control_point_recall
 
 
 def run(
@@ -72,9 +73,10 @@ def run(
     result_path = output_path / "sparse_eval_result.npy"
     result.save_as_npy(result_path)
 
-
-
-    # TODO: Add metrics here?
+    score = calculate_control_point_score(result)
+    recall = calculate_control_point_recall(result)
+    logger.info(f"Sparse Evaluation CP Score: {score:.4f}")
+    logger.info(f"Sparse Evaluation CP Recall: {recall:.4f}")
 
 
 if __name__ == "__main__":

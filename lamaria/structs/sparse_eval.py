@@ -168,15 +168,12 @@ class SparseEvalResult:
         )
 
     @classmethod
-    def load_from_npy(cls, path: Path) -> "SparseEvalResult" | None:
+    def load_from_npy(cls, path: Path) -> "SparseEvalResult":
         if not path.exists():
             logger.error(f"Result file not found: {path}")
             return None
 
         data = np.load(path, allow_pickle=True).item()
-        if not isinstance(data, dict):
-            logger.error(f"Invalid data format in: {path}")
-            return None
         
         try:
             cp_summary = data["cp_summary"]
