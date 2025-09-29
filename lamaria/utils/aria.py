@@ -113,7 +113,7 @@ def initialize_reconstruction_with_cameras(
     rig.add_ref_sensor(ref_sensor)
 
     sensor1 = pycolmap.sensor_t(id=2, type=pycolmap.SensorType.CAMERA)
-    sensor_from_rig = get_t_cam_a_cam_b_from_json(
+    sensor_from_rig = get_t_cam_a_cam_b_from_calibration_file(
         calibration_file=calibration_file,
         camera_a_label="cam1",  # right
         camera_b_label="cam0",  # left
@@ -332,7 +332,7 @@ def get_magnitude_from_transform(
     return dr, dt
 
 
-def get_t_cam_a_cam_b_from_json(
+def get_t_cam_a_cam_b_from_calibration_file(
     calibration_file: Path,
     camera_a_label: str,
     camera_b_label: str,
