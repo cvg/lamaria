@@ -10,16 +10,16 @@ from lamaria.config.options import (
     VIOptimizerOptions,
 )
 from lamaria.config.pipeline import PipelineOptions
-from lamaria.pipeline.estimate_to_timed_reconstruction import (
-    convert_estimate_into_timed_reconstruction,
-)
 from lamaria.pipeline.data_init.mps_to_timed_reconstruction import (
     MPSToTimedRecon,
 )
+from lamaria.pipeline.estimate_to_timed_reconstruction import (
+    convert_estimate_into_timed_reconstruction,
+)
 from lamaria.pipeline.keyframe_selection import KeyframeSelector
 from lamaria.pipeline.optim.session import SingleSeqSession
-from lamaria.pipeline.triangulation import run as triangulate
 from lamaria.pipeline.optim.vi_optimization import VIOptimizer
+from lamaria.pipeline.triangulation import run as triangulate
 from lamaria.structs.timed_reconstruction import TimedReconstruction
 from lamaria.structs.trajectory import Trajectory
 from lamaria.structs.vi_reconstruction import VIReconstruction
