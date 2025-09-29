@@ -5,7 +5,7 @@
 # commit hash: 2633d1c4c3d4ae0f17a462faa3e334d9345a9c2b
 --find-links https://cvg-data.inf.ethz.ch/lamaria/packages/pycolmap/
 
-projectaria-tools'[all]'
+projectaria-tools[all]
 omegaconf
 scipy
 pyceres==2.6 ; python_version >= "3.9" and python_version < "3.15"
