@@ -63,6 +63,8 @@ chmod +x quickstart.sh
 ./quickstart.sh
 ```
 
+The data is stored in the `demo/` folder. You may run the standalone evaluations and example visual-inertial optimization on this data.
+
 ### Downloading LaMAria
 
 ```bash
@@ -96,7 +98,7 @@ python tools/download_lamaria.py --sequences sequence_1_1 sequence 1_2 sequence 
 ```
 
 #### Output structure
-The downloaded data is stored in the following structure:
+The downloaded data is stored in the following way:
 ```
 out_dir/
 └── lamaria/
@@ -125,10 +127,21 @@ out_dir/
 For more information about the training and test sequences, refer to the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset details</a>. To learn more about the various data formats, calibration files and ground-truths, visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">documentation</a>.
 
 ## Evaluation
-
+Our training and test sequences are categorized into varying challenges. To evaluate your SLAM results on our data, we provide two main ways:
+1. **Evaluation via the website**: Upload your results on our <a href="https://lamaria.ethz.ch/login" target="_blank" rel="noopener noreferrer">website</a> to get evaluation results. Results on test sequences are displayed on the public leaderboard.
+2. **Standalone evaluation**: Run the evaluation scripts locally using the provided `lamaria` package.
 
 ### Evaluation w.r.t. Control Points
+Those sequences that observe ground truth control points (CPs) can be evaluated w.r.t. these points. This script computes the score and control point recall based on the alignment of the estimated trajectory to the control points.
 
+To perform the evaluation on the downloaded demo data:
+```bash
+python -m evaluate_wrt_control_points --estimate demo/estimate/R_11_5cp.txt --cp_json_file demo/cp_data/R_11_5cp.json --device_calibration_json demo/calibrations/R_11_5cp.json --output_path demo/eval_cp --corresponding_sensor imu
+```
+
+*This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`).*
+
+To learn more about the control points and sparse evaluation, refer to Section 4.1 and 4.2 of our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
 
 ### Evaluation w.r.t Pseudo-GT
 
