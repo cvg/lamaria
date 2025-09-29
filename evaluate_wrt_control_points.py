@@ -16,7 +16,7 @@ def run(
     output_path: Path,
     corresponding_sensor: str = "imu",
     cp_reproj_std=1.0,
-):
+) -> bool:
     """Run sparse evaluation for sequences that observe control points.
 
     Args:
