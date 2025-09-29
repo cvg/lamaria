@@ -49,10 +49,14 @@ def convert_trajectory_to_evo_posetrajectory(
     timestamps = traj.timestamps
     assert len(poses) == len(timestamps), "Poses and timestamps length mismatch"
 
+    tvecs = np.array([pose.translation for pose in poses])
+    quats = np.array([pose.rotation.quat for pose in poses])
+    quats_wxyz = quats[:, [3, 0, 1, 2]]
+
     evo_traj = PoseTrajectory3D(
-        positions_xyz=np.array([pose.translation for pose in poses]),
-        orientations_xyzw=np.array([pose.rotation.quat for pose in poses]),
-        timestamps=np.array(timestamps),
+        positions_xyz=tvecs,
+        orientations_quat_wxyz=quats_wxyz,
+        timestamps=np.array(timestamps, dtype=np.float64),
     )
     return evo_traj
 
