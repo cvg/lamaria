@@ -76,7 +76,9 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
   - Pinhole - Downloads ASL folder, rosbag, and pinhole calibration file.
   - Both - Downloads both raw and pinhole data.
 
-Ground truth files are automatically downloaded only for the training sequences. **Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
+Ground truth files are automatically downloaded for the training sequences. 
+
+**💣 Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
 
 #### Some example commands
 
