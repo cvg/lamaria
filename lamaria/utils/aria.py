@@ -24,6 +24,70 @@ def initialize_reconstruction_from_calibration_file(
 ) -> pycolmap.Reconstruction:
     """Initialize a COLMAP reconstruction from Aria calibration
     json file found on website: https://lamaria.ethz.ch/slam_datasets
+    Adds a dummy camera as an IMU along with two cameras.
+
+    Args:
+        calibration_file (Path):
+        Path to the Aria calibration json file
+    Returns:
+        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+    """
+    reconstruction = pycolmap.Reconstruction()
+
+    imu = pycolmap.Camera(
+        camera_id=1,
+        model="RAD_TAN_THIN_PRISM_FISHEYE",
+        width=640,
+        height=480,
+        params=[
+            241.604,
+            241.604,
+            322.895,
+            240.444,
+        ]
+        + [0.0] * 12,
+    )
+    reconstruction.add_camera(imu)
+
+    rig = pycolmap.Rig(rig_id=1)
+    ref_sensor = pycolmap.sensor_t(
+        id=1,  # imu is the rig
+        type=pycolmap.SensorType.CAMERA,
+    )
+    rig.add_ref_sensor(ref_sensor)
+
+    for i, (key, _) in enumerate(ARIA_CAMERAS):
+        cam = camera_colmap_from_json(
+            calibration_file=calibration_file,
+            camera_label=key,
+        )
+        cam.camera_id = i + 2  # start from 2 since 1 is imu
+        reconstruction.add_camera(cam)
+        
+        sensor = pycolmap.sensor_t(
+            id=i + 2, type=pycolmap.SensorType.CAMERA
+        )
+        rig_from_sensor = get_t_imu_camera_from_json(
+            calibration_file=calibration_file,
+            camera_label=key,
+        )
+        sensor_from_rig = rig_from_sensor.inverse()
+        rig.add_sensor(sensor, sensor_from_rig)
+
+    reconstruction.add_rig(rig)
+
+    return reconstruction
+
+
+# ----- Camera functions ----- #
+
+
+def initialize_reconstruction_with_cameras(
+    calibration_file: Path,
+) -> pycolmap.Reconstruction:
+    """Initialize a COLMAP reconstruction from Aria calibration
+    json file found on website: https://lamaria.ethz.ch/slam_datasets
+    Adds only the cameras without any dummy IMU.
 
     Args:
         calibration_file (Path):
@@ -59,9 +123,6 @@ def initialize_reconstruction_from_calibration_file(
     reconstruction.add_rig(rig)
 
     return reconstruction
-
-
-# ----- Camera functions ----- #
 
 
 def get_camera_params_for_colmap(
