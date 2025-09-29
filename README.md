@@ -5,7 +5,7 @@ We present **LaMAria**, a egocentric, city-scale benchmark for **visual-inertial
 
 Using **LaMAria**, you can:
 - Evaluate SLAM systems under real-world challenges: low light, moving platforms, exposure changes, extremely long trajectories.
-- Benchmark against highly accurate sparse ground truths.
+- Benchmark against highly accurate ground truths.
 
 <p align="center">
   <img src="assets/teaser_final.png" alt="Overview of LaMAria" width="900"/><br/>
@@ -66,6 +66,9 @@ python -m pip install -e .
 
 
 ## Example Visual-Inertial Optimization
+
+### Additional Installation
+To extract images from a `.vrs` file, it is required to install the VRS Command Line Tools. Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
 
 
 
