@@ -32,11 +32,8 @@ def matching_time_indices(
 
 
 def get_timestamp_to_images_from_json(
-    json_file: str | Path,
+    data: dict
 ):
-    with open(json_file) as f:
-        data = json.load(f)
-
     processed_ts_data = {}
     for label in [LEFT_CAMERA_STREAM_LABEL, RIGHT_CAMERA_STREAM_LABEL]:
         ts_data = data["timestamps"][label]
