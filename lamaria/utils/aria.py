@@ -67,7 +67,7 @@ def initialize_reconstruction_from_calibration_file(
         sensor = pycolmap.sensor_t(
             id=i + 2, type=pycolmap.SensorType.CAMERA
         )
-        rig_from_sensor = get_t_imu_camera_from_json(
+        rig_from_sensor = get_t_imu_camera_from_calibration_file(
             calibration_file=calibration_file,
             camera_label=key,
         )
@@ -360,7 +360,7 @@ def get_t_cam_a_cam_b_from_json(
     return t_camera_a_camera_b
 
 
-def get_t_imu_camera_from_json(
+def get_t_imu_camera_from_calibration_file(
     calibration_file: Path,
     camera_label: str,
 ) -> pycolmap.Rigid3d:
