@@ -69,7 +69,6 @@ class Estimate:
         self,
         reconstruction: pycolmap.Reconstruction,
         timestamp_to_images: dict,
-        sensor_from_rig: pycolmap.Rigid3d,
         output_path: Path,
     ) -> Path:
         """
@@ -83,7 +82,7 @@ class Estimate:
         shutil.rmtree(recon_path)
 
         reconstruction = self._add_images_to_reconstruction(
-            reconstruction, timestamp_to_images, sensor_from_rig
+            reconstruction, timestamp_to_images
         )
 
         reconstruction.write(recon_path.as_posix())
@@ -185,37 +184,45 @@ class Estimate:
         self,
         reconstruction: pycolmap.Reconstruction,
         timestamp_to_images: dict,
-        sensor_from_rig: pycolmap.Rigid3d,
     ) -> pycolmap.Reconstruction:
         pose_data = self.as_tuples()
 
         image_id = 1
+        # imu is the rig in this reconstruction
         rig = reconstruction.rig(rig_id=1)
 
-        transform = sensor_from_rig.inverse()
+        if self.corresponding_sensor == "imu":
+            transform = pycolmap.Rigid3d()
+        else:
+            # left camera poses are provided
+            # sensor_from_rig == cam0_from_imu
+            transform = rig.sensor_from_rig(sensor_id=2)
 
         for i, (timestamp, pose) in tqdm(
             enumerate(pose_data),
             total=len(pose_data),
             desc="Adding images to reconstruction",
         ):
+            frame = pycolmap.Frame()
+            frame.rig_id = rig.rig_id
+            frame.frame_id = i + 1
+            
             if self.invert_poses:
                 # poses are in imu/cam_from_world format
+                # if imu: imu_from_world
+                # if cam0: cam0_from_world
                 T_world_rig = pose.inverse() * transform
             else:
                 # poses are in world_from_cam/imu format
                 T_world_rig = pose * transform
 
-            frame = pycolmap.Frame()
-            frame.rig_id = rig.rig_id
-            frame.frame_id = i + 1
             frame.rig_from_world = T_world_rig.inverse()
 
             images_to_add = []
 
             for label, camera_id in [
-                (LEFT_CAMERA_STREAM_LABEL, 1),
-                (RIGHT_CAMERA_STREAM_LABEL, 2),
+                (LEFT_CAMERA_STREAM_LABEL, 2),
+                (RIGHT_CAMERA_STREAM_LABEL, 3),
             ]:
                 source_timestamps = timestamp_to_images[label]["sorted_keys"]
                 # offsets upto 1 ms (1e6 ns)
