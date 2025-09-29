@@ -47,7 +47,7 @@ class Trajectory:
         path: str | Path,
         invert_poses: bool = True,
         corresponding_sensor: str = "imu",
-    ) -> None:
+    ) -> "Trajectory":
         """Parse the file, validate format, populate timestamps & poses."""
         self = cls()
         self.clear()
