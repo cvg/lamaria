@@ -7,10 +7,10 @@ from typing import TypeAlias
 import numpy as np
 import pycolmap
 from projectaria_tools.core import data_provider, mps
-from projectaria_tools.core.stream_id import StreamId
 from projectaria_tools.core.calibration import CameraCalibration, ImuCalibration
 from projectaria_tools.core.mps.utils import get_nearest_pose
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core.stream_id import StreamId
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
 
@@ -18,10 +18,10 @@ from .. import logger
 from .constants import ARIA_CAMERAS, RIGHT_IMU_STREAM_ID
 from .timestamps import find_closest_timestamp
 
-
 # ----- Reconstruction functions ----- #
 
 InitReconstruction: TypeAlias = pycolmap.Reconstruction
+
 
 def initialize_reconstruction_from_calibration_file(
     calibration_file: Path,
@@ -38,11 +38,7 @@ def initialize_reconstruction_from_calibration_file(
     """
     reconstruction = pycolmap.Reconstruction()
 
-    imu = pycolmap.Camera(
-        camera_id=1,
-        model="SIMPLE_PINHOLE",
-        params=[0, 0, 0]
-    )
+    imu = pycolmap.Camera(camera_id=1, model="SIMPLE_PINHOLE", params=[0, 0, 0])
     reconstruction.add_camera(imu)
 
     rig = pycolmap.Rig(rig_id=1)
