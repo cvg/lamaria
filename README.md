@@ -76,9 +76,9 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
   - Pinhole - Downloads ASL folder, rosbag, and pinhole calibration file.
   - Both - Downloads both raw and pinhole data.
 
-Ground truth files are automatically downloaded only for the training sequences.
+Ground truth files are automatically downloaded only for the training sequences. **Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
 
-**Some example commands**
+#### Some example commands
 
 To download all training sequences in both raw and pinhole formats:
 ```bash
@@ -93,7 +93,32 @@ To download 3 custom sequences in pinhole format:
 python tools/download_lamaria.py --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type pinhole
 ```
 
-**Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
+#### Output structure
+The downloaded data is stored in the following structure:
+```
+out_dir/
+└── lamaria/
+    ├── training/
+    │   ├── R_01_easy/
+    │   │   ├── aria_calibrations/
+    │   │   │   └── R_01_easy.json
+    │   │   ├── asl_folder/
+    │   │   │   └── R_01_easy.zip
+    │   │   ├── ground_truth/
+    │   │   │   ├── pseudo_dense/
+    │   │   │   │   └── R_01_easy.txt
+    │   │   │   └── sparse/
+    │   │   │       └── # if sequence has CPs
+    │   │   ├── pinhole_calibrations/
+    │   │   │   └── R_01_easy.json
+    │   │   ├── raw_data/
+    │   │   │   └── R_01_easy.vrs
+    │   │   └── rosbag/
+    │   │       └── R_01_easy.bag
+    │   └── ...
+    └── test/
+        └── sequence_1_1
+```
 
 For more information about the training and test sequences, refer to the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset details</a>. To learn more about the various data formats, calibration files and ground-truths, visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">documentation</a>.
 
