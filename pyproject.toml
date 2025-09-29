@@ -1,0 +1,37 @@
+[project]
+name = "lamaria"
+version = "0.1.0"
+requires-python = ">=3.9,<3.15"
+description = "LaMAria: Benchmarking Egocentric Visual-Inertial SLAM at City Scale"
+readme = { file = "README.md", content-type = "text/markdown" }
+
+[project.urls]
+Homepage = "https://lamaria.ethz.ch"
+Repository = "https://github.com/cvg/lamaria"
+Issues = "https://github.com/cvg/lamaria/issues"
+
+[project.scripts]
+lamaria-eval-cp = "evaluate_wrt_control_points:main"
+lamaria-eval-mps = "evaluate_wrt_mps:main"
+lamaria-eval-pgt = "evaluate_wrt_pgt:main"
+lamaria-vi-opt   = "example_vi_optimization:main"
+
+[tool.setuptools]
+packages = ["lamaria"]
+
+py-modules = [
+  "evaluate_wrt_control_points",
+  "evaluate_wrt_mps",
+  "evaluate_wrt_pgt",
+  "example_vi_optimization"
+]
+
+[tool.setuptools.package-data]
+lamaria = [
+  "assets/*",
+  "**/*.yaml",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
