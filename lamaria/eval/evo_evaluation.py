@@ -11,7 +11,7 @@ def valid_estimate(
     gt_pose_traj: PoseTrajectory3D,
     min_duration_ratio: float = 0.5,
 ) -> bool:
-    """ Check if the estimated trajectory is at least
+    """Check if the estimated trajectory is at least
     half as long as the ground-truth trajectory in terms of
     timestamps overlap.
     Args:
