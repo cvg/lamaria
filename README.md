@@ -1,4 +1,4 @@
-<h2 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h2>
+<h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h2>
 
 ## Table of Contents
 - [General Introduction](#general-introduction)
