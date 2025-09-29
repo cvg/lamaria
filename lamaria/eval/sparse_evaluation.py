@@ -10,6 +10,7 @@ import pycolmap
 from .. import logger
 from ..structs.control_point import (
     get_cps_for_initial_alignment,
+    ControlPoints,
 )
 from ..structs.sparse_eval import (
     SparseEvalVariables,
