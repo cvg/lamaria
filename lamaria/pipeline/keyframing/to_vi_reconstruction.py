@@ -10,7 +10,7 @@ from projectaria_tools.core.stream_id import StreamId
 
 from ... import logger
 from ...config.options import EstimateToVIReconOptions
-from ...structs.estimate import (
+from ...structs.trajectory import (
     Trajectory,
 )
 from ...structs.vi_reconstruction import VIReconstruction
