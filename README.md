@@ -69,30 +69,33 @@ chmod +x quickstart.sh
 python tools/download_lamaria.py --help
 ```
 
-To download the dataset conveniently, we provide a custom script `tools/download_lamaria.py`. Using this script, you can download:
+For download convenience, we provide a custom script `tools/download_lamaria.py`. Using this script, you can download:
 - Specific sequences or entire sets (training/test).
 - Specific types:
   - Raw - Downloads raw `.vrs` files and Aria calibration file.
   - Pinhole - Downloads ASL folder, rosbag, and pinhole calibration file.
   - Both - Downloads both raw and pinhole data.
 
-For example, to download all training sequences with both raw and pinhole data, run:
+Ground truth files are automatically downloaded only for the training sequences.
 
+**Some example commands**
+
+To download all training sequences in both raw and pinhole formats:
 ```bash
 python tools/download_lamaria.py --set training --type both
 ```
-**Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage, else** 💣.
-
-The training and test sequence information can be found in the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset page</a>.
-
-To download the raw data of a specific sequence (e.g., `R_01_easy`), run:
-
+To download the raw data of a specific sequence (e.g., `R_01_easy`):
 ```bash
 python tools/download_lamaria.py --sequences R_01_easy --type raw
 ```
-Ground truth files are available only for the training sequences.
+To download 3 custom sequences in pinhole format:
+```bash
+python tools/download_lamaria.py --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type pinhole
+```
 
-To learn more about the various data formats, calibration files and ground-truths, please visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">dataset documentation</a>.
+**Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
+
+For more information about the training and test sequences, refer to the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset details</a>. To learn more about the various data formats, calibration files and ground-truths, visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">documentation</a>.
 
 ## Evaluation
 
