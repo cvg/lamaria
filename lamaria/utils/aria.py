@@ -32,7 +32,7 @@ def initialize_reconstruction_from_calibration_file(
         calibration_file (Path):
         Path to the Aria calibration json file
     Returns:
-        pycolmap.Reconstruction: The initialized COLMAP reconstruction
+        InitReconstruction: The initialized COLMAP reconstruction
     """
     reconstruction = pycolmap.Reconstruction()
 
