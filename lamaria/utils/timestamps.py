@@ -1,11 +1,33 @@
 import json
 from bisect import bisect_left
 from pathlib import Path
+import numpy as np
 
 from .constants import (
     LEFT_CAMERA_STREAM_LABEL,
     RIGHT_CAMERA_STREAM_LABEL,
 )
+
+
+def matching_time_indices(
+    stamps_1: np.ndarray,
+    stamps_2: np.ndarray,
+    max_diff: float = 1e6 # 1 ms in ns
+) -> tuple[list, list]:
+    """
+    From evo package.
+    Searches for the best matching timestamps of two lists of timestamps
+    and returns the list indices of the best matches.
+    """
+    matching_indices_1 = []
+    matching_indices_2 = []
+    for index_1, stamp_1 in enumerate(stamps_1):
+        diffs = np.abs(stamps_2 - stamp_1)
+        index_2 = int(np.argmin(diffs))
+        if diffs[index_2] <= max_diff:
+            matching_indices_1.append(index_1)
+            matching_indices_2.append(index_2)
+    return matching_indices_1, matching_indices_2
 
 
 def get_timestamp_to_images_from_json(
