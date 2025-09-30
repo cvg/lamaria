@@ -229,8 +229,25 @@ python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_f
 
 ## Example Visual-Inertial Optimization
 
+In this section, we discuss an example visual-inertial optimization pipeline built within the `lamaria` package. This pipeline takes as input a pose estimate file (in the format described below) and `.vrs`, performs keyframing and triangulation, and optimizes the trajectory using both visual and inertial residuals.
+
+### Input format
+The input pose estimate file is a text file where each line corresponds to a timestamped pose in the following format:
+```timestamp tx ty tz qx qy qz qw
+```
+The timestamp must be in nanoseconds.
+
 ### Additional Installation
 To extract images from a `.vrs` file, it is required to install the VRS Command Line Tools. Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
+
+### Running the example
+To run the example visual-inertial optimization on the downloaded demo data:
+```bash
+python -m example_vi_optimization --vrs demo/vrs/sequence_1_19.vrs --output demo/vi_optim/ --estimate demo/estimate/sequence_1_19.txt
+```
+
+### Visualizing the results
+TODO: Add viz.
 
 
 
