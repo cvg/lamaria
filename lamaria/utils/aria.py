@@ -9,6 +9,7 @@ from projectaria_tools.core import data_provider, mps
 from projectaria_tools.core.calibration import CameraCalibration, ImuCalibration
 from projectaria_tools.core.mps.utils import get_nearest_pose
 from projectaria_tools.core.sensor_data import TimeDomain, TimeQueryOptions
+from projectaria_tools.core.sophus import SE3
 from projectaria_tools.core.stream_id import StreamId
 from scipy.spatial.transform import Rotation
 from tqdm import tqdm
@@ -224,7 +225,7 @@ def get_closed_loop_data_from_mps(
 def get_mps_poses_for_timestamps(
     trajectory_data: list[mps.ClosedLoopTrajectoryPose],
     timestamps: list[int],
-) -> list:
+) -> list[SE3]:
     """Get T_world_device for a list of device timestamps
     in nanoseconds using MPS trajectory data.
     Returns None for timestamps where
@@ -291,7 +292,7 @@ def get_t_imu_camera(
     return colmap_t_imu_cam
 
 
-def rigid3d_from_transform(transform) -> pycolmap.Rigid3d:
+def rigid3d_from_transform(transform: SE3) -> pycolmap.Rigid3d:
     """Converts projectaria_tools Rigid3d to pycolmap Rigid3d
 
     Note: to_quat() returns in wxyz format, but pycolmap.Rotation3d
