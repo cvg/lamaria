@@ -38,7 +38,7 @@ This dataset offers 23 training sequences and 63 test sequences.
   <em>Figure 1: Overview of the LaMAria dataset and benchmark.</em>
 </p>
 
-To learn more about the dataset, please visit our main dataset website or read our paper.
+To learn more about the dataset, please refer to our main dataset website or our paper.
 
 ## Table of Contents
 - [Installation](#installation)
