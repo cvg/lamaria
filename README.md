@@ -93,7 +93,7 @@ Ground truth files are automatically downloaded for the training sequences.
 ### Data sizes
 - Raw data (vrs + aria_calibrations): ~ 890 GB
 - ASL folder + pinhole_calibrations: ~ 1.1 TB
-- ROSbag + pinhole_calibrations: ~ 1.5 TB
+- ROSbag + pinhole_calibrations: ~ 1.5 TB 
 
 ### Some example commands
 
