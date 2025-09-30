@@ -12,8 +12,7 @@ def evaluate_wrt_pgt(
     est_traj: Trajectory,
     gt_traj: Trajectory,
     sim3d: pycolmap.Sim3d,
-    output_path: Path,
-) -> None:
+) -> None | np.ndarray:
     """
     Evaluate an estimated trajectory with respect to a pseudo
     ground-truth trajectory that observes control points.
@@ -37,12 +36,5 @@ def evaluate_wrt_pgt(
     E = est_traj.positions - gt_traj.positions
     error = np.array([np.linalg.norm(e[:2]) for e in E])
 
-    error_file = output_path / "error_per_kf.txt"
-    with open(error_file, mode="w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(["timestamp", "error_m"])
-        for ts, e in zip(est_traj.timestamps, error):
-            writer.writerow([ts, e])
-
     logger.info("pGT evaluation completed successfully!")
-    return error_file
+    return error
