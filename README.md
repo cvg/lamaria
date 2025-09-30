@@ -233,7 +233,7 @@ The input pose estimate file must follow the same format as described in the [in
 To extract images from a `.vrs` file, it is required to install the [VRS Command Line Tools](https://facebookresearch.github.io/vrs/docs/VrsCliTool/). Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
 
 ### Running the example
-To run the example visual-inertial optimization on the demo data downloaded following [download demo data](#download-demo-data) (Here the intitial estimation file in the demo is from [OpenVINS](https://docs.openvins.com/):
+To run the example visual-inertial optimization on the demo data downloaded following [download demo data](#download-demo-data) (Here the intitial estimation file in the demo is from a run of [OpenVINS](https://docs.openvins.com/)):
 ```bash
 python -m example_vi_optimization --output demo_outputs/vi_optim \
        --vrs demo/R_11_5cp/raw_data/R_11_5cp.vrs \
