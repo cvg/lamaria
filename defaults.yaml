@@ -1,0 +1,45 @@
+# Default configuration for run_pipeline.py
+keyframing:
+  max_rotation: 20.0
+  max_distance: 1.0
+  max_elapsed: 1e9 # 1 second in ns
+
+triangulation:
+  feature_conf: aliked-n16
+  matcher_conf: aliked+lightglue
+  retrieval_conf: netvlad
+  num_retrieval_matches: 5
+
+  # relaxed triangulation
+  # https://github.com/colmap/colmap/tree/3.12.6/src/colmap/sfm/incremental_triangulator.h
+  merge_max_reproj_error: 15.0
+  complete_max_reproj_error: 15.0
+  min_angle: 1.0
+
+  # https://github.com/colmap/colmap/tree/3.12.6/src/colmap/sfm/incremental_mapper.h
+  filter_max_reproj_error: 15.0
+  filter_min_tri_angle: 1.0
+
+optimization:
+  general:
+    use_callback: true
+    max_num_iterations: 10
+    normalize_reconstruction: false
+    minimizer_progress_to_stdout: true
+    update_state_every_iteration: true
+  
+  cam:
+    feature_std: 1.0
+    optimize_focal_length: false
+    optimize_principal_point: false
+    optimize_extra_params: false
+    optimize_cam_from_rig: false
+  
+  imu:
+    optimize_scale: false
+    optimize_gravity: false
+    optimize_imu_from_rig: false
+    optimize_bias: true
+    gyro_infl: 1.0
+    acc_infl: 1.0
+    integration_noise_density: 0.05
