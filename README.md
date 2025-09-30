@@ -189,6 +189,9 @@ python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate 
 This method is used to evaluate results on the controlled experimental set.
 
 ## Converting VRS to ASL/ROSbag format
+
+<details>
+<summary>Click to expand instructions</summary>
 We provide some utility scripts in the `tools/` folder to convert between different data formats used in our dataset.
 
 1. Converting from `.vrs` to ASL folder format:
@@ -211,6 +214,7 @@ python -m tools.undistort_asl_folder.py --calibration_file path/to/calibration.j
 ```bash
 python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_folder path/to/output_upright_asl_folder
 ``` -->
+</details>
 
 ## Example Visual-Inertial Optimization
 
