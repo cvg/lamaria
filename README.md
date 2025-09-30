@@ -115,22 +115,21 @@ python -m tools.download_lamaria --output_dir ./lamaria_data \
 
 The downloaded raw data is stored in the following way:
 ```
-out_dir/
-└── lamaria/
-    ├── training/
-    │   ├── R_01_easy/
-    │   │   ├── aria_calibrations/
-    │   │   │   └── R_01_easy.json
-    │   │   ├── ground_truth/
-    │   │   │   ├── pseudo_dense/
-    │   │   │   │   └── R_01_easy.txt
-    │   │   │   └── sparse/
-    │   │   │       └── # if sequence has CPs
-    │   │   ├── raw_data/
-    │   │   │   └── R_01_easy.vrs
-    │   └── ...
-    └── test/ # no ground truth
-        └── sequence_1_1
+output_dir/
+├── training/
+│   ├── R_01_easy/
+│   │   ├── aria_calibrations/
+│   │   │   └── R_01_easy.json
+│   │   ├── ground_truth/
+│   │   │   ├── pseudo_dense/
+│   │   │   │   └── R_01_easy.txt
+│   │   │   └── sparse/
+│   │   │       └── # if sequence has CPs
+│   │   ├── raw_data/
+│   │   │   └── R_01_easy.vrs
+│   └── ...
+└── test/ # no ground truth
+    └── sequence_1_1
 ```
 
 For more information about the training and test sequences, refer to the <a href="https://lamaria.ethz.ch/slam_datasets" target="_blank" rel="noopener noreferrer">dataset details</a>. To learn more about the various data formats, calibration files and ground-truths, visit our <a href="https://lamaria.ethz.ch/slam_documentation" target="_blank" rel="noopener noreferrer">documentation</a>.
