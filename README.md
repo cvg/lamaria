@@ -161,7 +161,11 @@ Three sequences in the controlled experimental set and the additional set sequen
 
 To perform the evaluation on the downloaded demo data:
 ```bash
-python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt --cp_json_file demo/cp_data/sequence_1_19.json --device_calibration_json demo/calibrations/sequence_1_19.json --output_path demo/eval_cp --corresponding_sensor imu
+python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt \
+       --cp_json_file demo/sequence_1_19/ground_truth/control_points/sequence_1_19.json \
+       --device_calibration_json demo/sequence_1_19/aria_calibrations/sequence_1_19.json \
+       --corresponding_sensor imu \
+       --output_path demo/outputs/eval_cp
 ```
 
 *This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`).*
@@ -173,7 +177,9 @@ This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground tr
 
 To perform the evaluation on the downloaded demo data:
 ```bash
-python -m evaluate_wrt_pgt --estimate demo/estimate/sequence_1_19.txt --gt_estimate demo/pgt/sequence_1_19.txt --sparse_eval_result demo/eval_cp/sparse_eval_result.npy
+python -m evaluate_wrt_pgt --estimate demo/estimate/sequence_1_19.txt \
+       --gt_estimate demo/sequence_1_19/ground_truth/pGT/sequence_1_19.txt \
+       --sparse_eval_result demo/outputs/eval_cp/sparse_eval_result.npy
 ```
 
 ### EVO Evaluation w.r.t MPS
@@ -181,7 +187,8 @@ This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground tr
 
 To perform the evaluation on the downloaded demo data:
 ```bash
-python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate demo/mps/R_01_easy.txt
+python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt \
+       --gt_estimate demo/R_01_easy/groundtruth/pGT/R_01_easy.txt
 ```
 
 This method is used to evaluate results on the controlled experimental set, where the gt estimate file is built directly from the MPS estimated trajectory.
@@ -226,10 +233,12 @@ The input pose estimate file must follow the same format as described in the [in
 To extract images from a `.vrs` file, it is required to install the [VRS Command Line Tools](https://facebookresearch.github.io/vrs/docs/VrsCliTool/). Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
 
 ### Running the example
-To run the example visual-inertial optimization on the downloaded demo data:
+To run the example visual-inertial optimization on the downloaded demo data (the intitial estimation file here is from [OpenVINS](https://docs.openvins.com/)):
 ```bash
 ./quickstart.sh
-python -m example_vi_optimization --vrs demo/vrs/sequence_1_19.vrs --output demo/vi_optim/ --estimate demo/estimate/sequence_1_19.txt
+python -m example_vi_optimization --output demo/outputs/vi_optim \
+       --vrs demo/sequence_1_19/raw_data/sequence_1_19.vrs \
+       --estimate demo/estimate/sequence_1_19.txt
 ```
 TODO: Add two plots and caption.
 
