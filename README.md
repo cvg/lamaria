@@ -20,7 +20,7 @@
 </p>
 <h3 align="center">
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
-  <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
+  <a href="https://drive.google.com/file/d/1RVjm1miKICqLKh2br3UYWjl8ZHc5lJiD/view?usp=sharing" target="_blank" rel="noopener noreferrer">Paper</a>
 </h3>
 
 
@@ -28,7 +28,7 @@ We present **LaMAria**, an egocentric, city-scale benchmark for **visual-inertia
 ~ **22 hours / 70 km** of trajectories with survey-grade control points providing **centimeter-accurate ground truth**.
 
 Using **LaMAria**, you can:
-- Evaluate SLAM systems under real-world challenges: low light, moving platforms, exposure changes, extremely long trajectories, and challenges typical to egocentric motion.
+- Evaluate SLAM systems under real-world egocentric setup: low light, moving platforms, exposure changes, time-varying sensor calibrations.
 - Benchmark against highly accurate ground truths.
 
 This dataset offers 23 training sequences and 63 test sequences. 
@@ -44,13 +44,12 @@ To learn more about the dataset, please visit our <a href="https://lamaria.ethz.
 
 ## Table of Contents
 - [Installation](#installation)
-- [Structure of the repository](#structure-of-the-repository)
 - [Downloading the Dataset](#downloading-the-dataset)
 - [Evaluation](#evaluation)
   - [Evaluation w.r.t. Control Points](#evaluation-wrt-control-points)
   - [Evaluation w.r.t. Pseudo-GT](#evaluation-wrt-pseudo-gt)
   - [EVO Evaluation w.r.t. MPS](#evo-evaluation-wrt-mps)
-- [Data Conversion](#data-conversion)
+- [Converting VRS to ASL/ROSbag format](#converting-vrs-to-aslrosbag-format)
 - [Example Visual-Inertial Optimization](#example-visual-inertial-optimization)
 - [BibTeX Citation](#bibtex-citation)
 
@@ -65,49 +64,16 @@ python3 -m venv lamaria_env
 source lamaria_env/bin/activate
 ```
 
-Clone the repository:
+Install the package:
 ```bash
 git clone git@github.com:cvg/lamaria.git
 cd lamaria
 pip install -r requirements.txt
-```
-
-Install the package:
-```bash
 python -m pip install -e .
 ```
 
-## Structure of the repository
-In this repository, we provide four top-level scripts:
-- [`evaluate_wrt_control_points.py`](evaluate_wrt_control_points.py): Sparse evaluation against high-accuracy control points. For sequences that 
-  observe control points. Returns score and control point recall.
-- [`evaluate_wrt_pgt.py`](evaluate_wrt_pgt.py): Evaluation against pseudo-dense ground truth from our ground-truthing pipeline. Requires the sparse evaluation to be run first (for alignment).
-- [`evaluate_wrt_mps.py`](evaluate_wrt_mps.py): Evaluation against pseudo-dense ground truth from Machine Perception Services (MPS). For sequences that do not have control points.
-- [`example_vi_optimization.py`](example_vi_optimization.py): Example visual-inertial optimization pipeline from an estimate input file.
-
-The `lamaria/` folder forms the main package and contains modules that perform the following tasks:
-1. Converting a general input pose estimate file to a [`TimedReconstruction`](lamaria/structs/timed_reconstruction.py) object.
-2. Keyframing and triangulation on the generated `TimedReconstruction`.
-3. Loading IMU measurements, creating the [`VIReconstruction`](lamaria/structs/vi_reconstruction.py) object, and performing visual-inertial optimization.
-
-All parameters for these modules can be set/changed in [defaults.yaml](defaults.yaml).
-
-The `tools/` folder contains utility scripts for undistorting images, converting between data formats, and downloading the dataset.
-
 ## Downloading the dataset
 Our dataset is fully hosted via the archive <a href="https://cvg-data.inf.ethz.ch/lamaria/" target="_blank" rel="noopener noreferrer">here</a>.
-
-### Quickstart
-We provide a small script `quickstart.sh` that downloads data from the archive. The standalone evaluations and example visual-inertial optimization can be run on the downloaded data.
-
-```bash
-chmod +x quickstart.sh
-./quickstart.sh
-```
-
-The data is stored in the `demo/` folder. You may run the standalone evaluations and example visual-inertial optimization on this data.
-
-### Downloading LaMAria
 
 ```bash
 python -m tools.download_lamaria.py --help
@@ -117,8 +83,10 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
 - Specific sequences or entire sets (training/test).
 - Specific types:
   - Raw - Downloads raw `.vrs` files and Aria calibration file.
+  - ASL - Downloads ASL folder and pinhole calibration file.
+  - ROSbag - Downloads ROS1 bag and pinhole calibration file.
   - Pinhole - Downloads ASL folder, rosbag, and pinhole calibration file.
-  - Both - Downloads both raw and pinhole data.
+  - All - Downloads both raw and pinhole data.
 
 Ground truth files are automatically downloaded for the training sequences. 
 
@@ -128,19 +96,22 @@ Ground truth files are automatically downloaded for the training sequences.
 
 To download all training sequences in both raw and pinhole formats:
 ```bash
-python -m tools.download_lamaria --set training --type both
+python -m tools.download_lamaria --set training --type all
 ```
 To download the raw data of a specific sequence (e.g., `R_01_easy`):
 ```bash
 python -m tools.download_lamaria --sequences R_01_easy --type raw
 ```
-To download 3 custom sequences in pinhole format:
+To download 3 custom sequences in rosbag format:
 ```bash
-python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type pinhole
+python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type rosbag
+```
+To download 3 custom sequences in asl format:
+```bash
+python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type asl
 ```
 
-#### Output structure
-The downloaded data is stored in the following way:
+The downloaded raw data is stored in the following way:
 ```
 out_dir/
 └── lamaria/
@@ -148,21 +119,15 @@ out_dir/
     │   ├── R_01_easy/
     │   │   ├── aria_calibrations/
     │   │   │   └── R_01_easy.json
-    │   │   ├── asl_folder/
-    │   │   │   └── R_01_easy.zip
     │   │   ├── ground_truth/
     │   │   │   ├── pseudo_dense/
     │   │   │   │   └── R_01_easy.txt
     │   │   │   └── sparse/
     │   │   │       └── # if sequence has CPs
-    │   │   ├── pinhole_calibrations/
-    │   │   │   └── R_01_easy.json
     │   │   ├── raw_data/
     │   │   │   └── R_01_easy.vrs
-    │   │   └── rosbag/
-    │   │       └── R_01_easy.bag
     │   └── ...
-    └── test/
+    └── test/ # no ground truth
         └── sequence_1_1
 ```
 
@@ -170,11 +135,28 @@ For more information about the training and test sequences, refer to the <a href
 
 ## Evaluation
 Our training and test sequences are categorized into varying challenges. To evaluate your SLAM results on our data, we provide two main ways:
-1. **Evaluation via the website**: Upload your results on our <a href="https://lamaria.ethz.ch/login" target="_blank" rel="noopener noreferrer">website</a> to get evaluation results. Results on test sequences are displayed on the public leaderboard.
-2. **Standalone evaluation**: Run the evaluation scripts locally using the provided `lamaria` package.
+1. **Evaluation via the website**: Upload your results on our <a href="https://lamaria.ethz.ch/login" target="_blank" rel="noopener noreferrer">website</a> to get evaluation results. **All sequences can be submitted via our website.** Results on test sequences are displayed on the public [leaderboard](https://www.lamaria.ethz.ch/leaderboard).
+2. **Standalone evaluation**: Run the evaluation scripts locally using the provided `lamaria` package. These scripts can be run only on the training sequences (since ground truth is required).
+
+### Quickstart
+We provide a small script `quickstart.sh` that downloads demo data from the archive. The standalone evaluations and example visual-inertial optimization can be run on the downloaded data.
+
+```bash
+chmod +x quickstart.sh
+./quickstart.sh
+```
+
+The first sequence of the controlled experimental set (R_01_easy) and additional set (sequence_1_19) are stored in the `demo/` folder.
+
+### Input format
+The input pose estimate file must be a text file where each line corresponds to a timestamped pose in the following format:
+```
+timestamp tx ty tz qx qy qz qw
+```
+The timestamp must be in nanoseconds.
 
 ### Evaluation w.r.t. Control Points
-Those sequences that observe ground truth control points (CPs) can be evaluated w.r.t. these points. This script computes the score and control point recall based on the alignment of the estimated trajectory to the control points.
+Three sequences in the controlled experimental set and the additional set sequences can be evaluated w.r.t. control points. This script computes the score and control point recall based on the alignment of the estimated trajectory to the control points.
 
 To perform the evaluation on the downloaded demo data:
 ```bash
@@ -201,9 +183,9 @@ To perform the evaluation on the downloaded demo data:
 python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate demo/mps/R_01_easy.txt
 ```
 
-For sequences that do not have control points, this evaluation is the primary way to benchmark your SLAM results.
+This method is used to evaluate results on the controlled experimental set.
 
-## Data Conversion
+## Converting VRS to ASL/ROSbag format
 We provide some utility scripts in the `tools/` folder to convert between different data formats used in our dataset.
 
 1. Converting from `.vrs` to ASL folder format:
@@ -229,14 +211,9 @@ python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_f
 
 ## Example Visual-Inertial Optimization
 
-We provide an example visual-inertial optimization pipeline built within the `lamaria` package. This pipeline takes as input a pose estimate file (in the format described below) and `.vrs`, performs keyframing and triangulation, and optimizes the trajectory using visual and inertial residuals.
+As a byproduct of our groundtruthing pipeline, we provide an example visual-inertial optimization pipeline built within the `lamaria` package. This pipeline takes as input a pose estimate file (in the format described below) and `.vrs`, performs keyframing and triangulation, and optimizes the trajectory using visual and inertial residuals.
 
-### Input format
-The input pose estimate file is a text file where each line corresponds to a timestamped pose in the following format:
-```
-timestamp tx ty tz qx qy qz qw
-```
-The timestamp must be in nanoseconds.
+The input pose estimate file must follow the same format as described in the [input format](#input-format) section above.
 
 ### Additional Installation
 To extract images from a `.vrs` file, it is required to install the VRS Command Line Tools. Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
