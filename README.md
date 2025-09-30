@@ -94,22 +94,22 @@ Ground truth files are automatically downloaded for the training sequences.
 
 To download the raw data of a specific sequence (e.g., `R_01_easy`):
 ```bash
-python -m tools.download_lamaria --output_dir ./lamaria \
+python -m tools.download_lamaria --output_dir ./lamaria_data \
        --sequences R_01_easy --type raw
 ```
 To download 3 custom sequences in rosbag format:
 ```bash
-python -m tools.download_lamaria --ouptut_dir ./lamaria \
-       --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type rosbag
+python -m tools.download_lamaria --output_dir ./lamaria_data \
+       --sequences sequence_1_1 sequence_1_2 sequence_1_3 --type rosbag
 ```
 To download 3 custom sequences in asl format:
 ```bash
-python -m tools.download_lamaria --output_dir ./lamaria \
-       --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type asl
+python -m tools.download_lamaria --output_dir ./lamaria_data \
+       --sequences sequence_1_1 sequence_1_2 sequence_1_3 --type asl
 ```
 To download all training sequences in both raw and pinhole formats:
 ```bash
-python -m tools.download_lamaria --output_dir ./lamaria \
+python -m tools.download_lamaria --output_dir ./lamaria_data \
        --set training --type all
 ```
 
