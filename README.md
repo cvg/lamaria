@@ -100,12 +100,12 @@ python -m tools.download_lamaria --output_dir ./lamaria_data \
 To download 3 custom sequences in rosbag format:
 ```bash
 python -m tools.download_lamaria --output_dir ./lamaria_data \
-       --sequences sequence_1_1 sequence_1_2 sequence_1_3 --type rosbag
+       --sequences R_01_easy R_02_easy R_03_easy --type rosbag
 ```
 To download 3 custom sequences in asl format:
 ```bash
 python -m tools.download_lamaria --output_dir ./lamaria_data \
-       --sequences sequence_1_1 sequence_1_2 sequence_1_3 --type asl
+       --sequences R_01_easy R_02_easy R_03_easy --type asl
 ```
 To download all training sequences in both raw and pinhole formats:
 ```bash
