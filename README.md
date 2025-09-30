@@ -90,9 +90,12 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
 
 Ground truth files are automatically downloaded for the training sequences. 
 
-**💣 Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage.**
+### Data sizes
+- Raw data (vrs + aria_calibrations): ~ 890 GB
+- ASL folder + pinhole_calibrations: ~ 1.1 TB
+- ROSbag + pinhole_calibrations: ~ 1.5 TB
 
-#### Some example commands
+### Some example commands
 
 To download all training sequences in both raw and pinhole formats:
 ```bash
