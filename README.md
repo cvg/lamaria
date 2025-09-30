@@ -1,9 +1,9 @@
 <p align="center">
   <h1 align="center"><ins>The LaMAria Dataset</ins> <br>Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
   <h4 align="center">
-    Anusha&nbsp;Krishnan<sup>*</sup>, 
-    Shaohui&nbsp;Liu<sup>*</sup>,
-    Paul-Edouard&nbsp;Sarlin<sup>*</sup>,
+    <a href="https://github.com/nushakrishnan" target="_blank" rel="noopener noreferrer">Anusha&nbsp;Krishnan</a><sup>*</sup>, 
+    <a href="https://github.com/B1ueber2y" target="_blank" rel="noopener noreferrer">Shaohui&nbsp;Liu</a><sup>*</sup>,
+    <a href="https://github.com/sarlinpe" target="_blank" rel="noopener noreferrer">Paul-Edouard&nbsp;Sarlin</a><sup>*</sup>,
     Oscar&nbsp;Gentilhomme,<br>
     David&nbsp;Caruso,
     Maurizio&nbsp;Monge,
