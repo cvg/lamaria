@@ -7,6 +7,9 @@
 
 projectaria-tools[all]
 omegaconf
+evo==1.31.1
+bagpy==0.5
+cv-bridge
 scipy
 pyceres==2.6 ; python_version >= "3.9" and python_version < "3.15"
 pycolmap==3.13.0.dev0 ; python_version >= "3.9" and python_version < "3.15"
