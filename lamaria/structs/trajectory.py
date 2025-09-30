@@ -330,8 +330,8 @@ def associate_trajectories(
     shorter_traj = traj2 if first_longer else traj1
 
     short_idx, long_idx = matching_time_indices(
-        shorter_traj.timestamps,
-        longer_traj.timestamps,
+        np.array(shorter_traj.timestamps),
+        np.array(longer_traj.timestamps),
     )
     num_matches = len(long_idx)
     if num_matches == 0:
