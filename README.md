@@ -72,10 +72,9 @@ python -m pip install -e .
 Our dataset is fully hosted via the archive <a href="https://cvg-data.inf.ethz.ch/lamaria/" target="_blank" rel="noopener noreferrer">here</a>.
 
 ```bash
-python -m tools.download_lamaria.py --help
+python -m tools.download_lamaria --help
 ```
 
-For download convenience, we provide a custom script `tools/download_lamaria.py`. Using this script, you can download:
 - Specific sequences or entire sets (training/test).
 - Specific types:
   - Raw - Downloads raw `.vrs` files and Aria calibration file.
