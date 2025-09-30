@@ -38,8 +38,6 @@ This dataset offers 23 training sequences and 63 test sequences.
   <em>Figure 1: Overview of the LaMAria dataset and benchmark.</em>
 </p>
 
-In this repository, you can find scripts to conveniently download the dataset, evaluate SLAM results, perform data conversions, and run an example visual-inertial optimization pipeline.
-
 To learn more about the dataset, please visit our <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">main dataset website</a> or read our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
 
 ## Table of Contents
