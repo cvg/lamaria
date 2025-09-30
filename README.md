@@ -20,7 +20,7 @@
 </p>
 <h3 align="center">
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
-  <a href="https://drive.google.com/file/d/1RVjm1miKICqLKh2br3UYWjl8ZHc5lJiD/view?usp=sharing" target="_blank" rel="noopener noreferrer">Paper</a>
+  <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
 </h3>
 
 
@@ -53,8 +53,6 @@ To learn more about the dataset, please visit our <a href="https://lamaria.ethz.
 
 
 ## Installation
-This repository supports Python 3.9 through 3.14. Installing the package `lamaria` pulls other dependencies
-mentioned in `requirements.txt`.
 
 Create an environment:
 ```bash
@@ -88,15 +86,9 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
 Ground truth files are automatically downloaded for the training sequences. 
 
 ### Data sizes
-- Raw data (vrs + aria_calibrations): ~ 890G
-  - Training: ~ 117G
-  - Test: ~ 773G
-- ASL folder + pinhole_calibrations: ~ 1.1T
-  - Training: ~ 170G
-  - Test: ~ 884G
-- ROSbag + pinhole_calibrations: ~ 1.5T
-  - Training: ~ 247G
-  - Test: ~ 1.3T
+- Raw data (vrs + aria_calibrations): ~890G (training: ~117G + test: ~773G)
+- ASL folder + pinhole_calibrations: ~1.1T (training: ~170G + test: ~884G)
+- ROSbag + pinhole_calibrations: ~1.5T (training: ~247G + test: ~1.3T)
 
 ### Some example commands
 
@@ -144,7 +136,14 @@ Our training and test sequences are categorized into varying challenges. To eval
 1. **Evaluation via the website**: Upload your results on our <a href="https://lamaria.ethz.ch/login" target="_blank" rel="noopener noreferrer">website</a> to get evaluation results. **All sequences can be submitted via our website.** Results on test sequences are displayed on the public [leaderboard](https://www.lamaria.ethz.ch/leaderboard).
 2. **Standalone evaluation**: Run the evaluation scripts locally using the provided `lamaria` package. These scripts can be run only on the training sequences (since ground truth is required).
 
-### Quickstart
+### Input format
+The input pose estimate file must be a text file where each line corresponds to a timestamped pose in the following format:
+```
+timestamp tx ty tz qx qy qz qw
+```
+The timestamp must be in nanoseconds.
+
+### Download demo data
 We provide a small script `quickstart.sh` that downloads demo data from the archive. The standalone evaluations and example visual-inertial optimization can be run on the downloaded data.
 
 ```bash
@@ -153,13 +152,6 @@ chmod +x quickstart.sh
 ```
 
 The first sequence of the controlled experimental set (R_01_easy) and additional set (sequence_1_19) are stored in the `demo/` folder.
-
-### Input format
-The input pose estimate file must be a text file where each line corresponds to a timestamped pose in the following format:
-```
-timestamp tx ty tz qx qy qz qw
-```
-The timestamp must be in nanoseconds.
 
 ### Evaluation w.r.t. Control Points
 Three sequences in the controlled experimental set and the additional set sequences can be evaluated w.r.t. control points. This script computes the score and control point recall based on the alignment of the estimated trajectory to the control points.
@@ -228,17 +220,31 @@ As a byproduct of our groundtruthing pipeline, we provide an example visual-iner
 The input pose estimate file must follow the same format as described in the [input format](#input-format) section above.
 
 ### Additional Installation
-To extract images from a `.vrs` file, it is required to install the VRS Command Line Tools. Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
+To extract images from a `.vrs` file, it is required to install the [VRS Command Line Tools](https://facebookresearch.github.io/vrs/docs/VrsCliTool/). Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
 
 ### Running the example
 To run the example visual-inertial optimization on the downloaded demo data:
 ```bash
+./quickstart.sh
 python -m example_vi_optimization --vrs demo/vrs/sequence_1_19.vrs --output demo/vi_optim/ --estimate demo/estimate/sequence_1_19.txt
 ```
-
-### Visualizing the results
-TODO: Add viz.
-
+TODO: Add two plots and caption.
 
 
 ## BibTeX citation
+```bibtex
+@InProceedings{Krishnan_2025_ICCV,
+  author    = {Krishnan, Anusha and
+               Liu, Shaohui and
+               Sarlin, Paul-Edouard and
+               Gentilhomme, Oscar and
+               Caruso, David and
+               Monge, Maurizio and
+               Newcombe, Richard and
+               Engel, Jakob and
+               Pollefeys, Marc},
+  title     = {Benchmarking Egocentric Visual-Inertial SLAM at City Scale},
+  booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  year      = {2025}
+}
+```
