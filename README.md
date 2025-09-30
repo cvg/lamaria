@@ -22,7 +22,6 @@
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
   <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
 </h3>
-<hr>
 
 
 We present **LaMAria**, an egocentric, city-scale benchmark for **visual-inertial SLAM**, featuring 
