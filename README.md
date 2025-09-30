@@ -64,7 +64,7 @@ Install the package:
 ```bash
 git clone git@github.com:cvg/lamaria.git
 cd lamaria
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
 
@@ -92,21 +92,25 @@ Ground truth files are automatically downloaded for the training sequences.
 
 ### Some example commands
 
-To download all training sequences in both raw and pinhole formats:
-```bash
-python -m tools.download_lamaria --set training --type all
-```
 To download the raw data of a specific sequence (e.g., `R_01_easy`):
 ```bash
-python -m tools.download_lamaria --sequences R_01_easy --type raw
+python -m tools.download_lamaria --output_dir ./lamaria \
+       --sequences R_01_easy --type raw
 ```
 To download 3 custom sequences in rosbag format:
 ```bash
-python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type rosbag
+python -m tools.download_lamaria --ouptut_dir ./lamaria \
+       --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type rosbag
 ```
 To download 3 custom sequences in asl format:
 ```bash
-python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type asl
+python -m tools.download_lamaria --output_dir ./lamaria \
+       --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type asl
+```
+To download all training sequences in both raw and pinhole formats:
+```bash
+python -m tools.download_lamaria --output_dir ./lamaria \
+       --set training --type all
 ```
 
 The downloaded raw data is stored in the following way:

@@ -195,6 +195,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="LaMAria dataset downloader")
 
     group = parser.add_mutually_exclusive_group(required=False)
+    parser.add_argument(
+        "--output_dir",
+        required=True,
+        type=str,
+        help="Root output folder",
+    )
     group.add_argument(
         "--set",
         choices=["training", "test"],
@@ -217,15 +223,9 @@ if __name__ == "__main__":
         "pinhole = asl_folder + pinhole_calibrations + rosbag;"
         "all = everything",
     )
-    parser.add_argument(
-        "--out-dir",
-        default="out_dir",
-        help="Root output folder (script will create out_dir/lamaria)",
-    )
-    args = parser.parse_args()
 
-    # Root: out_dir/lamaria
-    root = Path(args.out_dir) / "lamaria"
+    args = parser.parse_args()
+    root = Path(args.output_dir)
     ensure_dir(root)
 
     print("[info] Building catalog from server…")
