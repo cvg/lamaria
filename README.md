@@ -260,7 +260,7 @@ python -m example_vi_optimization --output demo_outputs/vi_optim \
 ```
 
 ## License
-The **documentation, datasets, and other non-code content** in this repository are licensed under the
+The dataset, documentation, and other non-code content in this project are licensed under the
 [Creative Commons Attribution 4.0 International License](LICENSE-CC-BY).
 
-The **code** in this repository is licensed under the [MIT License](LICENSE).
+The code in this repository is licensed under the [MIT License](LICENSE).
