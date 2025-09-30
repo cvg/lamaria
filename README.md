@@ -165,7 +165,7 @@ python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt
        --cp_json_file demo/sequence_1_19/ground_truth/control_points/sequence_1_19.json \
        --device_calibration_json demo/sequence_1_19/aria_calibrations/sequence_1_19.json \
        --corresponding_sensor imu \
-       --output_path demo/outputs/eval_cp
+       --output_path demo_outputs/eval_cp
 ```
 
 *This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`).*
@@ -179,7 +179,7 @@ To perform the evaluation on the downloaded demo data:
 ```bash
 python -m evaluate_wrt_pgt --estimate demo/estimate/sequence_1_19.txt \
        --gt_estimate demo/sequence_1_19/ground_truth/pGT/sequence_1_19.txt \
-       --sparse_eval_result demo/outputs/eval_cp/sparse_eval_result.npy
+       --sparse_eval_result demo_outputs/eval_cp/sparse_eval_result.npy
 ```
 
 ### EVO Evaluation w.r.t MPS
@@ -233,10 +233,9 @@ The input pose estimate file must follow the same format as described in the [in
 To extract images from a `.vrs` file, it is required to install the [VRS Command Line Tools](https://facebookresearch.github.io/vrs/docs/VrsCliTool/). Please follow the instructions [here](https://github.com/facebookresearch/vrs?tab=readme-ov-file#instructions-macos-and-ubuntu-and-container) to install the library from source.
 
 ### Running the example
-To run the example visual-inertial optimization on the downloaded demo data (the intitial estimation file here is from [OpenVINS](https://docs.openvins.com/)):
+To run the example visual-inertial optimization on the demo data downloaded following [download demo data](#download-demo-data) (Here the intitial estimation file in the demo is from [OpenVINS](https://docs.openvins.com/):
 ```bash
-./quickstart.sh
-python -m example_vi_optimization --output demo/outputs/vi_optim \
+python -m example_vi_optimization --output demo_outputs/vi_optim \
        --vrs demo/R_11_5cp/raw_data/R_11_5cp.vrs \
        --estimate demo/estimate/R_11_5cp.txt
 ```
