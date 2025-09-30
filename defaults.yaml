@@ -44,5 +44,4 @@ optimization:
     acc_infl: 1.0
     integration_noise_density: 0.05
 
-use_mps_online_calibration: false # relevant only when mps folder is used
 has_slam_drops: false
