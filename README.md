@@ -110,7 +110,7 @@ The data is stored in the `demo/` folder. You may run the standalone evaluations
 ### Downloading LaMAria
 
 ```bash
-python tools/download_lamaria.py --help
+python -m tools.download_lamaria.py --help
 ```
 
 For download convenience, we provide a custom script `tools/download_lamaria.py`. Using this script, you can download:
@@ -128,15 +128,15 @@ Ground truth files are automatically downloaded for the training sequences.
 
 To download all training sequences in both raw and pinhole formats:
 ```bash
-python tools/download_lamaria.py --set training --type both
+python -m tools.download_lamaria --set training --type both
 ```
 To download the raw data of a specific sequence (e.g., `R_01_easy`):
 ```bash
-python tools/download_lamaria.py --sequences R_01_easy --type raw
+python -m tools.download_lamaria --sequences R_01_easy --type raw
 ```
 To download 3 custom sequences in pinhole format:
 ```bash
-python tools/download_lamaria.py --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type pinhole
+python -m tools.download_lamaria --sequences sequence_1_1 sequence 1_2 sequence 1_3 --type pinhole
 ```
 
 #### Output structure
@@ -208,22 +208,22 @@ We provide some utility scripts in the `tools/` folder to convert between differ
 
 1. Converting from `.vrs` to ASL folder format:
 ```bash
-python tools/convert_vrs_to_asl.py --vrs_file path/to/sequence.vrs --output_asl_folder path/to/output_asl_folder
+python -m tools.vrs_to_asl_folder --vrs_file path/to/sequence.vrs --output_asl_folder path/to/output_asl_folder
 ``` 
 
 2. Converting from ASL folder to ROS bag:
 ```bash
-python tools/asl_folder_to_rosbag.py --input_asl_folder path/to/asl_folder --output_rosbag path/to/output.bag
+python -m tools.asl_folder_to_rosbag --input_asl_folder path/to/asl_folder --output_rosbag path/to/output.bag
 ```
 
 3. Undistorting ASL folder images to PINHOLE format:
 ```bash
-python tools/undistort_asl_folder.py --calibration_file path/to/calibration.json --asl_folder path/to/asl_folder --output_asl_folder path/to/output_undistorted_asl_folder
+python -m tools.undistort_asl_folder.py --calibration_file path/to/calibration.json --asl_folder path/to/asl_folder --output_asl_folder path/to/output_undistorted_asl_folder
 ```
 
 4. Rotating ASL folder upright:
 ```bash
-python tools/rotate_asl_folder.py --asl_folder path/to/asl_folder --output_asl_folder path/to/output_upright_asl_folder
+python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_folder path/to/output_upright_asl_folder
 ```
 
 
