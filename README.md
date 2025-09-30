@@ -241,11 +241,7 @@ python -m example_vi_optimization --output demo_outputs/vi_optim \
 ```
 <p align="center">
   <img src="assets/optimized_result.png" width="250"/><br/>
-  <em>
-    <span style="color: #ff0000; font-weight: bold;">Red</span> : Optimized trajectory, 
-    <span style="color: #0000ff; font-weight: bold;">Blue</span> : Initial trajectory, 
-    <span style="color: #008000; font-weight: bold;">Green</span> : Control points
-  </em>
+  <em><span style="color: red;">Red</span>: Optimized trajectory, <span style="color: blue;">Blue</span>: Initial trajectory, <span style="color: green;">Green</span>: Control points</em>
 </p>
 
 ## BibTeX citation
