@@ -97,7 +97,6 @@ class VIOptimizerOptions:
     cam: OptCamOptions = field(default_factory=OptCamOptions)
     imu: OptIMUOptions = field(default_factory=OptIMUOptions)
     optim: OptOptions = field(default_factory=OptOptions)
-    use_mps_online_calibration: bool = False
 
     @classmethod
     def load(cls, cfg: OmegaConf | None = None) -> VIOptimizerOptions:
@@ -114,7 +113,4 @@ class VIOptimizerOptions:
             cam=cam,
             imu=imu,
             optim=optim,
-            use_mps_online_calibration=cfg.get(
-                "use_mps_online_calibration", False
-            ),
         )
