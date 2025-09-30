@@ -85,15 +85,20 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
   - Raw - Downloads raw `.vrs` files and Aria calibration file.
   - ASL - Downloads ASL folder and pinhole calibration file.
   - ROSbag - Downloads ROS1 bag and pinhole calibration file.
-  - Pinhole - Downloads ASL folder, rosbag, and pinhole calibration file.
   - All - Downloads both raw and pinhole data.
 
 Ground truth files are automatically downloaded for the training sequences. 
 
 ### Data sizes
-- Raw data (vrs + aria_calibrations): ~ 890 GB
-- ASL folder + pinhole_calibrations: ~ 1.1 TB
-- ROSbag + pinhole_calibrations: ~ 1.5 TB 
+- Raw data (vrs + aria_calibrations): ~ 890G
+  - Training: ~ 117G
+  - Test: ~ 773G
+- ASL folder + pinhole_calibrations: ~ 1.1T
+  - Training: ~ 170G
+  - Test: ~ 884G
+- ROSbag + pinhole_calibrations: ~ 1.5T
+  - Training: ~ 247G
+  - Test: ~ 1.3T
 
 ### Some example commands
 
