@@ -50,6 +50,7 @@ To learn more about the dataset, please refer to our main dataset website or our
 - [Converting VRS to ASL/ROSbag format](#converting-vrs-to-aslrosbag-format)
 - [Example Visual-Inertial Optimization](#example-visual-inertial-optimization)
 - [BibTeX Citation](#bibtex-citation)
+- [License](#license)
 
 
 ## Installation
@@ -257,3 +258,9 @@ python -m example_vi_optimization --output demo_outputs/vi_optim \
   year      = {2025}
 }
 ```
+
+## License
+The dataset, documentation, and other non-code content in this project are licensed under the
+[Creative Commons Attribution 4.0 International License](LICENSE-CC-BY).
+
+The code in this repository is licensed under the [MIT License](LICENSE).
