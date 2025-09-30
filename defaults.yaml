@@ -43,5 +43,3 @@ optimization:
     gyro_infl: 1.0
     acc_infl: 1.0
     integration_noise_density: 0.05
-
-has_slam_drops: false

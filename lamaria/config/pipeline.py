@@ -23,8 +23,6 @@ class PipelineOptions:
         default_factory=VIOptimizerOptions
     )
 
-    has_slam_drops: bool = False
-
     def load(
         self,
         yaml: Path | str,
@@ -45,8 +43,6 @@ class PipelineOptions:
         self._keyframing_options = KeyframeSelectorOptions.load(cfg.keyframing)
         self._triangulator_options = TriangulatorOptions.load(cfg.triangulation)
         self._vi_optimizer_options = VIOptimizerOptions.load(cfg.optimization)
-
-        self.has_slam_drops = cfg.get("has_slam_drops", False)
 
     # Properties for keyframing
     @property
