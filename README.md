@@ -229,11 +229,12 @@ python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_f
 
 ## Example Visual-Inertial Optimization
 
-In this section, we discuss an example visual-inertial optimization pipeline built within the `lamaria` package. This pipeline takes as input a pose estimate file (in the format described below) and `.vrs`, performs keyframing and triangulation, and optimizes the trajectory using both visual and inertial residuals.
+We provide an example visual-inertial optimization pipeline built within the `lamaria` package. This pipeline takes as input a pose estimate file (in the format described below) and `.vrs`, performs keyframing and triangulation, and optimizes the trajectory using visual and inertial residuals.
 
 ### Input format
 The input pose estimate file is a text file where each line corresponds to a timestamped pose in the following format:
-```timestamp tx ty tz qx qy qz qw
+```
+timestamp tx ty tz qx qy qz qw
 ```
 The timestamp must be in nanoseconds.
 
