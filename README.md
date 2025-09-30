@@ -162,7 +162,12 @@ python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt
 To learn more about the control points and sparse evaluation, refer to Section 4.1 and 4.2 of our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
 
 ### Evaluation w.r.t Pseudo-GT
+This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground truth from our ground-truthing pipeline. It requires the alignment obtained from the sparse evaluation (w.r.t. control points). The script computes the pose recall @ 1m and @ 5m, after aligning the estimated trajectory to the pseudo-ground truth.
 
+To perform the evaluation on the downloaded demo data:
+```bash
+python -m evaluate_wrt_pgt --estimate demo/estimate/sequence_1_19.txt --gt_estimate demo/pgt/sequence_1_19.txt --sparse_eval_result demo/eval_cp/sparse_eval_result.npy
+```
 
 ### EVO Evaluation w.r.t MPS
 This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground truth from Machine Perception Services (MPS). It computes the Absolute Trajectory Error (ATE) RMSE between the two trajectories.
