@@ -121,9 +121,9 @@ output_dir/
 │   │   ├── aria_calibrations/
 │   │   │   └── R_01_easy.json
 │   │   ├── ground_truth/
-│   │   │   ├── pseudo_dense/
+│   │   │   ├── pGT/
 │   │   │   │   └── R_01_easy.txt
-│   │   │   └── sparse/
+│   │   │   └── control_points/
 │   │   │       └── # if sequence has CPs
 │   │   ├── raw_data/
 │   │   │   └── R_01_easy.vrs

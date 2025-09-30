@@ -293,7 +293,13 @@ if __name__ == "__main__":
         for folder, sub, fname in selected:
             url = BASE_URL_DEFAULT + folder + "/" + sub + fname
             if folder == "ground_truth":
-                dest_dir = seq_root / folder / sub.rstrip("/")
+                if sub.rstrip("/") == "pseudo_dense":
+                    sub_dest = "pGT"
+                elif sub.rstrip("/") == "sparse":
+                    sub_dest = "control_points"
+                else:
+                    raise ValueError("Unsupported folder.")
+                dest_dir = seq_root / folder / sub_dest
             else:
                 dest_dir = seq_root / folder
 
