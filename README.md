@@ -188,7 +188,7 @@ This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground tr
 To perform the evaluation on the downloaded demo data:
 ```bash
 python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt \
-       --gt_estimate demo/R_01_easy/groundtruth/pGT/R_01_easy.txt
+       --gt_estimate demo/R_01_easy/ground_truth/pGT/R_01_easy.txt
 ```
 
 This method is used to evaluate results on the controlled experimental set, where the gt estimate file is built directly from the MPS estimated trajectory.
@@ -237,8 +237,8 @@ To run the example visual-inertial optimization on the downloaded demo data (the
 ```bash
 ./quickstart.sh
 python -m example_vi_optimization --output demo/outputs/vi_optim \
-       --vrs demo/sequence_1_19/raw_data/sequence_1_19.vrs \
-       --estimate demo/estimate/sequence_1_19.txt
+       --vrs demo/R_11_5cp/raw_data/R_11_5cp.vrs \
+       --estimate demo/estimate/R_11_5cp.txt
 ```
 TODO: Add two plots and caption.
 
