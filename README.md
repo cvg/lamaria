@@ -75,6 +75,7 @@ Our dataset is fully hosted via the archive <a href="https://cvg-data.inf.ethz.c
 python -m tools.download_lamaria --help
 ```
 
+We provide a downloading script [here](tools/download_lamaria.py), which can be used to download:
 - Specific sequences or entire sets (training/test).
 - Specific types:
   - Raw - Downloads raw `.vrs` files and Aria calibration file.
