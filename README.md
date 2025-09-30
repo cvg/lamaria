@@ -1,10 +1,11 @@
 <h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
 
-<h4 align="center">Anusha Krishnan*, Shaohui Liu*, Paul-Edouard Sarlin*, Oscar Gentilhomme, David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys</h4>
+<h4 align="center">
+  Anusha Krishnan<sup>*</sup>, Shaohui Liu<sup>*</sup>, Paul-Edouard Sarlin<sup>*</sup>, Oscar Gentilhomme<br>
+  David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys
+</h4>
 
-<p align="center">
-  <font size="2">*Equal contribution</font>
-</p>
+<p align="center"><small><sup>*</sup>Equal contribution</small></p>
 
 <p align="center">
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
