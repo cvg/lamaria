@@ -222,11 +222,10 @@ python -m tools.undistort_asl_folder.py --calibration_file path/to/calibration.j
 ```
 *Note: The undistortion script requires COLMAP to be installed from source. Please follow the instructions [here](https://colmap.github.io/install.html) to install the library.*
 
-4. Rotating ASL folder upright:
+<!-- 4. Rotating ASL folder upright:
 ```bash
 python -m tools.rotate_asl_folder --asl_folder path/to/asl_folder --output_asl_folder path/to/output_upright_asl_folder
-```
-
+``` -->
 
 ## Example Visual-Inertial Optimization
 
