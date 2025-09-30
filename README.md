@@ -211,7 +211,7 @@ We provide some utility scripts in the `tools/` folder to convert between differ
 python -m tools.vrs_to_asl_folder --vrs_file path/to/sequence.vrs --output_asl_folder path/to/output_asl_folder
 ``` 
 
-2. Converting from ASL folder to ROS bag:
+2. Converting from ASL folder to ROS1 bag:
 ```bash
 python -m tools.asl_folder_to_rosbag --input_asl_folder path/to/asl_folder --output_rosbag path/to/output.bag
 ```
