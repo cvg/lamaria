@@ -78,8 +78,10 @@ def run(
 
     score = calculate_control_point_score(result)
     recall = calculate_control_point_recall(result)
-    logger.info(f"Sparse Evaluation CP Score: {score:.4f}")
-    logger.info(f"Sparse Evaluation CP Recall: {recall:.4f}")
+    
+    logger.info(f"CP Score: {score:.4f}")
+    logger.info(f"CP Recall @ 1m: {recall:.4f}")
+    return True
 
 
 if __name__ == "__main__":
