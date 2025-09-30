@@ -220,6 +220,7 @@ python -m tools.asl_folder_to_rosbag --input_asl_folder path/to/asl_folder --out
 ```bash
 python -m tools.undistort_asl_folder.py --calibration_file path/to/calibration.json --asl_folder path/to/asl_folder --output_asl_folder path/to/output_undistorted_asl_folder
 ```
+*Note: The undistortion script requires COLMAP to be installed from source. Please follow the instructions [here](https://colmap.github.io/install.html) to install the library.*
 
 4. Rotating ASL folder upright:
 ```bash
