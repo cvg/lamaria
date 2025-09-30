@@ -10,9 +10,6 @@ from lamaria.config.options import (
     VIOptimizerOptions,
 )
 from lamaria.config.pipeline import PipelineOptions
-from lamaria.pipeline.data_init.mps_to_timed_reconstruction import (
-    MPSToTimedRecon,
-)
 from lamaria.pipeline.estimate_to_timed_reconstruction import (
     convert_estimate_into_timed_reconstruction,
 )
@@ -45,25 +42,6 @@ def run_estimate_to_timed_recon(
     )
     timed_recon = convert_estimate_into_timed_reconstruction(
         init_recon, traj, timestamps_to_images
-    )
-    return timed_recon
-
-
-def run_mps_to_timed_recon(
-    vrs: Path,
-    images_path: Path,
-    mps_folder: Path,
-    use_online_calibration: bool = False,
-    has_slam_drops: bool = False,
-) -> TimedReconstruction:
-    """Function to convert MPS estimate to a TimedReconstruction."""
-    timed_recon = MPSToTimedRecon(
-        use_online_calibration=use_online_calibration,
-        has_slam_drops=has_slam_drops,
-    ).convert(
-        vrs,
-        images_path,
-        mps_folder,
     )
     return timed_recon
 
@@ -125,41 +103,23 @@ def run_pipeline(
     options: PipelineOptions,
     vrs: Path,
     output_path: Path,
-    estimate: Path | None = None,
-    mps_folder: Path | None = None,
+    estimate: Path,
 ):
     if not output_path.exists():
         output_path.mkdir(parents=True, exist_ok=True)
     recon = None
 
     # Estimate to Lamaria Reconstruction
-    src = "estimate" if estimate is not None else "mps"
     image_path = output_path / "images"
     init_recon_path = output_path / "initial_recon"
     if init_recon_path.exists():
         recon = TimedReconstruction.read(init_recon_path)
     else:
-        if src == "estimate":
-            assert estimate.exists(), (
-                "Estimate path must be provided if not using MPS"
-            )
-            recon = run_estimate_to_timed_recon(
-                vrs,
-                output_path / "images",
-                estimate,
-            )
-        else:
-            assert mps_folder.exists(), (
-                "MPS folder path must be provided if using MPS"
-            )
-            recon = run_mps_to_timed_recon(
-                vrs,
-                output_path / "images",
-                mps_folder,
-                use_online_calibration=options.use_mps_online_calibration,
-                has_slam_drops=options.has_slam_drops,
-            )
-            recon.write(init_recon_path)
+        recon = run_estimate_to_timed_recon(
+            vrs,
+            output_path / "images",
+            estimate,
+        )
 
     # Keyframe Selection
     keyframe_path = output_path / "keyframes"
@@ -204,15 +164,8 @@ def run_pipeline(
     optim_model_path.mkdir(parents=True, exist_ok=True)
     # Load IMU data
     if imu_measurements is None:
-        if options.vi_optimizer_options.use_mps_online_calibration:
-            assert mps_folder is not None, (
-                "MPS folder path must be provided if using MPS"
-            )
         imu_measurements = get_imu_data_from_vrs_file(
             vrs,
-            mps_folder
-            if options.vi_optimizer_options.use_mps_online_calibration
-            else None,
         )
     recon = VIReconstruction(
         reconstruction=recon.reconstruction,
@@ -252,24 +205,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--estimate",
         type=str,
-        default=None,
-        help="Path to the input estimate file (if not using MPS).",
-    )
-    parser.add_argument(
-        "--mps_folder",
-        type=str,
-        default=None,
-        help="Path to the input MPS folder (if using MPS).",
+        required=True,
+        help="Path to the input estimate file.",
     )
     args = parser.parse_args()
-
-    # ensure either estimate or mps_folder is provided
-    if args.estimate is None and args.mps_folder is None:
-        parser.error("Either --estimate or --mps_folder must be provided.")
-    if args.estimate is not None and args.mps_folder is not None:
-        parser.error(
-            "Only one of --estimate or --mps_folder should be provided."
-        )
 
     options = PipelineOptions()
     options.load(args.config)
@@ -277,6 +216,5 @@ if __name__ == "__main__":
         options,
         Path(args.vrs),
         Path(args.output),
-        estimate=Path(args.estimate) if args.estimate else None,
-        mps_folder=Path(args.mps_folder) if args.mps_folder else None,
+        Path(args.estimate),
     )
