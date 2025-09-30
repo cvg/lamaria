@@ -1,8 +1,9 @@
 <h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
-<h4 align="center">Anusha Krishnan*, Shaohui Liu*, Paul-Edouard Sarlin*, Oscar Gentilhomme, David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys</h4>
+
+<h3 align="center">Anusha Krishnan*, Shaohui Liu*, Paul-Edouard Sarlin*, Oscar Gentilhomme, David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys</h3>
 
 <p align="center">
-  <small>*Equal contribution</small>
+  <font size="2">*Equal contribution</font>
 </p>
 
 <p align="center">
@@ -109,7 +110,7 @@ For download convenience, we provide a custom script `tools/download_lamaria.py`
 
 Ground truth files are automatically downloaded for the training sequences. 
 
-**💣 Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage 💣.**
+**💣 Please note that the full archive is very large (~3.5 TB). Download full sets only if you have sufficient storage.**
 
 #### Some example commands
 
