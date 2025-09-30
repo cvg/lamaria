@@ -181,7 +181,7 @@ To perform the evaluation on the downloaded demo data:
 python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate demo/mps/R_01_easy.txt
 ```
 
-This method is used to evaluate results on the controlled experimental set.
+The gt estimate file is built directly from the MPS estimated trajectory. This method is used to evaluate results on the controlled experimental set.
 
 ## Converting VRS to ASL/ROSbag format
 
