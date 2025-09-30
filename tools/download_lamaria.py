@@ -25,8 +25,10 @@ GT_SUBFOLDERS = ["pseudo_dense/", "sparse/"]
 
 PAYLOADS = {
     "raw": ["raw_data", "aria_calibrations"],
+    "asl": ["asl_folder", "pinhole_calibrations"],
+    "rosbag": ["rosbag", "pinhole_calibrations"],
     "pinhole": ["asl_folder", "pinhole_calibrations", "rosbag"],
-    "both": [
+    "all": [
         "raw_data",
         "aria_calibrations",
         "asl_folder",
@@ -206,9 +208,14 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--type",
-        choices=["raw", "pinhole", "both"],
+        choices=["raw", "asl", "rosbag", "pinhole", "all"],
         required=True,
-        help="Which data to fetch",
+        help="Type of data to fetch: "
+        "raw = raw_data + aria_calibrations; "
+        "asl = asl_folder + pinhole_calibrations; "
+        "rosbag = rosbag + pinhole_calibrations; "
+        "pinhole = asl_folder + pinhole_calibrations + rosbag;"
+        "all = everything",
     )
     parser.add_argument(
         "--out-dir",
