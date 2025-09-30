@@ -191,7 +191,8 @@ This method is used to evaluate results on the controlled experimental set.
 ## Converting VRS to ASL/ROSbag format
 
 <details>
-<summary>Click to expand instructions</summary>
+<summary>Expand</summary>
+<br>
 We provide some utility scripts in the `tools/` folder to convert between different data formats used in our dataset.
 
 1. Converting from `.vrs` to ASL folder format:
