@@ -1,16 +1,28 @@
-<h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
-
-<h4 align="center">
-  Anusha Krishnan<sup>*</sup>, Shaohui Liu<sup>*</sup>, Paul-Edouard Sarlin<sup>*</sup>, Oscar Gentilhomme<br>
-  David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys
-</h4>
-
-<p align="center"><small><sup>*</sup>Equal contribution</small></p>
-
 <p align="center">
+  <h1 align="center"><ins>The LaMAria Dataset</ins> <br>Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
+  <h4 align="center">
+    Anusha&nbsp;Krishnan<sup>*</sup>, 
+    Shaohui&nbsp;Liu<sup>*</sup>,
+    Paul-Edouard&nbsp;Sarlin<sup>*</sup>,
+    Oscar&nbsp;Gentilhomme,<br>
+    David&nbsp;Caruso,
+    Maurizio&nbsp;Monge,
+    Richard&nbsp;Newcombe,
+    Jakob&nbsp;Engel,
+    Marc&nbsp;Pollefeys
+  </h4>
+  <p align="center">
+  <sup>*</sup>Equal contribution
+  </p>
+  <p align="center">
+    <img src="assets/iccv_logo.png" width="160"/><br/>
+  </p>
+</p>
+<h3 align="center">
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
   <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
-</p>
+</h3>
+<hr>
 
 
 We present **LaMAria**, an egocentric, city-scale benchmark for **visual-inertial SLAM**, featuring 
