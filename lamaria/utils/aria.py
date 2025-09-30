@@ -423,7 +423,9 @@ def get_imu_data_from_vrs(
         device_calib = vrs_provider.get_device_calibration()
         calibration = device_calib.get_imu_calib(imu_stream_label)
 
-    ms = pycolmap.ImuMeasurements()
+    # Note: the bottleneck of the following code is vrs_provider.get_imu_data_by_time_ns.
+    # This should be very fast when a parallel getter for multiple timestamps is available.
+    ms = []
     for timestamp in tqdm(imu_timestamps, desc="Loading rect IMU data"):
         if mps_folder is not None:
             quantized_timestamp = timestamp // int(1e6)
@@ -452,11 +454,11 @@ def get_imu_data_from_vrs(
                 imu_data.gyro_radsec
             )
             ts = float(timestamp) / 1e9  # convert to seconds
-            ms.insert(
+            ms.append(
                 pycolmap.ImuMeasurement(ts, rectified_acc, rectified_gyro)
             )
 
-    return ms
+    return pycolmap.ImuMeasurements(ms)
 
 
 def get_imu_data_from_vrs_file(
