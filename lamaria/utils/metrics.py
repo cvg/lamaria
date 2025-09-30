@@ -97,7 +97,7 @@ def calculate_pose_recall(
     """Calculate the percentage of poses within a certain error threshold."""
     if len(error) == 0 or num_poses_gt == 0:
         return 0.0
-    
+
     num_poses_within_threshold = np.sum(error <= threshold)
 
     pose_recall = (num_poses_within_threshold / num_poses_gt) * 100
