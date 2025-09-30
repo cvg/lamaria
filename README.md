@@ -236,13 +236,9 @@ To extract images from a `.vrs` file, it is required to install the [VRS Command
 To run an example visual-inertial optimization on the demo data downloaded following [download demo data](#download-demo-data) (Here the intitial estimation file in the demo is from a run of [OpenVINS](https://docs.openvins.com/)):
 ```bash
 python -m example_vi_optimization --output demo_outputs/vi_optim \
-       --vrs demo/sequence_1_19/raw_data/sequence_1_19.vrs \
-       --estimate demo/estimate/sequence_1_19.txt
+       --vrs demo/sequence_1_18/raw_data/sequence_1_18.vrs \
+       --estimate demo/estimate/sequence_1_18.txt
 ```
-<p align="center">
-  <img src="assets/optimized_result.png" width="250"/><br/>
-  <em><span style="color: red;">Red</span>: Optimized trajectory, <span style="color: blue;">Blue</span>: Initial trajectory, <span style="color: green;">Green</span>: Control points</em>
-</p>
 
 ## BibTeX citation
 ```bibtex
