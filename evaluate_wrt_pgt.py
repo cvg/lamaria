@@ -55,9 +55,10 @@ def run(
         logger.error("pGT evaluation failed.")
         return False
 
-    pose_recall_5m = calculate_pose_recall(error, len(gt_traj), threshold=5.0)
+    for threshold in [1.0, 5.0]:
+        pose_recall = calculate_pose_recall(error, len(gt_traj), threshold)
+        logger.info(f"Pose Recall @ {threshold}m: {pose_recall:.4f}")
 
-    logger.info(f"Pose Recall @ 5m: {pose_recall_5m:.4f}")
     return True
 
 
