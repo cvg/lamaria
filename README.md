@@ -1,4 +1,15 @@
-<h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h2>
+<h1 align="center">Benchmarking Egocentric Visual-Inertial SLAM at City Scale</h1>
+<h4 align="center">Anusha Krishnan*, Shaohui Liu*, Paul-Edouard Sarlin*, Oscar Gentilhomme, David Caruso, Maurizio Monge, Richard Newcombe, Jakob Engel, Marc Pollefeys</h4>
+
+<p align="center">
+  <small>*Equal contribution</small>
+</p>
+
+<p align="center">
+  <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
+  <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
+</p>
+
 
 We present **LaMAria**, an egocentric, city-scale benchmark for **visual-inertial SLAM**, featuring 
 ~ **22 hours / 70 km** of trajectories with survey-grade control points providing **centimeter-accurate ground truth**.
