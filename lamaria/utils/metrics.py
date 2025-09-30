@@ -87,3 +87,18 @@ def calculate_error(result: SparseEvalResult) -> np.ndarray:
     assert len(error_2d) == len(result.cp_summary), "Error length mismatch"
 
     return np.array(error_2d)
+
+
+def calculate_pose_recall(
+    error: np.ndarray,
+    num_poses_gt: int,
+    threshold: float = 1.0,  # meters
+):
+    """Calculate the percentage of poses within a certain error threshold."""
+    if len(error) == 0 or num_poses_gt == 0:
+        return 0.0
+    
+    num_poses_within_threshold = np.sum(error <= threshold)
+
+    pose_recall = (num_poses_within_threshold / num_poses_gt) * 100
+    return pose_recall
