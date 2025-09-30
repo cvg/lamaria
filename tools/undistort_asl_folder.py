@@ -158,13 +158,13 @@ if __name__ == "__main__":
         help="Path to Aria calibration json file",
     )
     parser.add_argument(
-        "--asl_path",
+        "--asl_folder",
         type=Path,
         required=True,
         help="Path to input Aria distorted ASL folder",
     )
     parser.add_argument(
-        "--output_asl_path",
+        "--output_asl_folder",
         type=Path,
         required=True,
         help="Path to output undistorted ASL folder",
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 
     undistort_asl(
         args.calibration_file,
-        args.asl_path,
-        args.output_asl_path,
+        args.asl_folder,
+        args.output_asl_folder,
         ratio_blank_pixels=args.ratio_blank_pixels,
     )
