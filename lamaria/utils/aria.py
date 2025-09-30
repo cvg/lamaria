@@ -423,8 +423,8 @@ def get_imu_data_from_vrs(
         device_calib = vrs_provider.get_device_calibration()
         calibration = device_calib.get_imu_calib(imu_stream_label)
 
-    # Note: the bottleneck of the following code is vrs_provider.get_imu_data_by_time_ns.
-    # This should be very fast when a parallel getter for multiple timestamps is available.
+    # The bottleneck of the code below is vrs_provider.get_imu_data_by_time_ns.
+    # This can be very fast when a getter for multiple timestamps is available.
     ms = []
     for timestamp in tqdm(imu_timestamps, desc="Loading rect IMU data"):
         if mps_folder is not None:
