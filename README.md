@@ -204,7 +204,27 @@ python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate 
 For sequences that do not have control points, this evaluation is the primary way to benchmark your SLAM results.
 
 ## Data Conversion
+We provide some utility scripts in the `tools/` folder to convert between different data formats used in our dataset.
 
+1. Converting from `.vrs` to ASL folder format:
+```bash
+python tools/convert_vrs_to_asl.py --vrs_file path/to/sequence.vrs --output_asl_folder path/to/output_asl_folder
+``` 
+
+2. Converting from ASL folder to ROS bag:
+```bash
+python tools/asl_folder_to_rosbag.py --input_asl_folder path/to/asl_folder --output_rosbag path/to/output.bag
+```
+
+3. Undistorting ASL folder images to PINHOLE format:
+```bash
+python tools/undistort_asl_folder.py --calibration_file path/to/calibration.json --asl_folder path/to/asl_folder --output_asl_folder path/to/output_undistorted_asl_folder
+```
+
+4. Rotating ASL folder upright:
+```bash
+python tools/rotate_asl_folder.py --asl_folder path/to/asl_folder --output_asl_folder path/to/output_upright_asl_folder
+```
 
 
 ## Example Visual-Inertial Optimization
