@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from omegaconf import DictConfig, OmegaConf
@@ -23,7 +23,6 @@ class PipelineOptions:
         default_factory=VIOptimizerOptions
     )
 
-    use_mps_online_calibration: bool = False
     has_slam_drops: bool = False
 
     def load(
@@ -47,9 +46,6 @@ class PipelineOptions:
         self._triangulator_options = TriangulatorOptions.load(cfg.triangulation)
         self._vi_optimizer_options = VIOptimizerOptions.load(cfg.optimization)
 
-        self.use_mps_online_calibration = cfg.get(
-            "use_mps_online_calibration", False
-        )
         self.has_slam_drops = cfg.get("has_slam_drops", False)
 
     # Properties for keyframing
@@ -65,7 +61,4 @@ class PipelineOptions:
     # Properties for visual-inertial optimization
     @property
     def vi_optimizer_options(self) -> VIOptimizerOptions:
-        return replace(
-            self._vi_optimizer_options,
-            use_mps_online_calibration=self.use_mps_online_calibration,
-        )
+        return self._vi_optimizer_options
