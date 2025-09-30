@@ -78,7 +78,7 @@ def run(
 
     score = calculate_control_point_score(result)
     recall = calculate_control_point_recall(result)
-    
+
     logger.info(f"CP Score: {score:.4f}")
     logger.info(f"CP Recall @ 1m: {recall:.4f}")
     return True
