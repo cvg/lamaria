@@ -38,7 +38,7 @@ This dataset offers 23 training sequences and 63 test sequences.
   <em>Figure 1: Overview of the LaMAria dataset and benchmark.</em>
 </p>
 
-To learn more about the dataset, please visit our <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">main dataset website</a> or read our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
+To learn more about the dataset, please visit our main dataset website or read our paper.
 
 ## Table of Contents
 - [Installation](#installation)
@@ -163,7 +163,7 @@ python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt
 
 *This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`).*
 
-To learn more about the control points and sparse evaluation, refer to Section 4.1 and 4.2 of our <a href="" target="_blank" rel="noopener noreferrer">paper</a>.
+To learn more about the control points and sparse evaluation, refer to Section 4.1 and 4.2 of our paper.
 
 ### Evaluation w.r.t Pseudo-GT
 This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground truth from our ground-truthing pipeline. It requires the alignment obtained from the sparse evaluation (w.r.t. control points). The script computes the pose recall @ 1m and @ 5m, after aligning the estimated trajectory to the pseudo-ground truth.
@@ -181,7 +181,7 @@ To perform the evaluation on the downloaded demo data:
 python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt --gt_estimate demo/mps/R_01_easy.txt
 ```
 
-The gt estimate file is built directly from the MPS estimated trajectory. This method is used to evaluate results on the controlled experimental set.
+This method is used to evaluate results on the controlled experimental set, where the gt estimate file is built directly from the MPS estimated trajectory.
 
 ## Converting VRS to ASL/ROSbag format
 
