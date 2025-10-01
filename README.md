@@ -240,6 +240,10 @@ python -m example_vi_optimization --output demo_outputs/vi_optim \
        --vrs demo/sequence_1_18/raw_data/sequence_1_18.vrs \
        --estimate demo/estimate/sequence_1_18.txt
 ```
+<p align="center">
+  <img src="assets/optimized_result_colmap.png" width="300"/><br/>
+  <em>Figure 2: Optimized trajectory in COLMAP visualizer</em>
+</p>
 
 ## BibTeX citation
 ```bibtex
