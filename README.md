@@ -20,7 +20,7 @@
 </p>
 <h3 align="center">
   <a href="https://lamaria.ethz.ch" target="_blank" rel="noopener noreferrer">Website</a> |
-  <a href="" target="_blank" rel="noopener noreferrer">Paper</a>
+  <a href="http://arxiv.org/pdf/2509.26639" target="_blank">Paper</a>
 </h3>
 
 
