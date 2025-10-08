@@ -78,7 +78,7 @@ def setup_manifolds_and_constraints(
                 pyceres.SubsetManifold(9, constant_idxs),
             )
 
-    # IMU sensor is the reference frame, keeping identity tranformation constant
+    # IMU sensor is the reference frame, keeping identity transformation constant
     problem.set_parameter_block_constant(session.imu_from_rig.rotation.quat)
     problem.set_parameter_block_constant(session.imu_from_rig.translation)
 
