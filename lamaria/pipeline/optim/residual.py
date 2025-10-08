@@ -61,8 +61,6 @@ def setup_manifolds_and_constraints(
     problem,
 ):
     """Setup manifolds and parameter constraints"""
-    problem.set_parameter_block_constant(session.imu_from_rig.rotation.quat)
-    problem.set_parameter_block_constant(session.imu_from_rig.translation)
 
     # Apply optimization constraints based on configuration
     if not imu_options.optimize_scale:
@@ -79,5 +77,8 @@ def setup_manifolds_and_constraints(
                 session.imu_states[frame_id].data,
                 pyceres.SubsetManifold(9, constant_idxs),
             )
+
+    problem.set_parameter_block_constant(session.imu_from_rig.rotation.quat)
+    problem.set_parameter_block_constant(session.imu_from_rig.translation)
 
     return problem
