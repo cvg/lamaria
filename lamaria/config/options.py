@@ -79,7 +79,6 @@ class OptIMUOptions:
 
     optimize_scale: bool = False
     optimize_gravity: bool = False
-    optimize_imu_from_rig: bool = False
     optimize_bias: bool = False
 
 
