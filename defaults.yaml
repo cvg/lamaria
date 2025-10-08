@@ -1,4 +1,3 @@
-# Default configuration for run_pipeline.py
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
@@ -38,7 +37,6 @@ optimization:
   imu:
     optimize_scale: false
     optimize_gravity: false
-    optimize_imu_from_rig: false
     optimize_bias: true
     gyro_infl: 1.0
     acc_infl: 1.0

@@ -61,19 +61,15 @@ def setup_manifolds_and_constraints(
     problem,
 ):
     """Setup manifolds and parameter constraints"""
-    problem.set_manifold(session.gravity, pyceres.SphereManifold(3))
-    problem.set_manifold(
-        session.imu_from_rig.rotation.quat, pyceres.EigenQuaternionManifold()
-    )
 
     # Apply optimization constraints based on configuration
     if not imu_options.optimize_scale:
         problem.set_parameter_block_constant(session.log_scale)
     if not imu_options.optimize_gravity:
         problem.set_parameter_block_constant(session.gravity)
-    if not imu_options.optimize_imu_from_rig:
-        problem.set_parameter_block_constant(session.imu_from_rig.rotation.quat)
-        problem.set_parameter_block_constant(session.imu_from_rig.translation)
+    else:
+        problem.set_manifold(session.gravity, pyceres.SphereManifold(3))
+
     if not imu_options.optimize_bias:
         constant_idxs = np.arange(3, 9)
         for frame_id in session.imu_states:
@@ -81,5 +77,9 @@ def setup_manifolds_and_constraints(
                 session.imu_states[frame_id].data,
                 pyceres.SubsetManifold(9, constant_idxs),
             )
+
+    # IMU sensor is the reference frame, keeping identity tranformation constant
+    problem.set_parameter_block_constant(session.imu_from_rig.rotation.quat)
+    problem.set_parameter_block_constant(session.imu_from_rig.translation)
 
     return problem
