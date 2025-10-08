@@ -1,4 +1,3 @@
-# Default configuration for run_pipeline.py
 keyframing:
   max_rotation: 20.0
   max_distance: 1.0
