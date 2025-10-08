@@ -69,7 +69,7 @@ def setup_manifolds_and_constraints(
         problem.set_parameter_block_constant(session.gravity)
     else:
         problem.set_manifold(session.gravity, pyceres.SphereManifold(3))
-    
+
     if not imu_options.optimize_bias:
         constant_idxs = np.arange(3, 9)
         for frame_id in session.imu_states:
