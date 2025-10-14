@@ -244,14 +244,19 @@ class Trajectory:
 
         image_id = 1
         # imu is the rig in this reconstruction
-        rig = reconstruction.rig(rig_id=1)
+        imu_id = 1
+        left_camera_id = 2
+        right_camera_id = 3
+
+        rig = reconstruction.rig(rig_id=imu_id)
 
         if self.corresponding_sensor == "imu":
             transform = pycolmap.Rigid3d()
         else:
             # left camera poses are provided
             # sensor_from_rig == cam0_from_imu
-            transform = rig.sensor_from_rig(sensor_id=2)
+            left_camera = reconstruction.cameras[left_camera_id]
+            transform = rig.sensor_from_rig(sensor_id=left_camera.sensor_id)
 
         for i, (timestamp, pose) in tqdm(
             enumerate(pose_data),
@@ -276,8 +281,8 @@ class Trajectory:
             images_to_add = []
 
             for label, camera_id in [
-                (LEFT_CAMERA_STREAM_LABEL, 2),
-                (RIGHT_CAMERA_STREAM_LABEL, 3),
+                (LEFT_CAMERA_STREAM_LABEL, left_camera_id),
+                (RIGHT_CAMERA_STREAM_LABEL, right_camera_id),
             ]:
                 source_timestamps = timestamp_to_images[label]["sorted_keys"]
                 # offsets upto 1 ms (1e6 ns)
