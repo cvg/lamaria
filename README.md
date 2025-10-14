@@ -169,7 +169,7 @@ python -m evaluate_wrt_control_points --estimate demo/estimate/sequence_1_19.txt
        --output_path demo_outputs/eval_cp
 ```
 
-*This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`).*
+*This command evaluates the provided estimate w.r.t. control points and stores the results in `demo/eval_cp`. The `--corresponding_sensor` flag indicates which sensor the poses are expressed in (e.g., `imu` or `cam0`). Note that the evaluation by default assumes that the estimate file corresponds to the IMU poses.*
 
 To learn more about the control points and sparse evaluation, refer to Section 4.1 and 4.2 of our paper.
 
