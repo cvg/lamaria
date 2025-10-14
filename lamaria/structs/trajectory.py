@@ -251,7 +251,8 @@ class Trajectory:
         else:
             # left camera poses are provided
             # sensor_from_rig == cam0_from_imu
-            transform = rig.sensor_from_rig(sensor_id=2)
+            left_camera = reconstruction.cameras[2]
+            transform = rig.sensor_from_rig(sensor_id=left_camera.sensor_id)
 
         for i, (timestamp, pose) in tqdm(
             enumerate(pose_data),
