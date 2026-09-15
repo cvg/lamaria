@@ -99,7 +99,7 @@ def add_residuals_for_sparse_eval(
     loss = pyceres.TrivialLoss()
 
     for tag_id, cp in variables.control_points.items():
-        tri = cp.triangulated
+        tri = copy.deepcopy(cp.triangulated)
         if tri is None:
             logger.info(f"Control point {tag_id} not triangulated")
             continue
@@ -131,7 +131,7 @@ def add_residuals_for_sparse_eval(
             cost,
             loss,
             [
-                cp.triangulated,
+                tri,
                 variables.sim3d.rotation.quat,
                 variables.sim3d.translation,
                 variables.log_scale,
