@@ -182,6 +182,12 @@ class SparseEvalResult:
             logger.error(f"Missing key in data: {e}")
             return None
 
+        # save_as_npy stores the summaries as dicts via asdict
+        cp_summary = {
+            tag_id: ControlPointSummary(**summary)
+            for tag_id, summary in cp_summary.items()
+        }
+
         return cls(cp_summary=cp_summary, alignment=alignment)
 
     def save_as_npy(self, path: Path) -> None:
