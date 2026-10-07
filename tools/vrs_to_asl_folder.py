@@ -42,10 +42,14 @@ def remove_images_when_slam_drops(
     assert len(original_right_images) == len(right_timestamps)
 
     left_camera_mapping = {
-        ts: img for ts, img in zip(left_timestamps, original_left_images)
+        ts: img
+        for ts, img in zip(left_timestamps, original_left_images, strict=False)
     }
     right_camera_mapping = {
-        ts: img for ts, img in zip(right_timestamps, original_right_images)
+        ts: img
+        for ts, img in zip(
+            right_timestamps, original_right_images, strict=False
+        )
     }
 
     matched_left_ts = [left_ts for left_ts, _ in matched_timestamps]
@@ -99,7 +103,7 @@ def rename_images_in_folder(
                     {len(image_timestamps)} in {subfolder_path}"
             )
 
-        for ts, img in zip(image_timestamps, original_images):
+        for ts, img in zip(image_timestamps, original_images, strict=False):
             old_image_path = subfolder_path / img
             new_image_path = subfolder_path / f"{ts}{image_extension}"
             os.rename(old_image_path, new_image_path)
@@ -120,7 +124,7 @@ def write_image_csv(image_timestamps, cam_folder):
     images = sorted(images, key=lambda img: int(img.split(".")[0]))
 
     assert len(images) == len(image_timestamps)
-    for ts, img in zip(image_timestamps, images):
+    for ts, img in zip(image_timestamps, images, strict=False):
         assert int(img.split(".")[0]) == ts, f"{img} != {ts}"
 
     data_csv = os.path.join(cam_folder, "data.csv")
@@ -129,7 +133,7 @@ def write_image_csv(image_timestamps, cam_folder):
 
     with open(data_csv, "w", newline="") as f:
         writer = csv.writer(f)
-        for timestamp, image in zip(image_timestamps, images):
+        for timestamp, image in zip(image_timestamps, images, strict=False):
             row = [timestamp, image]
             writer.writerow(row)
 
