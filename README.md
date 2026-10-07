@@ -176,6 +176,8 @@ To learn more about the control points and sparse evaluation, refer to Section 4
 ### Evaluation w.r.t Pseudo-GT
 This script evaluates the estimated trajectory w.r.t. the pseudo-dense ground truth from our ground-truthing pipeline. It requires the alignment obtained from the sparse evaluation (w.r.t. control points). The script computes the pose recall @ 1m and @ 5m, after aligning the estimated trajectory to the pseudo-ground truth.
 
+Pose recall uses all input pseudo-GT keyframes as the denominator; missing estimates count as unrecalled.
+
 To perform the evaluation on the downloaded demo data:
 ```bash
 python -m evaluate_wrt_pgt --estimate demo/estimate/sequence_1_19.txt \
