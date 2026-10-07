@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 import pycolmap
@@ -88,8 +89,9 @@ if __name__ == "__main__":
         "Result of `evaluate_wrt_control_points`.",
     )
     args = parser.parse_args()
-    _ = run(
+    success = run(
         args.estimate,
         args.gt_estimate,
         args.sparse_eval_result,
     )
+    sys.exit(0 if success else 1)

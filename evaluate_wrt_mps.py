@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 from lamaria import logger
@@ -61,7 +62,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    run(
+    success = run(
         args.estimate,
         args.gt_estimate,
     )
+    sys.exit(0 if success else 1)

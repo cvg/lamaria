@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 from lamaria import logger
@@ -123,10 +124,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    _ = run(
+    success = run(
         args.estimate,
         args.cp_json_file,
         args.device_calibration_json,
         args.output_path,
         args.corresponding_sensor,
     )
+    sys.exit(0 if success else 1)
