@@ -1,0 +1,49 @@
+name: Tests
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ assigned, opened, synchronize, reopened ]
+
+jobs:
+  test:
+    name: Evaluation tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Only the dependencies of the evaluation code are installed. The
+      # pins mirror requirements.txt; hloc and the ROS tooling are not
+      # needed by the tests.
+      - name: Install evaluation dependencies
+        run: |
+          set +x -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install \
+            --find-links https://cvg-data.inf.ethz.ch/lamaria/packages/pycolmap/ \
+            "pycolmap==3.13.0.dev0" \
+            "pyceres==2.6" \
+            "evo==1.31.1" \
+            projectaria-tools \
+            scipy \
+            tqdm \
+            pytest
+
+      - name: Run tests
+        run: python -m pytest tests -v

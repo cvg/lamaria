@@ -47,6 +47,7 @@ To learn more about the dataset, please refer to our main dataset website or our
   - [Evaluation w.r.t. Control Points](#evaluation-wrt-control-points)
   - [Evaluation w.r.t. Pseudo-GT](#evaluation-wrt-pseudo-gt)
   - [EVO Evaluation w.r.t. MPS](#evo-evaluation-wrt-mps)
+  - [Running the tests](#running-the-tests)
 - [Converting VRS to ASL/ROSbag format](#converting-vrs-to-aslrosbag-format)
 - [Example Visual-Inertial Optimization](#example-visual-inertial-optimization)
 - [BibTeX Citation](#bibtex-citation)
@@ -195,6 +196,12 @@ python -m evaluate_wrt_mps --estimate demo/estimate/R_01_easy.txt \
 ```
 
 This method is used to evaluate results on the controlled experimental set, where the gt estimate file is built directly from the MPS estimated trajectory.
+
+### Running the tests
+The evaluation code is covered by tests in `tests/`. They build a small synthetic scene (a stereo rig moving past a wall of control points) so no dataset download is needed, and they run in CI on every pull request. To run them locally:
+```bash
+python -m pytest tests
+```
 
 ## Converting VRS to ASL/ROSbag format
 
