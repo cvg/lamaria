@@ -58,7 +58,7 @@ def _match_estimate_ts_to_images(
 
         matched_images.append(images[best])
         matched_timestamps.append(left_ts[best])
-    return dict(zip(matched_timestamps, matched_images))
+    return dict(zip(matched_timestamps, matched_images, strict=False))
 
 
 def convert_estimate_into_timed_reconstruction(
@@ -83,7 +83,7 @@ def convert_estimate_into_timed_reconstruction(
     image_id = 1
     frame_id_to_timestamp = dict()
     for frame_id, (pose, timestamp) in enumerate(
-        zip(estimate.poses, timestamps)
+        zip(estimate.poses, timestamps, strict=False)
     ):
         frame = pycolmap.Frame()
         frame.rig_id = 1

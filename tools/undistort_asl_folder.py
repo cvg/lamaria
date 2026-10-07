@@ -105,7 +105,9 @@ def undistort_asl(
             image_id += 1
             colmap_images[key].append(im)
 
-    zipped_images = list(zip(*[colmap_images[key] for key, _ in ARIA_CAMERAS]))
+    zipped_images = list(
+        zip(*[colmap_images[key] for key, _ in ARIA_CAMERAS], strict=False)
+    )
 
     for j, (left_im, right_im) in enumerate(
         tqdm(

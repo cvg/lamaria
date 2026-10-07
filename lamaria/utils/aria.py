@@ -601,10 +601,10 @@ def extract_images_with_timestamps_from_vrs(
     right_img_dir = images_path / "right"
     left_images = _image_names_from_folder(left_img_dir, left_img_dir)
     right_images = _image_names_from_folder(right_img_dir, right_img_dir)
-    images = list(zip(left_images, right_images))
+    images = list(zip(left_images, right_images, strict=False))
 
     # Create a map
     assert len(left_ts) == len(images), (
         "timestamps should have the same length as images"
     )
-    return dict(zip(left_ts, images))
+    return dict(zip(left_ts, images, strict=False))

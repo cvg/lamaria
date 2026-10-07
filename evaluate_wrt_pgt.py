@@ -50,6 +50,7 @@ def run(
         logger.error("No valid Sim3d found in SparseEvalResult")
         return False
 
+    num_poses_gt = len(gt_traj)
     error = evaluate_wrt_pgt(est_traj, gt_traj, sim3d)
 
     if error is None:
@@ -57,7 +58,7 @@ def run(
         return False
 
     for threshold in [1.0, 5.0]:
-        pose_recall = calculate_pose_recall(error, len(gt_traj), threshold)
+        pose_recall = calculate_pose_recall(error, num_poses_gt, threshold)
         logger.info(f"Pose Recall @ {threshold}m: {pose_recall:.4f}")
 
     return True
