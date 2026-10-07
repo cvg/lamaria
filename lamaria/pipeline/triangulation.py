@@ -54,7 +54,7 @@ def pairs_from_frames(recon: pycolmap.Reconstruction):
 
     adj_pairs = set()
     for _, seq in by_index.items():
-        for a, b in zip(seq[:-1], seq[1:]):
+        for a, b in zip(seq[:-1], seq[1:], strict=False):
             adj_pairs.add((a, b))
 
     return frame_pairs, adj_pairs

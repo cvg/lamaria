@@ -54,7 +54,7 @@ class KeyframeSelector:
         new_frame_id = 1
 
         for i, (prev, curr) in enumerate(
-            zip(init_frame_ids[:-1], init_frame_ids[1:])
+            zip(init_frame_ids[:-1], init_frame_ids[1:], strict=False)
         ):
             if i == 0:
                 self.keyframe_frame_ids[new_frame_id] = prev

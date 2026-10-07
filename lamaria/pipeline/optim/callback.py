@@ -25,7 +25,9 @@ class RefinementCallback(pyceres.IterationCallback):
         if not summary.step_is_successful:
             return pyceres.CallbackReturnType.SOLVER_CONTINUE
         diff = []
-        for pose_prev, pose in zip(self.poses_previous, self.poses):
+        for pose_prev, pose in zip(
+            self.poses_previous, self.poses, strict=False
+        ):
             pose_rel = pose_prev * pose.inverse()
             q_rel, t_rel = pose_rel.rotation.quat, pose_rel.translation
             dr = np.rad2deg(
