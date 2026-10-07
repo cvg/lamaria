@@ -346,7 +346,4 @@ def associate_trajectories(
     longer_traj.filter_from_indices(long_idx)
     shorter_traj.filter_from_indices(short_idx)
 
-    traj1 = traj1 if first_longer else traj2
-    traj2 = traj2 if first_longer else traj1
-
     return traj1, traj2
