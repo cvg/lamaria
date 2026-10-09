@@ -47,7 +47,7 @@ def estimate_initial_alignment_from_control_points(
 def evaluate_wrt_control_points(
     reconstruction: pycolmap.Reconstruction,
     control_points: ControlPoints,
-) -> SparseEvalResult | None:
+) -> SparseEvalResult:
     """
     Evaluate the trajectory with respect to control points.
 
@@ -55,10 +55,12 @@ def evaluate_wrt_control_points(
         reconstruction (pycolmap.Reconstruction): Reconstruction object
         which contains the estimated poses.
         control_points (ControlPoints): Control points dictionary.
-        output_path (Path): Directory where results will be saved.
 
     Returns:
-        sparse_npy_path (Path): Path to the saved SparseEvalResult .npy file.
+        result (SparseEvalResult): The alignment and the control point
+            summary. If the alignment could not be estimated (e.g. too few
+            control points were triangulated), ``result.alignment`` is None
+            and every control point counts as a miss.
     """
 
     robust_sim3d = estimate_initial_alignment_from_control_points(
@@ -66,8 +68,16 @@ def evaluate_wrt_control_points(
     )
 
     if robust_sim3d is None:
-        logger.error("Robust Sim3d estimation failed")
-        return None
+        logger.warning(
+            "Robust Sim3d estimation failed, "
+            "every control point counts as a miss"
+        )
+        return SparseEvalResult(
+            alignment=None,
+            cp_summary={
+                tag_id: cp.summary() for tag_id, cp in control_points.items()
+            },
+        )
 
     variables = SparseEvalVariables.create_from_inputs(
         control_points,

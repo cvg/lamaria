@@ -68,11 +68,15 @@ def calculate_control_point_recall(
 
 
 def calculate_error(result: SparseEvalResult) -> np.ndarray:
-    """Calculate 2D errors from SparseEvalResult"""
-    sim3d = result.alignment  # sim3d cannot be None here
+    """Calculate 2D errors from SparseEvalResult.
+
+    Control points that were not triangulated get a NaN error. Without an
+    alignment no control point can be scored, so all errors are NaN.
+    """
+    sim3d = result.alignment
     if not isinstance(sim3d, pycolmap.Sim3d):
-        logger.error("No valid Sim3d found in SparseEvalResult")
-        return np.array([])
+        logger.warning("No valid Sim3d found in SparseEvalResult")
+        return np.full(len(result.cp_summary), np.nan)
 
     error_2d = []
     for _, cp in result.cp_summary.items():

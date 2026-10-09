@@ -2,6 +2,7 @@ import argparse
 import sys
 from pathlib import Path
 
+import numpy as np
 import pycolmap
 
 from lamaria import logger
@@ -45,17 +46,20 @@ def run(
         logger.error("SparseEvalResult could not be loaded")
         return False
 
-    sim3d = result.alignment
-    if not isinstance(sim3d, pycolmap.Sim3d):
-        logger.error("No valid Sim3d found in SparseEvalResult")
-        return False
-
     num_poses_gt = len(gt_traj)
-    error = evaluate_wrt_pgt(est_traj, gt_traj, sim3d)
-
-    if error is None:
-        logger.error("pGT evaluation failed.")
-        return False
+    sim3d = result.alignment
+    if isinstance(sim3d, pycolmap.Sim3d):
+        error = evaluate_wrt_pgt(est_traj, gt_traj, sim3d)
+        if error is None:
+            logger.error("pGT evaluation failed.")
+            return False
+    else:
+        # The control point evaluation saves no alignment when it could not
+        # be estimated. Without one no pose can be scored, so all are misses.
+        logger.warning(
+            "No alignment in SparseEvalResult, every pose counts as a miss"
+        )
+        error = np.array([])
 
     for threshold in [1.0, 5.0]:
         pose_recall = calculate_pose_recall(error, num_poses_gt, threshold)
