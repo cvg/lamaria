@@ -152,7 +152,7 @@ def add_residuals_for_sparse_eval(
 class SparseEvalResult:
     """Container for sparse evaluation results."""
 
-    alignment: pycolmap.Sim3d
+    alignment: pycolmap.Sim3d | None  # None if it could not be estimated
     cp_summary: dict[int, ControlPointSummary]
 
     @staticmethod
