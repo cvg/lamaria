@@ -52,6 +52,14 @@ class PgtEvaluationTest(unittest.TestCase):
                     {1.0: expected, 5.0: expected},
                 )
 
+    def test_missing_alignment_scores_every_pose_as_a_miss(self):
+        # The control point evaluation saves no alignment when it could not
+        # be estimated; the pose recall is then 0 instead of a failure.
+        alignment = self.directory / "sparse_eval_result.npy"
+        SparseEvalResult(alignment=None, cp_summary={}).save_as_npy(alignment)
+        estimate = self.scene.write_estimate(self.directory / "estimate.txt")
+        self.assertEqual(self.recall(estimate, alignment), {1.0: 0.0, 5.0: 0.0})
+
     def test_alignment_saved_by_the_control_point_evaluation_is_consumed(
         self,
     ):
