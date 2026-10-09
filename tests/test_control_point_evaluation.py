@@ -130,6 +130,7 @@ class ControlPointEvaluationTest(unittest.TestCase):
             self, result.alignment, self.scene.topo_from_est, atol=1e-5
         )
         triangulable = self.scene.triangulable_tags(indices)
+        self.assertTrue(0 < len(triangulable) < len(CONTROL_POINTS))
         self.assertEqual(set(result.cp_summary), set(self.scene.control_points))
         for tag_id, error in errors_by_tag(result).items():
             with self.subTest(tag_id=tag_id):
@@ -143,20 +144,27 @@ class ControlPointEvaluationTest(unittest.TestCase):
         self.assertAlmostEqual(calculate_control_point_score(result), expected)
         self.assertAlmostEqual(calculate_control_point_recall(result), expected)
 
-    def test_partial_trajectory_with_too_few_control_points_fails_cleanly(
-        self,
-    ):
+    def test_partial_trajectory_with_too_few_control_points_scores_zero(self):
         indices = range(NUM_FRAMES // 4)
         triangulable_with_height = set(TAGS_WITH_HEIGHT) & (
             self.scene.triangulable_tags(indices)
         )
         self.assertLess(len(triangulable_with_height), 3)
 
-        with self.assertLogs("lamaria", level="ERROR") as logs:
+        with self.assertLogs("lamaria", level="INFO") as logs:
             ok, result_path = self.run_evaluation(indices=indices)
-        self.assertFalse(ok)
-        self.assertFalse(result_path.exists())
-        self.assertIn("Sparse evaluation failed", "\n".join(logs.output))
+        self.assertTrue(ok)
+        output = "\n".join(logs.output)
+        self.assertIn("CP Score: 0.0000", output)
+        self.assertIn("CP Recall @ 1m: 0.0000", output)
+
+        # No alignment could be estimated, so every control point is a miss.
+        result = SparseEvalResult.load_from_npy(result_path)
+        self.assertIsNone(result.alignment)
+        self.assertEqual(set(result.cp_summary), set(self.scene.control_points))
+        self.assertTrue(np.all(np.isnan(list(errors_by_tag(result).values()))))
+        self.assertEqual(calculate_control_point_score(result), 0.0)
+        self.assertEqual(calculate_control_point_recall(result), 0.0)
 
 
 class SparseAlignmentRegressionTest(unittest.TestCase):
